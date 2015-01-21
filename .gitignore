@@ -16,3 +16,4 @@ dist
 /.cache
 /bin/
 activator
+/.sbt
