@@ -1,2 +1,16 @@
-@(users: List[models.User], activeSort:String)
+@(users: List[models.User])
 
+@if(users.isEmpty){
+    <p>No users yet</p>
+} else {
+    <ul>
+        @users.map { user =>
+            <li>
+                @user.id
+                <em>is @user.username</em>
+            </li>
+            }
+    </ul>
+}
+
+<a href = "./users/new">Add new user</a>

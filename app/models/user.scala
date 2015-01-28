@@ -12,9 +12,9 @@ import reactivemongo.bson._
  */
 case class User (
     id: BSONObjectID,
-    username: String,
-    subscriptions: BSONArray, // list of calIDs
-    settings: UserSettings // settings parameters
+    username: String
+    //subscriptions: BSONArray, // list of calIDs
+    //settings: UserSettings // settings parameters
 )
 
 object User {
@@ -22,19 +22,20 @@ object User {
         def read(doc: BSONDocument): User = {
             User(
                 doc.getAs[BSONObjectID]("_id").get,
-                doc.getAs[String]("username").get,
+                doc.getAs[String]("username").get)
                 // doc.getAs[List[BSONObjectID]]("subscriptions").get,
-                doc.getAs[BSONArray]("subscriptions").get,
-                doc.getAs[UserSettings]("settings").get)
+                //doc.getAs[BSONArray]("subscriptions").get,
+                //doc.getAs[UserSettings]("settings").get)
         }
     }
     
     implicit object UserWriter extends BSONDocumentWriter[User] {
         def write(user: User): BSONDocument = BSONDocument(
             "_id" -> user.id,
-            "username" -> user.username,
-            "subscriptions" -> user.subscriptions,
-            "settings" -> user.settings)
+            "username" -> user.username
+            //"subscriptions" -> user.subscriptions,
+            //"settings" -> user.settings
+            )
     }
       
     val form = Form(
@@ -44,9 +45,9 @@ object User {
             //    "constraint.objectId",
             //    "error.objectId"),
             "id" -> ignored(BSONObjectID.generate),
-            "username" -> nonEmptyText,
-            "subscriptions" -> ignored(BSONArray.empty),
-            "settings" -> ignored(UserSettings()) 
+            "username" -> nonEmptyText
+            //"subscriptions" -> ignored(BSONArray.empty),
+            //"settings" -> ignored(UserSettings()) 
         ) (User.apply) (User.unapply) 
     )
 }

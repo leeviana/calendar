@@ -1,6 +1,10 @@
 package controllers
 
 import models._
+import models.User._
+
+import views.html._;
+
 import play.api._
 import play.api.mvc._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -24,10 +28,7 @@ object Users extends Controller with MongoController {
     
     //def collection: BSONCollection = db.collection[BSONCollection]("users")
     
-    def index = Action.async { implicit request =>
-        //implicit val reader = User.UserReader
-        
-                
+    def index = Action.async { implicit request =>         
              val query = BSONDocument(
             "$query" -> BSONDocument())
         
@@ -36,8 +37,22 @@ object Users extends Controller with MongoController {
             
             found.collect[List]().map { users =>
                 //Ok(views.html.users(users, activeSort))
-                Ok(views.html.index(users))
+                Ok(views.html.users(users))
             }
-        
+    }
+    
+    def showCreationForm = Action {
+        Ok(views.html.editUser(User.form))
+    }
+    
+    def create = Action { implicit request =>
+        User.form.bindFromRequest.fold(
+            errors => Ok(views.html.editUser(errors)),
+            
+            user => {
+                collection.insert(user)
+                Redirect(routes.Users.index())
+            }
+        )
     }
 }
