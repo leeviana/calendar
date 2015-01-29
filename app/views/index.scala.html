@@ -1,7 +1,13 @@
-@(message: String)
-
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
+@(users: List[models.User])
+@if(users.isEmpty){
+    <p>No users yet</p>
+} else {
+    <ul>
+        @users.map { user =>
+            <li>
+                @user.id
+                <em>is @user.username</em>
+            </li>
+            }
+    </ul>
 }
