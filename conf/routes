@@ -19,6 +19,6 @@ GET     /events                     controllers.Events.index
 GET     /events/new                 controllers.Events.showCreationForm
 POST    /events/new                 controllers.Events.create
 
->>>>>>> master
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
