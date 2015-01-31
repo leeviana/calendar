@@ -7,6 +7,10 @@ GET     /                           controllers.Application.index
 
 # Users
 GET     /users                      controllers.Users.index
+
+GET		/login            			controllers.Application.login
+GET		/addEvent					controllers.Application.addEvent
+
 GET     /users/new                  controllers.Users.showCreationForm
 POST    /users/new                  controllers.Users.create
 GET     /agenda						controllers.Application.showAgenda
@@ -15,6 +19,7 @@ GET     /agenda						controllers.Application.showAgenda
 GET     /events                     controllers.Events.index
 GET     /events/new                 controllers.Events.showCreationForm
 POST    /events/new                 controllers.Events.create
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

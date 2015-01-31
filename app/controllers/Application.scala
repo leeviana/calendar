@@ -13,5 +13,11 @@ object Application extends Controller {
     Ok(views.html.agenda())
   }
 
+    def login = Action {
+      Ok(views.html.login())
+    }
 
+    def addEvent = Action {
+      Ok(views.html.addEvent())
+    }
 }
