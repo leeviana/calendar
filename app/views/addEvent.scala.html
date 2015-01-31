@@ -1,4 +1,7 @@
+
 @main("Add Event"){
+
+
 <head>
 		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-timepicker.min.css")">
 		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/icon-large.min.css")">
@@ -9,8 +12,12 @@
 <br><br><br><br>
 <div class="container">
 
+
+
 	<form class="form-horizontal">
 		<legend> Add Event</legend>
+
+
 		<div class="form-group">
 			<label for="textinput" class="col-sm-2 control-label">Event Name</label>
 			  <div class="col-sm-10">
@@ -83,6 +90,8 @@
 						</div>
 				</div>
 		</div>
+
+			</form>
 
 		<script>
 			$('#dailyCheckbox').on('click', function(ev) {
@@ -180,7 +189,6 @@
   									<option value="28">28</option>
   									<option value="29">29</option>
   									<option value="30">30</option>
- 										Days
 								</select>
 
 							</div>
@@ -201,7 +209,7 @@
 
 			<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Create</button>
 			<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span> Cancel</button>
-	</form>
+
 
 </div>
 
