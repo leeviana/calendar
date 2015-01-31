@@ -24,4 +24,8 @@ object Application extends Controller {
     def settings = Action {
       Ok(views.html.settings())
     }
+    
+    def newGroup = Action {
+      Ok(views.html.createGroup())
+    }
 }
