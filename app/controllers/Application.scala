@@ -20,4 +20,8 @@ object Application extends Controller {
     def addEvent = Action {
       Ok(views.html.addEvent())
     }
+    
+    def settings = Action {
+      Ok(views.html.settings())
+    }
 }
