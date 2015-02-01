@@ -7,6 +7,9 @@ import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.BSONArray
+import reactivemongo.bson.BSONObjectID
+import org.joda.time.DateTime
     
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -39,7 +42,9 @@ object Events extends Controller with MongoController {
             errors => Ok(views.html.editEvent(errors)),
             
             event => {
-                collection.insert(event)
+                //val timeRange = new TimeRange(false, new DateTime(), Some(new DateTime()))
+                val updatedEvent = event.copy(calendar = BSONObjectID.generate, rules = BSONArray.empty)
+                collection.insert(updatedEvent)
                 Redirect(routes.Events.index())
             }
         )

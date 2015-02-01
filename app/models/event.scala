@@ -14,8 +14,8 @@ case class Event(
     name: String,
     description: String,
     rules: BSONArray, // list of rule objects
-    // RecurrenceMeta: { }, //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
-    nextRecurrence: BSONObjectID // pointer, can be null if not recurring
+    recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
+    nextRecurrence: Option[BSONObjectID] // BSONID pointer, can be null if not recurring
 )
 
 object Event {
@@ -28,7 +28,8 @@ object Event {
                 doc.getAs[String]("name").get,
                 doc.getAs[String]("description").get,
                 doc.getAs[BSONArray]("rules").get,
-                doc.getAs[BSONObjectID]("nextRecurrence").get)
+                doc.getAs[RecurrenceMeta]("recurrenceMeta"),
+                doc.getAs[BSONObjectID]("nextRecurrence"))
         }
     }
     
@@ -36,12 +37,13 @@ object Event {
         def write(event: Event) = {
             
             val bson = BSONDocument(
-                "id" -> event.id,
+                "_id" -> event.id,
                 "calendar" -> event.calendar,
                 "timeRange" -> event.timeRange,
                 "name" -> event.name,
                 "description" -> event.description,
                 "rules" -> event.rules,
+                "recurrenceMeta" -> event.recurrenceMeta,
                 "nextRecurrence" -> event.nextRecurrence)
                 
             bson
@@ -54,20 +56,22 @@ object Event {
             "calendar" -> nonEmptyText, // BSONObjectID
             //"start" -> date("dd-MM-yyyy hh:mm a"),
             //"end" -> optional(date("dd-MM-yyyy hh:mm a")),
-            "timerange" -> TimeRange.form.mapping,
+            "timeRange" -> TimeRange.form.mapping,
             "name" -> nonEmptyText,
             "description" -> nonEmptyText,
             "rules" -> ignored(BSONArray.empty),
-            "nextRecurrence" -> nonEmptyText // BSONObjectID
-        ) { (id, calendar, timerange, name, description, rules, nextRecurrence) =>
+            "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
+            "nextRecurrence" -> optional(nonEmptyText) // BSONObjectID
+        ) { (id, calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence) =>
             Event(
               id,
               BSONObjectID.apply(calendar),
-              timerange,
+              timeRange,
               name,
               description,
               rules,
-              BSONObjectID.apply(nextRecurrence))
+              recurrenceMeta,
+              nextRecurrence.map(id => BSONObjectID.apply(id)))
         } { event =>
             Some(
               (event.id,
@@ -76,7 +80,8 @@ object Event {
               event.name,
               event.description,
               event.rules,
-              event.nextRecurrence.stringify))
+              event.recurrenceMeta,
+              event.nextRecurrence.map (id => id.stringify)))
           }
         )
 }
