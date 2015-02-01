@@ -25,11 +25,15 @@ object Event {
                 doc.getAs[BSONObjectID]("_id").get,
                 doc.getAs[BSONObjectID]("calendar").get,
                 doc.getAs[TimeRange]("timeRange").get,
+                //new TimeRange(false, new DateTime(), Some(new DateTime())),
                 doc.getAs[String]("name").get,
                 doc.getAs[String]("description").get,
                 doc.getAs[BSONArray]("rules").get,
+                //Some(new RecurrenceMeta()),
+                //Some(BSONObjectID.generate)
                 doc.getAs[RecurrenceMeta]("recurrenceMeta"),
-                doc.getAs[BSONObjectID]("nextRecurrence"))
+                doc.getAs[BSONObjectID]("nextRecurrence")
+            )
         }
     }
     

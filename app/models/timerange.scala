@@ -20,8 +20,8 @@ object TimeRange {
         def read(doc: BSONDocument): TimeRange = {
             TimeRange(
                 doc.getAs[Boolean]("allday").get,
-                doc.getAs[BSONDateTime]("start").map (dt => new DateTime(dt)).get,
-                doc.getAs[BSONDateTime]("end").map ( dt => new DateTime(dt))
+                doc.getAs[BSONDateTime]("start").map (dt => new DateTime(dt.value)).get,
+                doc.getAs[BSONDateTime]("end").map ( dt => new DateTime(dt.value))
             )
         }
     }
@@ -30,12 +30,14 @@ object TimeRange {
         def write(timerange: TimeRange): BSONDocument = {
             val bson = BSONDocument(
                 "allday" -> timerange.allday,
-                "start" -> timerange.start.getMillis
+                "start" -> BSONDateTime(timerange.start.getMillis),
+                "end" -> BSONDateTime(timerange.end.get.getMillis)
             )
             
-            if (!timerange.allday) {
-                bson.add("end" -> timerange.end.get.getMillis)
-            }
+            // TODO: add async so that this check works?
+            //if (timerange.end.isDefined) {
+            //    bson.add("end" -> timerange.end.get.getMillis)
+            //}
         bson
     }
 }
