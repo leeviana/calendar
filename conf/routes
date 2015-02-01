@@ -9,6 +9,7 @@ GET     /                           controllers.Application.index
 GET     /users                      controllers.Users.index
 GET     /users/new                  controllers.Users.showCreationForm
 POST    /users/new                  controllers.Users.create
+GET     /agenda						controllers.Application.showAgenda
 
 # Events
 GET     /events                     controllers.Events.index
