@@ -1,7 +1,17 @@
 @(message: String)
 
-@main("Welcome to Play") {
+@main("Calendar"){
+    <div class="container">
 
-    @play20.welcome(message)
+      <h1> Welcome to Calendar!</h1>
+      <div class="row">
+      	<div class="col-md-6">
+      		<a href="./login" class="btn btn-info" role="button">Login</a>
+      	</div>
+      	<div class="col-md-6">
+      		<a href="./users/new" class="btn btn-info" role="button">Create New User</a>
+      	</div>
+      </div>
 
-}
+    </div> <!-- /container -->
+    }

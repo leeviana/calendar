@@ -5,9 +5,13 @@ import play.api.mvc._
 
 object Application extends Controller {
 
-    def index = Action {
-        Ok(views.html.index("Your new application is ready."))
-    }
+  def index = Action {
+    Ok(views.html.index("Your new application is ready."))
+  }
+  
+  def showAgenda = Action {
+    Ok(views.html.agenda())
+  }
 
     def login = Action {
       Ok(views.html.login())
@@ -15,5 +19,13 @@ object Application extends Controller {
 
     def addEvent = Action {
       Ok(views.html.addEvent())
+    }
+    
+    def settings = Action {
+      Ok(views.html.settings())
+    }
+    
+    def newGroup = Action {
+      Ok(views.html.createGroup())
     }
 }

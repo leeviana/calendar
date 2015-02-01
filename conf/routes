@@ -13,6 +13,9 @@ GET		/addEvent					controllers.Application.addEvent
 
 GET     /users/new                  controllers.Users.showCreationForm
 POST    /users/new                  controllers.Users.create
+GET     /agenda						controllers.Application.showAgenda
+GET		/settings					controllers.Application.settings
+GET 	/groups/new					controllers.Application.newGroup
 
 # Events
 GET     /events                     controllers.Events.index
