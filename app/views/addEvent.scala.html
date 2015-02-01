@@ -5,7 +5,9 @@
 <head>
 		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-timepicker.min.css")">
 		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/icon-large.min.css")">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/multiple-select.css")">
 	  <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-timepicker.min.js")"></script>
+	  <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.multiple.select.js")"></script>
 </head>
 
 <body>
@@ -37,7 +39,7 @@
 		<div class="form-group">
 			<label for="form-control" class="col-sm-2 control-label">Calendar</label>	
 				<div class="col-sm-10">
-					<select class="form-control" style="width:200px">
+					<select multiple="multiple" style="width:200px">
  						<option>1</option>
   						<option>2</option>
   						<option>3</option>
@@ -95,22 +97,48 @@
 					<div class="checkbox">
 						  <label> 
 						    	<input type="checkbox" id="recurringCheckbox" value="option1">
-						    	<input type="text" style="width:40px">
+						    	<input type="text" style="width:40px" placeholder="Days">
 						    	</label>
 					</div>	    	
-						    	<div class="col-sm-4">
+						    	<!-- <div class="col-sm-4">
 						    	<select class="form-control" style="width:40px">
 						    		<option> </option>
 						    		<option>Days</option>
 						    		<option>Weeks</option>
 						    		<option>Months</option>
 						    	</select>
-						    	</div>
-						  
-						</div>
+								</div> -->
 				
+				</div>
+				</div>
 			</div>
+
+		<div class="form-group">
+			<label for="form-control" class="col-sm-2 control-label">Groups</label>	
+				<div class="col-sm-10">
+					<select multiple="multiple" style="width:200px">
+ 						<option>1</option>
+  						<option>2</option>
+  						<option>3</option>
+  						<option>4</option>
+  						<option>5</option>
+					</select>
+				</div>
 		</div>
+	
+
+
+		
+    <script src="jquery.multiple.select.js"></script>
+    <script>
+        $('select').multipleSelect();
+    </script>
+
+
+		<br>
+
+		<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Create</button>
+		<a href="./agenda" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash"></span> Cancel</a>
 
 
 		</form>
@@ -147,7 +175,10 @@
 
       				 <div class="form-group">
             			<label for="form-control" class="col-md-2 control-label">Ends</label> 	
-                			<input type="radio" value="never"> Never               				
+            			
+                			<input type="radio" value="never" name="x"> Never   
+                			
+                			<input type="radio" value="never" name="x"> On     	<input type="text" style="width:60px" placeholder="Date">      				
           			</div>
 
 
@@ -219,8 +250,6 @@
  
 
 
-			<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Create</button>
-			<a href="./agenda" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash"></span> Cancel</a>
 
 </div>
 
