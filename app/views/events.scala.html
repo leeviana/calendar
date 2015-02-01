@@ -6,7 +6,7 @@
     <ul>
         @events.map { event =>
             <li>
-                @event.start
+                @event.timeRange.start
                 <em>is @event.name</em>
             </li>
             }
