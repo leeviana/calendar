@@ -17,3 +17,5 @@ dist
 /bin/
 activator
 /.sbt
+
+*.class
