@@ -3,6 +3,7 @@ package models
 import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
+import reactivemongo.api.collections.default.BSONCollection
 
 /**
  * @author Leevi
@@ -10,8 +11,9 @@ import reactivemongo.bson._
 case class User (
     id: BSONObjectID,
     username: String,
-    subscriptions: Option[BSONArray] // list of calIDs
-    //settings: UserSettings // settings parameters
+    email: String,
+    subscriptions: BSONArray, // list of calIDs
+    settings: BSONArray // list of UserSettings
 )
 
 object User {
@@ -20,8 +22,10 @@ object User {
             User(
                 doc.getAs[BSONObjectID]("_id").get,
                 doc.getAs[String]("username").get,
-                doc.getAs[BSONArray]("subscriptions"))
-                //doc.getAs[UserSettings]("settings").get)
+                doc.getAs[String]("email").get,
+                doc.getAs[BSONArray]("subscriptions").get,
+                doc.getAs[BSONArray]("settings").get
+            )
         }
     }
     
@@ -29,9 +33,10 @@ object User {
         def write(user: User): BSONDocument = BSONDocument(
             "_id" -> user.id,
             "username" -> user.username,
-            "subscriptions" -> user.subscriptions
-            //"settings" -> user.settings
-            )
+            "email" -> user.email,
+            "subscriptions" -> user.subscriptions,
+            "settings" -> user.settings
+        )
     }
       
     val form = Form(
@@ -42,18 +47,24 @@ object User {
             //    "error.objectId"),
             "id" -> ignored(BSONObjectID.generate),
             "username" -> nonEmptyText,
-            "subscriptions" -> optional(ignored(BSONArray.empty))
-            //"settings" -> ignored(UserSettings()) 
-        )  { (id, username, subscriptions) =>
+            "email" -> nonEmptyText,
+            "subscriptions" -> ignored(BSONArray.empty),
+            "settings" -> ignored(BSONArray()) 
+        )  { (id, username, email, subscriptions, settings) =>
             User (
               id,
               username,
-              subscriptions)
+              email,
+              subscriptions,
+              settings
+            )
         } { user =>
             Some(
               (user.id,
               user.username,
-              user.subscriptions))
+              user.email,
+              user.subscriptions,
+              user.settings))
           }
     )
 }
