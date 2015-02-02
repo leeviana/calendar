@@ -4,11 +4,7 @@
 @main("Add Event"){
 
 
-<head>
-		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-timepicker.min.css")">
-		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/icon-large.min.css")">
-	  <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-timepicker.min.js")"></script>
-</head>
+
 
 <div class="row">
     <div class="span8">
@@ -33,14 +29,32 @@
         placeholder = "Event Description",
         help = "Event description")
         
-        <!--  Start Date -->
-		 @helper.inputDate(form("timeRange.date"))
-        @helper.inputText(form("timeRange.start"))  
-        @helper.inputText(form("timeRange.end"))
-        @helper.checkbox(form("timeRange.allday")) 
+        
+        
+        
+       <div class="form-group">
+		<label for="form-control" class="col-sm-2 control-label">Date</label>	
+			<div class="col-sm-10">
+       			@helper.inputDate(form("timeRange.date"))
+        </div>
+        </div>
        
-          
-
+        @timepicker(form("timeRange.start"),
+        	"Start Time")  
+        
+        @timepicker(form("timeRange.end"),
+        	"End Time")  
+        	
+        @checkboxes(form("timeRange.allday"),
+       		label = "All Day",
+       		checkboxMap =  Map("" -> false),
+       		help = "")
+       		
+  		
+        
+       	
+       	<br>
+       	<br>
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>

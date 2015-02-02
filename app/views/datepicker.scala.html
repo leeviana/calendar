@@ -1,0 +1,30 @@
+@(field: Field, label: String = "")
+
+<head>
+	
+	  	<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/datepicker.css")">
+	  	<script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-datepicker.js")"></script>
+	  	<link rel="stylesheet" media="screen" type="text/css" href="@routes.Assets.at("less/datepicker.less")>
+</head>
+
+<body>
+	<div class="form-group">
+		<label for="form-control" class="col-sm-2 control-label">@label</label>	
+			<div class="col-sm-10">
+				<input  type="text" 
+					placeholder="1/1/2015"  
+					id="@field.id"
+					name="@field.name"
+					value="@field.value.getOrElse("")">
+				<span class="help-block">@{field.error.map { error => error.message }}</span>	        
+			</div>
+
+
+       		
+          <script type="text/javascript">         
+            $('#@field.id').datepicker({
+                    format: "mm/dd/yyyy"
+                });                 
+          </script>
+    </div>
+</body>
