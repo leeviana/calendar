@@ -10,7 +10,7 @@
 			<div class="col-sm-10">
 				<div class="input-append bootstrap-timepicker">
 			    	<input type="text"
-			    			id="blah"  
+			    			id="@field.id"  
 			    			name="@field.name"
 			    			class="input-small"
 			    			value="@field.value.getOrElse("")">
@@ -18,7 +18,7 @@
 			    </div>
 			 
 			        <script type="text/javascript">
-			            $('#blah').timepicker();
+			            $('#@field.id').timepicker();
 			        </script>
 			</div>
 	</div>

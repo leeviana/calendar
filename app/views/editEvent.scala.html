@@ -14,7 +14,13 @@
     <div class="span8">
     <h2>Add an event</h2>
     @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
-        
+
+        <!-- Calendar -->
+        @text(form("calendar"),
+    		label = "Calendar",
+        	placeholder = "Calendar",
+        	help = "Calendar ID")
+        	
       	<!-- Event Name -->
 		@text(form("name"),
     		label = "Name",
@@ -28,26 +34,13 @@
         help = "Event description")
         
         <!--  Start Date -->
-		@helper.inputDate(form("end"))
-        @helper.inputDate(form("end"))
-        
-        @timepicker(form("start"))
-        
-        <div class="form-group">
-			<label for="form-control" class="col-sm-2 control-label">Start Time</label>	
-				<div class="col-sm-10">
-					<div class="input-append bootstrap-timepicker">
-			            <input id="timepicker1" type="text" class="input-small">
-			            <span class="add-on"><span class="glyphicon glyphicon-time"></span></span>
-			        </div>
-			 
-			        <script type="text/javascript">
-			            $('#timepicker1').timepicker();
-			        </script>
-				</div>
-		</div>
+		 @helper.inputDate(form("timeRange.date"))
+        @helper.inputText(form("timeRange.start"))  
+        @helper.inputText(form("timeRange.end"))
+        @helper.checkbox(form("timeRange.allday")) 
+       
           
-		
+
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
