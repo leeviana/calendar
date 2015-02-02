@@ -1,228 +1,54 @@
+@(eventForm: Form[models.Event])
+
 
 @main("Add Event"){
 
-
-<head>
-		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-timepicker.min.css")">
-		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/icon-large.min.css")">
-	  <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-timepicker.min.js")"></script>
-</head>
-
-<body>
-<div class="container">
-
-
-
-	<form class="form-horizontal">
-		<legend> Add Event</legend>
-
-
-		<div class="form-group">
-			<label for="textinput" class="col-sm-2 control-label">Event Name</label>
-			  <div class="col-sm-10">
-				<input id="textinput" name="textinput" type="text"
-					placeholder="Event Name Here" class="input-xlarge" style="width:200px">
-				</div>
-		</div>
-
-		<div class="form-group">
-			<label for="textinput" class="col-sm-2 control-label">Event Description</label>
-			  <div class="col-sm-10">
-				<textarea class="form-control" name="textinput" type="textbox"
-					placeholder="Event Name Here" style="width:200px">
-				</textarea>
-				</div>
-		</div>
-
-		<div class="form-group">
-			<label for="form-control" class="col-sm-2 control-label">Calendar</label>	
-				<div class="col-sm-10">
-					<select class="form-control" style="width:200px">
- 						<option>1</option>
-  						<option>2</option>
-  						<option>3</option>
-  						<option>4</option>
-  						<option>5</option>
-					</select>
-				</div>
-		</div>
-	
-		<div class="form-group">
-			<label for="form-control" class="col-sm-2 control-label">Start Time</label>	
-				<div class="col-sm-10">
-					<div class="input-append bootstrap-timepicker">
-			            <input id="timepicker1" type="text" class="input-small">
-			            <span class="add-on"><span class="glyphicon glyphicon-time"></span></span>
-			        </div>
-			 
-			        <script type="text/javascript">
-			            $('#timepicker1').timepicker();
-			        </script>
-				</div>
-		</div>
+<div class="container" style="width:600px">
+	<div id="legend">
+    	<legend>Add Event</legend>
+  	</div>
+  
+	<fieldset>
+	<!-- Event Name -->
+	@text(eventForm("name"),
+    	label = "Name",
+        placeholder = "Event Name",
+        help = "Event Name")
+        
+	<!-- Event Description -->
+	@textarea(eventForm("description"),
+    	label = "Description",
+        placeholder = "Event Description",
+        help = "Event description")
+        
+	<!--  Calendar  -->        
+	@checkboxes(eventForm("calendar"),
+    	label = "Calendars",
+        checkboxMap =  Map("Cal1" -> false, "Cal2" -> false),  //FEED IN AS PARAMETER
+        help = "Check one or more calendars")    
      
-		<div class="form-group">
-			<label for="form-control" class="col-sm-2 control-label">End Time</label>	
-				<div class="col-sm-10">
-					<div class="input-append bootstrap-timepicker">
-			            <input id="timepicker2" type="text" class="input-small">
-			            <span class="add-on"><span class="glyphicon glyphicon-time"></span></span>
-			        </div>
-			 
-			        <script type="text/javascript">
-			            $('#timepicker2').timepicker();
-			        </script>
-				</div>
-		</div>
-
-
-		<div class="form-group">
-			<label for="form-control" class="col-sm-2 control-label">Recurring</label>	
-				<div class="col-sm-10">
-					<div class="checkbox">
-						  <label> 
-						    	<input type="checkbox" id="recurringCheckbox" value="option1" aria-label="..." data-toggle="modal" data-target="#myModal">
-						  </label>
-						</div>
-				</div>
-		</div>
-
-		
-		<div class="form-group">
-			<label for="form-control" class="col-sm-2 control-label">Email reminder</label>	
-				<div class="row">
-				<div class="col-sm-8">
-					<div class="checkbox">
-						  <label> 
-						    	<input type="checkbox" id="recurringCheckbox" value="option1">
-						    	<input type="text" style="width:40px">
-						    	</label>
-					</div>	    	
-						    	<div class="col-sm-4">
-						    	<select class="form-control" style="width:40px">
-						    		<option> </option>
-						    		<option>Days</option>
-						    		<option>Weeks</option>
-						    		<option>Months</option>
-						    	</select>
-						    	</div>
-						  
-						</div>
-				
-			</div>
-		</div>
-
-
-		</form>
-
-		<script>
-			$('#dailyCheckbox').on('click', function(ev) {
-    		$('#myModal').modal('show');
-
-    		});
-		</script>
-
-		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  			<div class="modal-dialog">
-    			<div class="modal-content">
-      				<div class="modal-header">
-        				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        				<h4 class="modal-title" id="myModalLabel">Recurring</h4>
-      				</div>
-
-      			<div class="modal-body">
-      				<form>
-
-      				<div class="form-group">
-            			<label for="form-control" class="col-md-2 control-label">Repeat</label> 
-                			<select class="form-control" style="width:200px">
-                 				<option></option>
-                  				<option id="daily">Daily</option>
-                  				<option id="weekly">Weekly</option>
-                    			<option id="montly">Monthly</option>
-                    			<option id="yearly">Yearly</option>
-                			</select>
-          			</div>
-
-
-      				 <div class="form-group">
-            			<label for="form-control" class="col-md-2 control-label">Ends</label> 	
-                			<input type="radio" value="never"> Never               				
-          			</div>
-
-
-					<div class="form-group">
-	            		<label for="form-control" class="col-md-2 control-label">On</label> 
-	              	
-	                		<div class="checkbox">
-	                 			<label><input type="checkbox" value="0" aria-label="..."> S </label>
-	                  			<label><input type="checkbox" value="1" aria-label="..."> M </label>
-	                  			<label><input type="checkbox" value="2" aria-label="..."> T </label>
-	                  			<label><input type="checkbox" value="3" aria-label="..."> W </label>
-	                  			<label><input type="checkbox" value="4" aria-label="..."> T </label>
-	                  			<label><input type="checkbox" value="5" aria-label="..."> F </label>
-	                  			<label><input type="checkbox" value="6" aria-label="..."> S </label>      
-	                		</div>
-	              		
-	          		</div>
-
-	          		<div class="form-group">
-						<label for="form-control" class="col-md-2 control-label">Every</label>	
-							
-								<select class="form-control" style="width:60px">
-	 								<option value="1">1</option>
-	  								<option value="2">2</option>
-	  								<option value="3">3</option>
-	  								<option value="4">4</option>
-	  								<option value="5">5</option>
-	  								<option value="6">6</option>
-	  								<option value="7">7</option>
-	  								<option value="8">8</option>
-	  								<option value="9">9</option>
-	  								<option value="10">10</option>
-	  								<option value="11">11</option>
-	  								<option value="12">12</option>
-	  								<option value="13">13</option>
-	  								<option value="14">14</option>
-	  								<option value="15">15</option>
-	  								<option value="16">16</option>
-	 								<option value="17">17</option>
-	  								<option value="18">18</option>
-	  								<option value="19">19</option>
-	  								<option value="20">20</option>
-	  								<option value="21">21</option>
-	  								<option value="22">22</option>
-	 								<option value="23">23</option>
-	 								<option value="24">24</option>
-	  								<option value="25">25</option>
-	  								<option value="26">26</option>
-	  								<option value="27">27</option>
-	  								<option value="28">28</option>
-	 								<option value="29">29</option>
-	 								<option value="30">30</option>
-								</select>
-							
-					</div>
-
-          	</form>
-				</div>	<!-- END OF BODY-->
-      			<div class="modal-footer">
-        			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        			<button type="button" class="btn btn-primary">Save changes</button>
-      			</div>
-
-    			
-  			</div>
-		</div>
-	</div>
-
- 
-
-
-			<button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Create</button>
-			<a href="./agenda" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash"></span> Cancel</a>
-
+     <!-- Recurring FIX DIS-->        
+	@radiobuttons(eventForm("recurrence"),
+		label = "Recurrence",
+        buttonNameList = List("Daily", "Weekly", "Montly", "Yearly"),
+        help = "Recurrence")
+        
+      <!-- Email -->         		               
+	@select(eventForm("email"),
+          label = "Email Reminder",
+          optionMap = Map("1" -> false, "2" -> false, "3" -> false, "4" -> false),
+          isMultiple = false,
+          help = "How many days before would you like a reminder?")     
+                             
+    <div class="form-group">
+    	<div class="col-sm-offset-2 col-sm-10">   				
+      		<button id="submit" type="submit" value="Submit" class="btn btn-primary"><span class="glyphicon glyphicon-pencil"></span> Create</button>
+      		<a href="./agenda" class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash"></span> Cancel</a>
+    	</div>
+  	</div>
+  
+    
+	</fieldset>
+	
 </div>
-
-</body>
 }

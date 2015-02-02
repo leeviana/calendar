@@ -1,17 +1,27 @@
 @(form: Form[models.Event])
 @import helper.twitterBootstrap._
 
+@main("Add Event"){
 <div class="row">
     <div class="span8">
     <h2>Add an event</h2>
     @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
         @helper.inputDate(form("start"))
-        @helper.inputDate(form("end"))
-        @helper.inputText(form("name"))
+      
+		@text(form("name"),
+    	label = "Name",
+        placeholder = "Event Name",
+        help = "Event Name")
+     <!--    @helper.input(form("name")){ (id, name, value, args) =>
+    		<input type="text" name="@name" id="@id" @toHtmlArgs(args)>
+} 
+       -->  
         @helper.inputText(form("description"))
+          @helper.inputDate(form("end"))
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
     }
     </div>
 </div>
+}
