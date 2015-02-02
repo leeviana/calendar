@@ -3,58 +3,51 @@ package models
 import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
-import models.AccessType
 
 /**
  * @author Leevi
  */
 case class Calendar (
-    orderNum: Int,
-    entityType: EntityType.EntityType,
-    entityID: BSONObjectID, // foreign ref
-    access: AccessType.AccessType
+    owner: BSONObjectID, // foreign ref calendar
+    rules: List[Rule],
+    settings: List[UserSetting] // do we need a seperate calendarsetting?
 )
 
 object Calendar {
     implicit object CalendarReader extends BSONDocumentReader[Calendar] {
         def read(doc: BSONDocument): Calendar = {
             Calendar(
-                doc.getAs[Int]("orderNum").get,
-                doc.getAs[EntityType.EntityType]("entityType").get,
-                doc.getAs[BSONObjectID]("entityID").get,
-                doc.getAs[AccessType.AccessType]("access").get
+                doc.getAs[BSONObjectID]("owner").get,
+                doc.getAs[List[Rule]]("rules").get,
+                doc.getAs[List[UserSetting]]("settings").get
             )
         }
     }
     
     implicit object CalendarWriter extends BSONDocumentWriter[Calendar] {
         def write(calendar: Calendar): BSONDocument = BSONDocument(
-            "orderNum" -> calendar.orderNum,
-            "entityType" -> calendar.entityType.toString(),
-            "entityID" -> calendar.entityID,
-            "access" -> calendar.access.toString()
+            "owner" -> calendar.owner,
+            "rules" -> calendar.rules,
+            "settings" -> calendar.settings
         )
     }
       
     val form = Form(
         mapping(
-            "orderNum" -> number,
-            "entityType" -> nonEmptyText,
-            "entityID" -> nonEmptyText,
-            "access" -> nonEmptyText
-        )  { (orderNum, entityType, entityID, access) =>
+            "owner" -> nonEmptyText,
+            "rules" -> list(Rule.form.mapping),
+            "settings" -> list(UserSetting.form.mapping)
+        )  { (owner, rules, settings) =>
             Calendar (
-              orderNum,
-              EntityType.withName(entityType),
-              BSONObjectID.apply(entityID),
-              AccessType.withName(access)
+              BSONObjectID.apply(owner),
+              rules,
+              settings
             )
         } { calendar =>
             Some(
-              (calendar.orderNum,
-              calendar.entityType.toString(),
-              calendar.entityID.toString(),
-              calendar.access.toString()))
+              (calendar.owner.stringify,
+              calendar.rules,
+              calendar.settings))
           }
     )
 }

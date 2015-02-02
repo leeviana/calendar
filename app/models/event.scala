@@ -25,12 +25,9 @@ object Event {
                 doc.getAs[BSONObjectID]("_id").get,
                 doc.getAs[BSONObjectID]("calendar").get,
                 doc.getAs[TimeRange]("timeRange").get,
-                //new TimeRange(false, new DateTime(), Some(new DateTime())),
                 doc.getAs[String]("name").get,
                 doc.getAs[String]("description").get,
                 doc.getAs[BSONArray]("rules").get,
-                //Some(new RecurrenceMeta()),
-                //Some(BSONObjectID.generate)
                 doc.getAs[RecurrenceMeta]("recurrenceMeta"),
                 doc.getAs[BSONObjectID]("nextRecurrence")
             )
@@ -58,8 +55,6 @@ object Event {
         mapping(
             "id" -> ignored(BSONObjectID.generate),
             "calendar" -> nonEmptyText, // BSONObjectID
-            //"start" -> date("dd-MM-yyyy hh:mm a"),
-            //"end" -> optional(date("dd-MM-yyyy hh:mm a")),
             "timeRange" -> TimeRange.form.mapping,
             "name" -> nonEmptyText,
             "description" -> nonEmptyText,
