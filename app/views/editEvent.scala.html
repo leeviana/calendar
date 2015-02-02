@@ -2,22 +2,52 @@
 @import helper.twitterBootstrap._
 
 @main("Add Event"){
+
+
+<head>
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-timepicker.min.css")">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/icon-large.min.css")">
+	  <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-timepicker.min.js")"></script>
+</head>
+
 <div class="row">
     <div class="span8">
     <h2>Add an event</h2>
     @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
-        @helper.inputDate(form("start"))
-      
+        
+      	<!-- Event Name -->
 		@text(form("name"),
-    	label = "Name",
-        placeholder = "Event Name",
-        help = "Event Name")
-     <!--    @helper.input(form("name")){ (id, name, value, args) =>
-    		<input type="text" name="@name" id="@id" @toHtmlArgs(args)>
-} 
-       -->  
-        @helper.inputText(form("description"))
-          @helper.inputDate(form("end"))
+    		label = "Name",
+        	placeholder = "Event Name",
+        	help = "Event Name")
+ 
+ 		<!--  Description -->
+		@textarea(form("description"),
+    	label = "Description",
+        placeholder = "Event Description",
+        help = "Event description")
+        
+        <!--  Start Date -->
+		@helper.inputDate(form("end"))
+        @helper.inputDate(form("end"))
+        
+        @timepicker(form("start"))
+        
+        <div class="form-group">
+			<label for="form-control" class="col-sm-2 control-label">Start Time</label>	
+				<div class="col-sm-10">
+					<div class="input-append bootstrap-timepicker">
+			            <input id="timepicker1" type="text" class="input-small">
+			            <span class="add-on"><span class="glyphicon glyphicon-time"></span></span>
+			        </div>
+			 
+			        <script type="text/javascript">
+			            $('#timepicker1').timepicker();
+			        </script>
+				</div>
+		</div>
+          
+		
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
