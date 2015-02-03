@@ -7,13 +7,12 @@
     Event Name: @event.name
     <br><br>
     <b>Add reminder</b>
-    TODO: Show existing reminders here (I need to pass this in)
     @helper.form(action = routes.Events.addReminder(event.id.stringify), 'class -> "form-horizontal") {
         @helper.inputText(reminderForm("eventID"))
         Hidden form (input type="hidden"), autofill with "@event.id.stringify"
         
-        @helper.inputDate(reminderForm("timestamp.date"))
-        @helper.inputText(reminderForm("timestamp.start"))
+        @helper.inputDate(reminderForm("timestamp.startDate"))
+        @helper.inputText(reminderForm("timestamp.startTime"))
         
         @helper.inputText(reminderForm("user"))
         Hidden form: auto fill with authenticated userid (I can pass that in). Possibly use placeholder fake ID.
@@ -26,8 +25,8 @@
         </div>
     }
     
-    <b>Rules</b>
-    TODO: Show info about existing rules here (@event.rules)
+    <b>Rules</b><br>
+    Show info about existing rules here: (@event.rules)<br>
         @helper.form(action = routes.Events.addRule(event.id.stringify), 'class -> "form-horizontal") {
         <input type="number" name="orderNum" value='@ruleForm("orderNum").value' >
         Hidden form: autofill with next order number (@event.rules.length)

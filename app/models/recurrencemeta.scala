@@ -21,13 +21,9 @@ case class RecurrenceMeta (
     monthly: Option[MonthMeta],
     yearly: Option[YearMeta]
     // TODO: remove 'recurrenceType', which is inside of meta objects and just have all meta objects extend from the same class
-    // TODO: move all the recurrence meta classes into their own package
-)//{
-    //def this() {
-    //this(new TimeRange(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime())), Some(0), Some(ReminderType.Email), RecurrenceType.Daily, 
-    //        Some(new DayMeta(2)), Some(new WeekMeta(List(0))), Some(new MonthMeta(List((3)))), Some(new YearMeta(5, 2)));
-  //}
-//}
+    // learn more about Scala's hierarchy system and possibly use it to clean up this class
+    // move all the recurrence meta classes into their own package
+)
 
 object RecurrenceType extends Enumeration {
     type RecurrenceType = Value
@@ -62,28 +58,14 @@ object RecurrenceMeta {
         def write(recurrencemeta: RecurrenceMeta): BSONDocument = {
             val bson = BSONDocument(
                 "timeRange" -> recurrencemeta.timeRange,
-                
-                "recurrenceType" -> recurrencemeta.recurrenceType.toString()
-                
+                "reminderTime" -> recurrencemeta.reminderTime,
+                "reminderType" -> recurrencemeta.reminderType.toString(),
+                "recurrenceType" -> recurrencemeta.recurrenceType.toString(),
+                "daily" -> recurrencemeta.daily,
+                "weekly" -> recurrencemeta.weekly,
+                "monthly" -> recurrencemeta.monthly,
+                "yearly" -> recurrencemeta.yearly  
             )
-            
-            if(recurrencemeta.reminderTime.isDefined){
-                bson.add("reminderTime" -> recurrencemeta.reminderTime)
-                bson.add("reminderType" -> recurrencemeta.reminderType.toString())
-            }
-            
-            if(recurrencemeta.daily.isDefined){
-                bson.add("daily" -> recurrencemeta.daily)
-            }
-            else if(recurrencemeta.weekly.isDefined){
-                bson.add("weekly" -> recurrencemeta.weekly)
-            }
-            else if(recurrencemeta.monthly.isDefined){
-                bson.add("monthly" -> recurrencemeta.monthly)
-            }
-            else if(recurrencemeta.yearly.isDefined){
-                bson.add("yearly" -> recurrencemeta.yearly)
-            }
             
             bson
         }

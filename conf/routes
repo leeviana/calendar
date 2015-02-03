@@ -15,6 +15,7 @@ GET     /agenda						    controllers.Application.showAgenda
 GET     /groups                         controllers.Users.showGroups
 POST    /groups/new                     controllers.Users.addGroup
 POST    /groups/addUsertoGroup          controllers.Users.addUsertoGroup
+
 # Events
 GET     /events                         controllers.Events.index
 GET     /events/reminders               controllers.Events.showReminders
