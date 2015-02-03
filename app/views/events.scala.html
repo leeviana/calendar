@@ -1,16 +1,52 @@
 @(events: List[models.Event])
 
-@if(events.isEmpty){
-    <p>No events yet</p>
-} else {
-    <ul>
-        @events.map { event =>
-            <li>
-                @event.timeRange.start
-                <em>is @event.name</em>
-            </li>
-            }
-    </ul>
-}
+@main("Events"){
 
-<a href = "./events/new">Add new event</a>
+<div class="container">
+	<div class="row">
+	<div class="col-md-9">
+	<h1>Date</h1>
+	<div class="btn-group" role="group">
+		<a href="/events" class="btn btn-default" role="button">Prev</a>
+		<a href="/events" class="btn btn-default" role="button">Next</a>	
+	</div>
+	</div>
+	<div class="col-md-3">
+		<a href="./addEvent" class="btn btn-info" role="button">Add Event</a>
+	</div>
+	</div>
+</div>
+
+<div class="container">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Time</th>
+				<th>Description</th>
+				<th>Location</th>
+				<th>Owner</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if(events.isEmpty){
+				<tr>
+					<td>No Time</td>
+					<td>No Description</td>
+					<td>No Location</td>
+					<td>No Owner</td>
+				</tr>
+			} else {
+				@for(e <- events){
+				<tr>
+					<td>@e.start</td>
+					<td>@e.name</td>
+					<td>Location</td>
+					<td>@e.calendar</td>
+				</tr>
+				}
+			}
+		</tbody>
+	
+	</table>
+</div>
+}
