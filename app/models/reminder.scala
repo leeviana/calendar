@@ -1,10 +1,9 @@
 package models
 
-import org.joda.time.DateTime
-
 import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
+import org.joda.time.DateTime
 
 /**
  * @author Leevi
@@ -34,9 +33,12 @@ object Reminder {
         def read(doc: BSONDocument): Reminder = {
             Reminder(
                 doc.getAs[BSONObjectID]("eventID").get,
-                doc.getAs[TimeRange]("timestamp").get, // get BSONDateTime, convert to joda
+                doc.getAs[TimeRange]("timestamp").get,
+                //new TimeRange(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime())),
                 doc.getAs[BSONObjectID]("user").get,
-                doc.getAs[ReminderType.ReminderType]("reminderType").get
+                // TODO: why doesn't this work?
+                //doc.getAs[ReminderType.ReminderType]("reminderType").get
+                ReminderType.Email
             )
         }
     }

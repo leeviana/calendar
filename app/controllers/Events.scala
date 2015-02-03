@@ -37,15 +37,13 @@ object Events extends Controller with MongoController {
     }
     
     def showReminders = Action.async{ implicit request =>         
-        val query = BSONDocument(
-        "$query" -> BSONDocument())
-    
-        val found = collection.find(query).cursor[Event]
+//        val query = BSONDocument(
+//        "$query" -> BSONDocument())
+//    
+//        val found = collection.find(query).cursor[Event]
 
-        // Reminders
-        val reminders = db[BSONCollection]("events")
+        val reminders = db[BSONCollection]("reminders")
         val reminderCursor = reminders.find(BSONDocument("user" -> userID)).cursor[Reminder]
-        //val future = reminderCursor.collect[List](1, false)
         
         reminderCursor.collect[List]().map { reminders =>         
                 Ok(views.html.ReminderDisplay(reminders))
@@ -111,10 +109,9 @@ object Events extends Controller with MongoController {
                 errors => Ok(views.html.EventInfo(event.headOption.get, Reminder.form, errors)),
             
                 rule => {
-                    //val updatedReminder = reminder.copy(reminderType = ReminderType.Email)
                     val modifier = BSONDocument(
                         "$push" -> BSONDocument(
-                        "rules" -> rule))
+                            "rules" -> rule))
                       
                     val future = collection.update(BSONDocument("_id" -> objectID), modifier)
                     

@@ -67,12 +67,12 @@ object Rule {
             "entityType" -> nonEmptyText,
             "entityID" -> nonEmptyText,
             "accessType" -> nonEmptyText
-        )  { (orderNum, entityType, entityID, access) =>
+        )  { (orderNum, entityType, entityID, accessType) =>
             Rule (
               orderNum,
               EntityType.withName(entityType),
               BSONObjectID.apply(entityID),
-              AccessType.withName(access)
+              AccessType.withName(accessType)
             )
         } { rule =>
             Some(

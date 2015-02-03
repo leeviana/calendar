@@ -15,6 +15,11 @@ case class TimeRange ( // refactoring idea, split up into DayTimeRange and Speci
     start: Option[DateTime], // start time, if allday is false
     end: Option[DateTime] // end time, exists if allday is false
 )
+{
+    def this() {
+    this(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime()));
+  }
+}
 
 object TimeRange {
     implicit object TimeRangeReader extends BSONDocumentReader[TimeRange] {
