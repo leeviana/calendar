@@ -32,7 +32,7 @@ object Events extends Controller with MongoController {
         val found = collection.find(query).cursor[Event]
 
         found.collect[List]().map { events =>
-            Ok(views.html.EventDisplay(events))
+            Ok(views.html.events(events))
         } 
     }
     

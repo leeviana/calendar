@@ -21,11 +21,11 @@ object Application extends Controller {
       Ok(views.html.addEvent())
     }
     
-    def settings = Action {
-      Ok(views.html.settings())
-    }
+    //def settings = Action {
+      //Ok(views.html.settings())
+    //}
     
-    def newGroup = Action {
-      Ok(views.html.createGroup())
-    }
+    //def newGroup = Action {
+      //Ok(views.html.createGroup())
+    //}
 }

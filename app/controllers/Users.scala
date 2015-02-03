@@ -59,6 +59,10 @@ object Users extends Controller with MongoController {
         }  
     }
     
+    def newGroupForm = Action {
+        Ok(views.html.createGroup(Group.form))
+    }
+    
     def addGroup = Action.async { implicit request =>
         val query = BSONDocument(
             "$query" -> BSONDocument(

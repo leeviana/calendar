@@ -1,5 +1,7 @@
 @(reminders: List[models.Reminder])
 
+@main("Reminders"){
+
 @if(reminders.isEmpty){
     <p>No reminders yet</p>
 } else {
@@ -11,4 +13,5 @@
             </li>
             }
     </ul>
+}
 }
