@@ -47,14 +47,14 @@ object Events extends Controller with MongoController {
     
     def showCreationForm = Action {
         val iterator = RecurrenceType.values.iterator
-        Ok(views.html.EventForms(Event.form, iterator))
+        Ok(views.html.editEvent(Event.form, iterator))
     }
     
     def create = Action { implicit request =>
         val iterator = RecurrenceType.values.iterator
         
         Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.EventForms(errors, iterator)),
+            errors => Ok(views.html.editEvent(errors, iterator)),
             
             event => {
                 val updatedEvent = event.copy()
