@@ -11,13 +11,14 @@ import java.util.Date
  */
 case class TimeRange ( // refactoring idea, split up into DayTimeRange and SpecificTimeRange based on allday boolean
     allday: Boolean, // True if all day event
-    date: Option[DateTime], // date, if allday is true
-    start: Option[DateTime], // start time, if allday is false
-    end: Option[DateTime] // end time, exists if allday is false
+    startDate: Option[DateTime],
+    startTime: Option[DateTime],
+    endDate: Option[DateTime],
+    endTime: Option[DateTime]
 )
 {
     def this() {
-    this(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime()));
+    this(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime()), Some(new DateTime()));
   }
 }
 
@@ -26,9 +27,10 @@ object TimeRange {
         def read(doc: BSONDocument): TimeRange = {
             TimeRange(
                 doc.getAs[Boolean]("allday").get, 
-                doc.getAs[BSONDateTime]("date").map (dt => new DateTime(dt.value)),
-                doc.getAs[BSONDateTime]("start").map (dt => new DateTime(dt.value)),
-                doc.getAs[BSONDateTime]("end").map (dt => new DateTime(dt.value))
+                doc.getAs[BSONDateTime]("startDate").map (dt => new DateTime(dt.value)),
+                doc.getAs[BSONDateTime]("startTime").map (dt => new DateTime(dt.value)),
+                doc.getAs[BSONDateTime]("endDate").map (dt => new DateTime(dt.value)),
+                doc.getAs[BSONDateTime]("endTime").map (dt => new DateTime(dt.value))
             )
         }
     }
@@ -37,15 +39,12 @@ object TimeRange {
         def write(timerange: TimeRange): BSONDocument = {
             val bson = BSONDocument(
                 "allday" -> timerange.allday,
-                "date" -> BSONDateTime(timerange.date.get.getMillis),
-                "start" -> BSONDateTime(timerange.start.get.getMillis),
-                "end" -> BSONDateTime(timerange.end.getOrElse(new DateTime()).getMillis)
+                "startDate" -> BSONDateTime(timerange.startDate.getOrElse(new DateTime()).getMillis),
+                "startTime" -> BSONDateTime(timerange.startTime.getOrElse(new DateTime()).getMillis),
+                "endDate" -> BSONDateTime(timerange.endDate.getOrElse(timerange.startDate.getOrElse(new DateTime())).getMillis), // if no endDate, assume same as startDate
+                "endTime" -> BSONDateTime(timerange.endTime.getOrElse(new DateTime()).getMillis)
             )
             
-            // TODO: make this check work?
-            //if (timerange.end.nonEmpty) {
-            //    bson.add("end" -> BSONDateTime(timerange.end.get.getMillis))
-            //}
         bson
     }
 }
@@ -53,23 +52,25 @@ object TimeRange {
     val form = Form(
         mapping(
             "allday" -> boolean,
-            //"date" -> optional(jodaDate("MM/dd/yyyy")),
-            "date" -> optional(jodaDate("MM/dd/yyyy")),
-            "start" -> optional(jodaDate("h:mm a")),
-            "end" -> optional(jodaDate("h:mm a"))
-        )  { (allday, date, start, end) =>
+            "startDate" -> optional(jodaDate),
+            "startTime" -> optional(jodaDate("h:mm a")),
+            "endDate" -> optional(jodaDate),
+            "endTime" -> optional(jodaDate("h:mm a"))
+        )  { (allday, startDate, startTime, endDate, endTime) =>
             TimeRange (
               allday,
-              date,
-              start,
-              end
+              startDate,
+              startTime,
+              endDate,
+              endTime
             )
         } { timerange =>
             Some(
               (timerange.allday,
-              timerange.date,
-              timerange.start,
-              timerange.end))
+              timerange.startDate,
+              timerange.startTime,
+              timerange.endDate,
+              timerange.endTime))
           }
     )
 }

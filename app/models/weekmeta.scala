@@ -9,7 +9,7 @@ import java.util.Date
  * @author Leevi
  */
 case class WeekMeta (
-    dayNumbers: List[Int] // Array of Integers representing days of the week. 0 is Sunday. Alternative: use Java's calendar object?
+    dayNumber: Int // Array of Integers representing days of the week. 0 is Sunday. Alternative: use Java's calendar object?
 )
 {
     var recurrenceType = RecurrenceType.Weekly
@@ -20,27 +20,27 @@ object WeekMeta {
     implicit object WeekMetaReader extends BSONDocumentReader[WeekMeta] {
         def read(doc: BSONDocument): WeekMeta = {
             WeekMeta(
-                doc.getAs[List[Int]]("dayNumbers").get
+                doc.getAs[Int]("dayNumber").get
             )
         }
     }
     
     implicit object WeekMetaWriter extends BSONDocumentWriter[WeekMeta] {
         def write(weekmeta: WeekMeta): BSONDocument = BSONDocument(
-            "dayNumbers" -> weekmeta.dayNumbers
+            "dayNumber" -> weekmeta.dayNumber
         )
     }
       
     val form = Form(
         mapping(
-            "dayNumbers" -> list(number)
-        ) { (dayNumbers) =>
+            "dayNumber" -> number
+        ) { (dayNumber) =>
             WeekMeta (
-                dayNumbers
+                dayNumber
             )
         } { weekmeta =>
             Some(
-                (weekmeta.dayNumbers)
+                (weekmeta.dayNumber)
             )
           }
     )
