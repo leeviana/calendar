@@ -12,7 +12,7 @@
 	</div>
 	</div>
 	<div class="col-md-3">
-		<a href="./addEvent" class="btn btn-info" role="button">Add Event</a>
+		<a href="/events/new" class="btn btn-info" role="button">Add Event</a>
 	</div>
 	</div>
 </div>
@@ -21,26 +21,29 @@
 	<table class="table">
 		<thead>
 			<tr>
+				<th>Date</th>
 				<th>Time</th>
+				<th>Name</th>
 				<th>Description</th>
-				<th>Location</th>
 				<th>Owner</th>
 			</tr>
 		</thead>
 		<tbody>
 			@if(events.isEmpty){
 				<tr>
+					<td>No Date</td>
 					<td>No Time</td>
+					<td>No Name</td>
 					<td>No Description</td>
-					<td>No Location</td>
 					<td>No Owner</td>
 				</tr>
 			} else {
 				@for(e <- events){
 				<tr>
-					<td>@e.start</td>
+					<td>@e.timeRange.date.get.toString("MM/dd/yyyy")</td>
+					<td>@e.timeRange.start.get.toString("hh:mm a")-@e.timeRange.end.get.toString("hh:mm a")</td>
 					<td>@e.name</td>
-					<td>Location</td>
+					<td>@e.description</td>
 					<td>@e.calendar</td>
 				</tr>
 				}

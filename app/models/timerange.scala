@@ -49,7 +49,7 @@ object TimeRange {
         mapping(
             "allday" -> boolean,
             //"date" -> optional(jodaDate("MM/dd/yyyy")),
-            "date" -> optional(jodaDate),
+            "date" -> optional(jodaDate("MM/dd/yyyy")),
             "start" -> optional(jodaDate("h:mm a")),
             "end" -> optional(jodaDate("h:mm a"))
         )  { (allday, date, start, end) =>
