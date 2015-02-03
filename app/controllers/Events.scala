@@ -37,11 +37,6 @@ object Events extends Controller with MongoController {
     }
     
     def showReminders = Action.async{ implicit request =>         
-//        val query = BSONDocument(
-//        "$query" -> BSONDocument())
-//    
-//        val found = collection.find(query).cursor[Event]
-
         val reminders = db[BSONCollection]("reminders")
         val reminderCursor = reminders.find(BSONDocument("user" -> userID)).cursor[Reminder]
         
@@ -51,32 +46,35 @@ object Events extends Controller with MongoController {
     }
     
     def showCreationForm = Action {
-        Ok(views.html.editEvent(Event.form))
+        val iterator = RecurrenceType.values.iterator
+        Ok(views.html.EventForms(Event.form, iterator))
     }
     
     def create = Action { implicit request =>
+        val iterator = RecurrenceType.values.iterator
+        
         Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.editEvent(errors)),
+            errors => Ok(views.html.EventForms(errors, iterator)),
             
             event => {
-                val updatedEvent = event.copy(rules = BSONArray.empty)
+                val updatedEvent = event.copy()
                 collection.insert(updatedEvent)
                 Redirect(routes.Events.index())
             }
         )
     }
     
-    def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action { implicit request =>
+    def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
         val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
         
-            cursor.collect[List]().map { event =>
-                Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm))
-            }
+        cursor.collect[List]().map { event =>
+            Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm))
+        }
         
         
-        Redirect(routes.Events.index())
+        //Redirect(routes.Events.index())
     }
     
     def addReminder(eventID: String) = Action.async { implicit request => 
@@ -122,7 +120,7 @@ object Events extends Controller with MongoController {
         }
     }
         
-    // TODO: refactor out this method from the others
+//    // TODO: refactor out this method from the others
 //    def findEvent(id: BSONObjectID): Event = {
 //        val cursor = collection.find(BSONDocument("_id" -> id)).cursor[Event]
 //        

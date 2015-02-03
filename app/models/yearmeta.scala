@@ -10,8 +10,6 @@ import play.api.data.Form
 case class YearMeta (
     month: Int, // integer representation of month
     day: Int // integer representation of day
-    
-    // TODO: extend this to be a list of days?
 )
 {
     var recurrenceType = RecurrenceType.Yearly

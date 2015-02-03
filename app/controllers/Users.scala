@@ -44,6 +44,7 @@ object Users extends Controller with MongoController {
         )
     }
     
+    // TODO: ...yeah. Users and Groups should probably have their own controllers, despite their similarities
     def showGroups = Action.async { implicit request =>
         
         val query = BSONDocument(

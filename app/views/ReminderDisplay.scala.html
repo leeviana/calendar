@@ -6,7 +6,7 @@
     <ul>
         @reminders.map { reminder =>
             <li>
-                @reminder.timestamp.start.get.toString("hh:mm")
+                @reminder.timestamp.startTime.get.toString("hh:mm")
                 <em>for @reminder.eventID</a></em>
             </li>
             }
