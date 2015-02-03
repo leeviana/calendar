@@ -8,7 +8,7 @@ import play.api.data.Form
  * @author Leevi
  */
 case class MonthMeta (
-    monthDays: List[Int] // list of integer representations of days of the month
+    monthDay: Int
 )
 {
     var recurrenceType = RecurrenceType.Monthly
@@ -19,27 +19,27 @@ object MonthMeta {
     implicit object MonthMetaReader extends BSONDocumentReader[MonthMeta] {
         def read(doc: BSONDocument): MonthMeta = {
             MonthMeta(
-                doc.getAs[List[Int]]("monthDays").get
+                doc.getAs[Int]("monthDay").get
             )
         }
     }
     
     implicit object MonthMetaWriter extends BSONDocumentWriter[MonthMeta] {
         def write(monthmeta: MonthMeta): BSONDocument = BSONDocument(
-            "monthDays" -> monthmeta.monthDays
+            "monthDay" -> monthmeta.monthDay
         )
     }
       
     val form = Form(
         mapping(
-            "monthDays" -> list(number)
-        ) { (monthDays) =>
+            "monthDay" -> number
+        ) { (monthDay) =>
             MonthMeta (
-                monthDays
+                monthDay
             )
         } { monthmeta =>
             Some(
-                (monthmeta.monthDays)
+                (monthmeta.monthDay)
             )
           }
     )
