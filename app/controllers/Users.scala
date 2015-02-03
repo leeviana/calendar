@@ -40,4 +40,15 @@ object Users extends Controller with MongoController {
             }
         )
     }
+    
+    def findUser(id: BSONObjectID): User = {
+
+        val query = BSONDocument(
+            "$query" -> BSONDocument("_id" -> id)
+        )
+    
+        val found = collection.find(query).one[User]
+        
+        found.asInstanceOf[User]
+    }
 }
