@@ -4,6 +4,8 @@ import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
 
+import org.joda.time.DateTime
+
 /**
  * Metadata for event recurrence information
  * 
@@ -20,7 +22,12 @@ case class RecurrenceMeta (
     yearly: Option[YearMeta]
     // TODO: remove 'recurrenceType', which is inside of meta objects and just have all meta objects extend from the same class
     // TODO: move all the recurrence meta classes into their own package
-)
+)//{
+    //def this() {
+    //this(new TimeRange(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime())), Some(0), Some(ReminderType.Email), RecurrenceType.Daily, 
+    //        Some(new DayMeta(2)), Some(new WeekMeta(List(0))), Some(new MonthMeta(List((3)))), Some(new YearMeta(5, 2)));
+  //}
+//}
 
 object RecurrenceType extends Enumeration {
     type RecurrenceType = Value

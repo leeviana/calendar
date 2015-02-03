@@ -1,6 +1,8 @@
 package models
 
+import play.api.data.Forms._
 import reactivemongo.bson._
+import play.api.data.Form
 
 /**
  * @author Leevi
@@ -38,4 +40,21 @@ object UserSetting {
             "settingValue" -> usersettings.settingValue
         )
     }
+    
+    val form = Form(
+        mapping(
+            "settingType" -> nonEmptyText,
+            "settingValue" -> nonEmptyText
+        ) { (settingType, settingValue) =>
+            UserSetting (
+                settingType,
+                settingValue
+            )
+        } { usersetting =>
+            Some(
+                (usersetting.settingType,
+                usersetting.settingValue)
+            )
+          }
+    )
 }
