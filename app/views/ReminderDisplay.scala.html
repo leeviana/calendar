@@ -1,0 +1,14 @@
+@(reminders: List[models.Reminder])
+
+@if(reminders.isEmpty){
+    <p>No reminders yet</p>
+} else {
+    <ul>
+        @reminders.map { reminder =>
+            <li>
+                @reminder.timestamp.start.get.toString("hh:mm")
+                <em>for @reminder.eventID</a></em>
+            </li>
+            }
+    </ul>
+}

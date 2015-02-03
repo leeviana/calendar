@@ -6,33 +6,40 @@
     <h2>Event Info</h2>
     Event Name: @event.name
     <br><br>
-    Add reminder
-    TODO: Show existing reminders here
+    <b>Add reminder</b>
+    TODO: Show existing reminders here (I need to pass this in)
     @helper.form(action = routes.Events.addReminder(event.id.stringify), 'class -> "form-horizontal") {
         @helper.inputText(reminderForm("eventID"))
-        Hidden form: auto fill with event.id
+        Hidden form (input type="hidden"), autofill with "@event.id.stringify"
+        
         @helper.inputDate(reminderForm("timestamp.date"))
         @helper.inputText(reminderForm("timestamp.start"))
+        
         @helper.inputText(reminderForm("user"))
-        Hidden form: auto fill with authenticated userid (I can pass that in)
+        Hidden form: auto fill with authenticated userid (I can pass that in). Possibly use placeholder fake ID.
+        
         @helper.inputText(reminderForm("reminderType"))
-        Select from list... only option is email right now so we can hide and autofill this with Email for now    
+        Select from list... only option is email right now so we can make this hidden and autofill this field with "Email" for now    
+        
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
     }
     
-    Rules
-    TODO: Show existing rules here
+    <b>Rules</b>
+    TODO: Show info about existing rules here (@event.rules)
         @helper.form(action = routes.Events.addRule(event.id.stringify), 'class -> "form-horizontal") {
         <input type="number" name="orderNum" value='@ruleForm("orderNum").value' >
-        Hidden form: autofill with next order number (List[Rule].length, basically)
+        Hidden form: autofill with next order number (@event.rules.length)
+        
         @helper.inputText(ruleForm("entityType"))
-        Either "User" or "Group"
+        Either "User" or "Group", dropdown
+        
         @helper.inputText(ruleForm("entityID"))
-        From map of things passed to you
+        TODO: From a map of things, I should pass to you... I'll probably just make this a plain textbox that takes in a group name or user name and then finds the right entry, if any, in the database
+        
         @helper.inputText(ruleForm("accessType"))
-        BusyOnly, SeeAll, or Modify
+        BusyOnly, SeeAll, or Modify, dropdown
         
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">

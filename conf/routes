@@ -13,6 +13,7 @@ GET     /agenda						    controllers.Application.showAgenda
 
 # Events
 GET     /events                         controllers.Events.index
+GET     /events/reminders               controllers.Events.showReminders
 GET     /events/new                     controllers.Events.showCreationForm
 POST    /events/new                     controllers.Events.create
 GET     /events/:eventID                controllers.Events.showEvent(eventID)
