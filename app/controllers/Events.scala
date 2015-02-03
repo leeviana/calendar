@@ -51,12 +51,12 @@ object Events extends Controller with MongoController {
     }
     
     def showCreationForm = Action {
-        Ok(views.html.EventForms(Event.form))
+        Ok(views.html.editEvent(Event.form))
     }
     
     def create = Action { implicit request =>
         Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.EventForms(errors)),
+            errors => Ok(views.html.editEvent(errors)),
             
             event => {
                 val updatedEvent = event.copy(rules = BSONArray.empty)

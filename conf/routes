@@ -5,19 +5,14 @@
 # Home page
 GET     /                               controllers.Application.index
 
+# Home page
+GET     /                               controllers.Application.index
+
 # Users
-
-GET     /users                      controllers.Users.index
-
-GET		/login            			controllers.Application.login
-GET		/addEvent					controllers.Application.addEvent
-
-GET     /users/new                  controllers.Users.showCreationForm
-POST    /users/new                  controllers.Users.create
-GET     /agenda						controllers.Application.showAgenda
-GET		/settings					controllers.Application.settings
-GET 	/groups/new					controllers.Application.newGroup
-
+GET     /users                          controllers.Users.index
+GET     /users/new                      controllers.Users.showCreationForm
+POST    /users/new                      controllers.Users.create
+GET     /agenda						    controllers.Application.showAgenda
 
 # Groups
 GET     /groups                         controllers.Users.showGroups
