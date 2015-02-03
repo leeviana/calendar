@@ -1,0 +1,16 @@
+@(events: List[models.Event])
+
+@if(events.isEmpty){
+    <p>No events yet</p>
+} else {
+    <ul>
+        @events.map { event =>
+            <li>
+                @event.timeRange.start.get.toString("hh:mm")
+                <em>is <a href="./events/@event.id.stringify">@event.name</a></em>
+            </li>
+            }
+    </ul>
+}
+
+<a href = "./events/new">Add new event</a>

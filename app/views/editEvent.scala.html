@@ -1,6 +1,7 @@
 @(form: Form[models.Event])
 @import helper.twitterBootstrap._
 
+
 @main("Add Event"){
 
 <div class="row">
@@ -26,11 +27,6 @@
         placeholder = "Event Description",
         help = "Event description")
         
-        
-        
-        
-      
-        
         @datepicker(form("timeRange.date"),
         	"Start Date")  
        
@@ -39,15 +35,22 @@
         
         @timepicker(form("timeRange.end"),
         	"End Time")  
-        	
-        @checkboxes(form("timeRange.allday"),
-       		label = "All Day",
-       		checkboxMap =  Map("" -> false),
-       		help = "")
-       		
-  		
         
+     	<label class="col-sm-2 control-label"> All Day </label>
+    		<div class="col-sm-10">
+       			@helper.checkbox(form("timeRange.allday"))
+       		</div>
        	
+        
+        @text(form("recurrenceMeta.get.recurrenceType"),
+    		label = "Recurrence Type",
+        	placeholder = "Daily",
+        	help = "How often the event recurs")
+        
+        @datepicker(form(".get.recurrenceMeta.timeRange.end"),
+        	"Recurrence end time")	
+        	
+
        	<br>
        	<br>
         <div class="form-actions">
