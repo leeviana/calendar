@@ -34,12 +34,12 @@ object TimeRange {
                 "allday" -> timerange.allday,
                 "date" -> BSONDateTime(timerange.date.get.getMillis),
                 "start" -> BSONDateTime(timerange.start.get.getMillis),
-                "end" -> BSONDateTime(timerange.end.get.getMillis)
+                "end" -> BSONDateTime(timerange.end.getOrElse(new DateTime()).getMillis)
             )
             
-            // TODO: add async so that this check works?
-            //if (timerange.end.isDefined) {
-            //    bson.add("end" -> timerange.end.get.getMillis)
+            // TODO: make this check work?
+            //if (timerange.end.nonEmpty) {
+            //    bson.add("end" -> BSONDateTime(timerange.end.get.getMillis))
             //}
         bson
     }

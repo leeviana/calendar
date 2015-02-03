@@ -10,9 +10,9 @@ import reactivemongo.bson._
  * @author Leevi
  */
 case class Reminder (
-    id: BSONObjectID,
-    timestamp: DateTime,
-    user: User, // foreign ref
+    eventID: BSONObjectID, // foreign ref
+    timestamp: TimeRange,
+    user: BSONObjectID, // foreign ref
     reminderType: ReminderType.ReminderType
 )
 
@@ -33,9 +33,9 @@ object Reminder {
     implicit object ReminderReader extends BSONDocumentReader[Reminder] {
         def read(doc: BSONDocument): Reminder = {
             Reminder(
-                doc.getAs[BSONObjectID]("_id").get,
-                doc.getAs[BSONDateTime]("timestamp").map(dt => new DateTime(dt.value)).get, // get BSONDateTime, convert to joda
-                doc.getAs[User]("user").get,
+                doc.getAs[BSONObjectID]("eventID").get,
+                doc.getAs[TimeRange]("timestamp").get, // get BSONDateTime, convert to joda
+                doc.getAs[BSONObjectID]("user").get,
                 doc.getAs[ReminderType.ReminderType]("reminderType").get
             )
         }
@@ -43,8 +43,8 @@ object Reminder {
     
     implicit object ReminderWriter extends BSONDocumentWriter[Reminder] {
         def write(reminder: Reminder): BSONDocument = BSONDocument(
-            "id" -> reminder.id,
-            "timestamp" -> BSONDateTime(reminder.timestamp.getMillis),
+            "eventID" -> reminder.eventID,
+            "timestamp" -> reminder.timestamp,
             "user" -> reminder.user,
             "reminderType" -> reminder.reminderType.toString()
         )
@@ -52,22 +52,23 @@ object Reminder {
       
     val form = Form(
         mapping(
-            "id" -> nonEmptyText,
-            "timestamp" -> longNumber,
+            "eventID" -> nonEmptyText,
+            "timestamp" -> TimeRange.form.mapping,
             "user" -> nonEmptyText, // BSONID
             "reminderType" -> nonEmptyText
-        )  { (id, timestamp, user, reminderType) =>
+        )  { (eventID, timestamp, user, reminderType) =>
             Reminder (
-              BSONObjectID.apply(id),
-              new DateTime(timestamp),
-              controllers.Users.findUser(BSONObjectID.apply(user)),
+              BSONObjectID.apply(eventID),
+              timestamp,
+              //controllers.Users.findUser(BSONObjectID.apply(user)),
+              BSONObjectID.apply(user),
               ReminderType.withName(reminderType)
             )
         } { reminder =>
             Some(
-              (reminder.id.stringify,
-              reminder.timestamp.getMillis,
-              reminder.user.id.stringify,
+              (reminder.eventID.stringify,
+              reminder.timestamp,
+              reminder.user.stringify,
               reminder.reminderType.toString()))
           }
     )

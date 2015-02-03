@@ -1,0 +1,23 @@
+@(event: models.Event, reminderForm: Form[models.Reminder])
+@import helper.twitterBootstrap._
+
+<div class="row">
+    <div class="span8">
+    <h2>Event Info</h2>
+    @event.name
+    
+    @helper.form(action = routes.Events.addReminder(event.id.stringify), 'class -> "form-horizontal") {
+        @helper.inputText(reminderForm("eventID"))
+        Hidden form: auto fill with event.id
+        @helper.inputDate(reminderForm("timestamp.date"))
+        @helper.inputText(reminderForm("timestamp.start"))
+        @helper.inputText(reminderForm("user"))
+        Hidden form: auto fill with authenticated userid (I can pass that in)
+        @helper.inputText(reminderForm("reminderType"))
+        Select from list... only option is email right now so we can hide and autofill this with Email for now    
+        <div class="form-actions">
+            <input class="btn btn-primary" type="submit">
+        </div>
+    }
+    </div>
+</div>
