@@ -1,11 +1,13 @@
-@(event: models.Event, reminderForm: Form[models.Reminder])
+@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule])
 @import helper.twitterBootstrap._
 
 <div class="row">
     <div class="span8">
     <h2>Event Info</h2>
-    @event.name
-    
+    Event Name: @event.name
+    <br><br>
+    Add reminder
+    TODO: Show existing reminders here
     @helper.form(action = routes.Events.addReminder(event.id.stringify), 'class -> "form-horizontal") {
         @helper.inputText(reminderForm("eventID"))
         Hidden form: auto fill with event.id
@@ -15,6 +17,23 @@
         Hidden form: auto fill with authenticated userid (I can pass that in)
         @helper.inputText(reminderForm("reminderType"))
         Select from list... only option is email right now so we can hide and autofill this with Email for now    
+        <div class="form-actions">
+            <input class="btn btn-primary" type="submit">
+        </div>
+    }
+    
+    Rules
+    TODO: Show existing rules here
+        @helper.form(action = routes.Events.addRule(event.id.stringify), 'class -> "form-horizontal") {
+        <input type="number" name="orderNum" value='@ruleForm("orderNum").value' >
+        Hidden form: autofill with next order number (List[Rule].length, basically)
+        @helper.inputText(ruleForm("entityType"))
+        Either "User" or "Group"
+        @helper.inputText(ruleForm("entityID"))
+        From map of things passed to you
+        @helper.inputText(ruleForm("accessType"))
+        BusyOnly, SeeAll, or Modify
+        
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>

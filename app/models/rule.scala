@@ -12,7 +12,7 @@ case class Rule (
     orderNum: Int,
     entityType: EntityType.EntityType,
     entityID: BSONObjectID, // foreign ref
-    access: AccessType.AccessType
+    accessType: AccessType.AccessType
 )
 
 object EntityType extends Enumeration {
@@ -47,7 +47,7 @@ object Rule {
                 doc.getAs[Int]("orderNum").get,
                 doc.getAs[EntityType.EntityType]("entityType").get,
                 doc.getAs[BSONObjectID]("entityID").get,
-                doc.getAs[AccessType.AccessType]("access").get
+                doc.getAs[AccessType.AccessType]("accessType").get
             )
         }
     }
@@ -57,7 +57,7 @@ object Rule {
             "orderNum" -> rule.orderNum,
             "entityType" -> rule.entityType.toString(),
             "entityID" -> rule.entityID,
-            "access" -> rule.access.toString()
+            "accessType" -> rule.accessType.toString()
         )
     }
       
@@ -66,7 +66,7 @@ object Rule {
             "orderNum" -> number,
             "entityType" -> nonEmptyText,
             "entityID" -> nonEmptyText,
-            "access" -> nonEmptyText
+            "accessType" -> nonEmptyText
         )  { (orderNum, entityType, entityID, access) =>
             Rule (
               orderNum,
@@ -78,8 +78,8 @@ object Rule {
             Some(
               (rule.orderNum,
               rule.entityType.toString(),
-              rule.entityID.toString(),
-              rule.access.toString()))
+              rule.entityID.stringify,
+              rule.accessType.toString()))
           }
     )
 }

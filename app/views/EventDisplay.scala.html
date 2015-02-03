@@ -7,7 +7,7 @@
         @events.map { event =>
             <li>
                 @event.timeRange.start.get.toString("hh:mm")
-                <em>is @event.name</em>
+                <em>is <a href="./events/@event.id.stringify">@event.name</a></em>
             </li>
             }
     </ul>
