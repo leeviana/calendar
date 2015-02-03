@@ -1,0 +1,21 @@
+@(form: Form[models.Event])
+@import helper.twitterBootstrap._
+
+<div class="row">
+    <div class="span8">
+    <h2>Add an event</h2>
+    @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
+        @helper.inputText(form("calendar"))
+        TODO: list user's calendars as a dropdown and then send the calendar ID to the form
+        @helper.inputText(form("name"))
+        @helper.inputText(form("description"))
+        @helper.inputDate(form("timeRange.date"))
+        @helper.inputText(form("timeRange.start"))  
+        @helper.inputText(form("timeRange.end"))
+        @helper.checkbox(form("timeRange.allday"))        
+        <div class="form-actions">
+            <input class="btn btn-primary" type="submit">
+        </div>
+    }
+    </div>
+</div>
