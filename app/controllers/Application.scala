@@ -2,6 +2,9 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import models._
+import models.Event._
+
 
 object Application extends Controller {
 
@@ -18,7 +21,8 @@ object Application extends Controller {
     }
 
     def addEvent = Action {
-      Ok(views.html.addEvent())
+
+      Ok(views.html.addEvent(Event.form))
     }
     
     //def settings = Action {

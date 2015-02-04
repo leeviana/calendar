@@ -1,21 +1,66 @@
-@(form: Form[models.Event])
+@(form: Form[models.Event], recurrenceTypes: Iterator[RecurrenceType.Value])
 @import helper.twitterBootstrap._
+
+
+@main("Add Event"){
 
 <div class="row">
     <div class="span8">
-    <h2>Add an event</h2>
+    <legend>Add an event</legend>
     @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
-        @helper.inputText(form("calendar"))
-        TODO: list user's calendars as a dropdown and then send the calendar ID to the form
-        @helper.inputText(form("name"))
-        @helper.inputText(form("description"))
-        @helper.inputDate(form("timeRange.date"))
-        @helper.inputText(form("timeRange.start"))  
-        @helper.inputText(form("timeRange.end"))
-        @helper.checkbox(form("timeRange.allday"))        
+
+        <!-- Calendar -->
+        @text(form("calendar"),
+    		label = "Calendar",
+        	placeholder = "Calendar",
+        	help = "Calendar ID")
+        	
+      	<!-- Event Name -->
+		@text(form("name"),
+    		label = "Name",
+        	placeholder = "Event Name",
+        	help = "Event Name")
+ 
+ 		<!--  Description -->
+		@textarea(form("description"),
+    	label = "Description",
+        placeholder = "Event Description",
+        help = "Event description")
+        
+        <!--  Time Range -->
+        @datepicker(form("timeRange.startDate"),
+        	"Start Date")  
+       
+        @timepicker(form("timeRange.startTime"),
+        	"Start Time")  
+        	
+        @datepicker(form("timeRange.endDate"),
+        	"End Date")  
+        
+        @timepicker(form("timeRange.endTime"),
+        	"End Time")  
+        	
+      	<!--  All day -->      
+     	<label class="col-sm-2 control-label"> All Day </label>
+    		<div class="col-sm-10">   	
+       			@helper.checkbox(form("timeRange.allday"))
+       		</div>
+       	
+       	<!--  Recurrence -->
+      	
+       			 @dropdown(form("recurrenceMeta.recurrenceType"),
+    				label = "Recurrence Type",
+        			it = recurrenceTypes)
+       		
+        
+        	
+
+       	<br>
+       	<br>
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
     }
     </div>
 </div>
+}
