@@ -20,9 +20,6 @@ object Users extends Controller with MongoController {
     
     val collection = db[BSONCollection]("users")
     
-    // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
-    
     def index = Action.async { implicit request =>         
         val query = BSONDocument(
         "$query" -> BSONDocument())
@@ -74,7 +71,7 @@ object Users extends Controller with MongoController {
         
         val query = BSONDocument(
             "$query" -> BSONDocument(
-                "owner" -> userID))
+                "owner" -> AuthStateDAO.getUserID()))
     
         val groupCollection = db[BSONCollection]("groups")
     
@@ -85,14 +82,15 @@ object Users extends Controller with MongoController {
         }  
     }
     
-    def newGroupForm = Action {
-        Ok(views.html.createGroup(Group.form, userID.stringify))
+
+    def newGroupForm = Action { implicit request =>
+        Ok(views.html.createGroup(Group.form, AuthStateDAO.getUserID().stringify))
     }
     
     def addGroup = Action.async { implicit request =>
         val query = BSONDocument(
             "$query" -> BSONDocument(
-                "owner" -> userID))
+                "owner" -> AuthStateDAO.getUserID()))
     
         val groupCollection = db[BSONCollection]("groups")
     
@@ -103,7 +101,7 @@ object Users extends Controller with MongoController {
                 errors => Ok(views.html.groups(groups, errors)),
                 
                 user => {
-                    val updatedUser = user.copy(owner = userID)
+                    val updatedUser = user.copy(owner = AuthStateDAO.getUserID())
                     groupCollection.insert(updatedUser)
                     Redirect(routes.Users.showGroups())
                 }

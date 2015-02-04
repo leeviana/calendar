@@ -9,7 +9,7 @@
     @helper.form(action = routes.Users.create, 'class -> "form-horizontal") {
         @helper.inputText(form("username"))
         @helper.inputText(form("email"))
-        
+        <input type="text" name="password" value="password" 
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
