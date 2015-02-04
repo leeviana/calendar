@@ -8,6 +8,8 @@
     <h2>Add user</h2>
     @helper.form(action = routes.Users.create, 'class -> "form-horizontal") {
         @helper.inputText(form("username"))
+        @helper.inputText(form("email"))
+        
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>
