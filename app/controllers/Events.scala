@@ -201,12 +201,24 @@ object Events extends Controller with MongoController {
     
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-
+        
         val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
         
         cursor.collect[List]().map { event =>
             Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify))
         }
+    }
+    
+    def sortRules(eventID: String) : Boolean = {
+      val objectID = BSONObjectID.apply(eventID)
+      
+      val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
+      cursor.collect[List]().map { event =>
+        var rules = event.headOption.get.rules
+        rules.sortBy(_.orderNum)
+       
+    }
+      return true;
     }
     
     def addReminder(eventID: String) = Action.async { implicit request => 
@@ -261,7 +273,27 @@ object Events extends Controller with MongoController {
                     "orderNum" -> ruleID.toInt)))
                 
         val future = collection.update(BSONDocument("_id" -> objectID), modifier)
+        
+        var cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
+        cursor.collect[List]().map { event =>
+         var rules = event.headOption.get.rules.toBuffer
+        for(x <- rules.length-1 to 0 by -1){
+          if(x>=ruleID.toInt){
+            val newRule1 = new Rule(rules(x).orderNum-1, rules(x).entityType, rules(x).entityID, rules(x).accessType)
+            val modifier1 = BSONDocument(
+                  "$pull" -> BSONDocument(
+                  "rules" -> rules(x)))
+            val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
+            val modifier3 = BSONDocument(
+                        "$push" -> BSONDocument(
+                            "rules" -> newRule1))  
+            val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
+            
+          }
 
+        }
+
+        }
         future.onComplete {
           case Failure(e) => throw e
           case Success(lastError) => {
@@ -283,45 +315,92 @@ object Events extends Controller with MongoController {
       cursor.collect[List]().map { event =>
         //val rules = event.headOption.get.rules
         var rules = event.headOption.get.rules.toBuffer
-        if(ruleID.toInt == 0 && dir.equals("up")){
+        if(ruleID.toInt <= 0 && dir.equals("up")){
           Redirect(routes.Events.showEvent(eventID))
-        }else if(ruleID.toInt == rules.length-1 && dir.equals("down")){
+        }else if(ruleID.toInt >= rules.length-1 && dir.equals("down")){
           Redirect(routes.Events.showEvent(eventID))
         }else if(dir.equals("up")){
           println("length of list - " + rules.length)
+          var one = 0;
+          var two = 0;
           for(x <- 0 to rules.length-1){
             if(rules(x).orderNum == ruleID.toInt){
-              val temp_orderNum = rules(x).orderNum
-              val temp_entityType = rules(x).entityType
-              val temp_entityID = rules(x).entityID
-              val temp_accessType = rules(x).accessType
-              val newRule1 = new Rule(rules(x).orderNum-1, rules(x).entityType, rules(x).entityID, rules(x).accessType)
-              val newRule2 = new Rule(rules(x-1).orderNum+1, rules(x-1).entityType, rules(x-1).entityID, rules(x-1).accessType)
+              one = x;
+            }else if(rules(x).orderNum == ruleID.toInt-1){
+              two = x;
+            }
+          }
+             
+              val newRule1 = new Rule(rules(one).orderNum-1, rules(one).entityType, rules(one).entityID, rules(one).accessType)
+                  
               
-              val modifier1 = BSONDocument(
-            "$pull" -> BSONDocument(
-                "rules" -> rules(x)))
-                val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
+              val newRule2 = new Rule(rules(two).orderNum+1, rules(two).entityType, rules(two).entityID, rules(two).accessType)
+              
+             
+                val modifier1 = BSONDocument(
+                  "$pull" -> BSONDocument(
+                  "rules" -> rules(one)))
+                  val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
+                
+       
                 val modifier2 = BSONDocument(
             "$pull" -> BSONDocument(
-                "rules" -> rules(x-1)))
+                "rules" -> rules(two)))
                 val future2 = collection.update(BSONDocument("_id" -> objectID), modifier2)
-                rules.remove(x)
-                rules.remove(x-1)
+              
+             
                 val modifier3 = BSONDocument(
                         "$push" -> BSONDocument(
                             "rules" -> newRule1))  
                 val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
+                
+              
                 val modifier4 = BSONDocument(
                         "$push" -> BSONDocument(
                             "rules" -> newRule2))  
                 val future4 = collection.update(BSONDocument("_id" -> objectID), modifier4)
+                
+        }else if(dir.equals("down")){
+          var one = 0;
+          var two = 0;
+          for(x <- 0 to rules.length-1){
+            if(rules(x).orderNum == ruleID.toInt){
+              one = x;
+            }else if(rules(x).orderNum == ruleID.toInt+1){
+              two = x;
             }
           }
-      } 
+              val newRule1 = new Rule(rules(one).orderNum+1, rules(one).entityType, rules(one).entityID, rules(one).accessType)
+              val newRule2 = new Rule(rules(two).orderNum-1, rules(two).entityType, rules(two).entityID, rules(two).accessType)
+            
+              val modifier1 = BSONDocument(
+            "$pull" -> BSONDocument(
+                "rules" -> rules(one)))
+                val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
+              
+             
+                val modifier2 = BSONDocument(
+            "$pull" -> BSONDocument(
+                "rules" -> rules(two)))
+                val future2 = collection.update(BSONDocument("_id" -> objectID), modifier2)
+              
+      
+                val modifier3 = BSONDocument(
+                        "$push" -> BSONDocument(
+                            "rules" -> newRule1))  
+                val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
+              
+              
+                val modifier4 = BSONDocument(
+                        "$push" -> BSONDocument(
+                            "rules" -> newRule2))  
+                val future4 = collection.update(BSONDocument("_id" -> objectID), modifier4)
+              
+        } 
         Redirect(routes.Events.showEvent(eventID))
       }
     }
+    
         
 //    // TODO: refactor out this method from the others
 //    def findEvent(id: BSONObjectID): Event = {
