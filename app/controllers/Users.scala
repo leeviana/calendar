@@ -10,6 +10,9 @@ import reactivemongo.bson._
 import scala.util.Failure
 import scala.util.Success
 
+import models.utils.AuthStateDAO
+import org.mindrot.jbcrypt.BCrypt;
+
 /**
  * @author Leevi
  */
@@ -45,10 +48,23 @@ object Users extends Controller with MongoController {
                 val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, BSONArray.empty, BSONArray.empty)
             
                 calendarColl.insert(personalCalendar)
-                
+
+                // val updatedUser = user.copy(id = BSONObjectID.generate)
                 val updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
                 collection.insert(updatedUser)
-                Redirect(routes.Application.index())
+                
+                
+                
+
+                val collection2 = db[BSONCollection]("authstate")
+                val requestMap = (request.body.asFormUrlEncoded)
+                val password = requestMap.get.get("password").get.head
+                val hash =  BCrypt.hashpw(password, BCrypt.gensalt());
+                val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser.id, lastAuthToken="", passwordHash=hash)
+                collection2.insert(newAuthData)
+                Redirect(routes.Application.signIn())
+                
+                // Redirect(routes.Application.index())
             }
         )
     }
@@ -97,9 +113,9 @@ object Users extends Controller with MongoController {
     
     def addUsertoGroup = Action { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)
-        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)        
+        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
         val addUserID = BSONObjectID.apply(requestMap.get.get("userID").get.head)
-        
+		
         val query = BSONDocument(
             "$query" -> BSONDocument(
                 //"owner" -> userID,

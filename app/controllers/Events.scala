@@ -3,9 +3,7 @@ package controllers
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
 import scala.concurrent.Future
-
 import org.joda.time.DateTime
-
 import models._
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -17,6 +15,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
 import scala.util.Failure
 import scala.util.Success
+import utils.AuthStateDAO
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -28,12 +27,13 @@ object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
     // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
+    //val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
+    //val userID = BSONObjectID.apply(AuthStateDAO.getUserID())
     
     def index = Action.async { implicit request =>
         
         val userCollection = db[BSONCollection]("users")
-        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
             
         cursor.collect[List]().flatMap { user =>
             
@@ -52,49 +52,49 @@ object Events extends Controller with MongoController {
         }
     }
     
-    def getCalendars: Future[List[Calendar]] = {      
-        val userCollection = db[BSONCollection]("users")
-        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
-            
-        cursor.collect[List]().map { user =>
-            var calList = ListBuffer[Calendar]()
-            
-            //var calMap:Map[String, String] = Map()
-            for(calID <- user.headOption.get.subscriptions) {
-                val calendarCollection = db[BSONCollection]("calendars")
-                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
-                
-                calCursor.collect[List]().map { cal =>
-                    calList ++= cal
-                }            
-            }
-            
-            calList.toList
-        }
-        
-//        future.onComplete {
-//            case Failure(e) => throw e
-//            case Success(lastError) => {
-//                calList.toList
+//    def getCalendars: Future[List[Calendar]] = {      
+//        val userCollection = db[BSONCollection]("users")
+//        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+//            
+//        cursor.collect[List]().map { user =>
+//            var calList = ListBuffer[Calendar]()
+//            
+//            //var calMap:Map[String, String] = Map()
+//            for(calID <- user.headOption.get.subscriptions) {
+//                val calendarCollection = db[BSONCollection]("calendars")
+//                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+//                
+//                calCursor.collect[List]().map { cal =>
+//                    calList ++= cal
+//                }            
 //            }
+//            
+//            calList.toList
 //        }
-    }
+//        
+////        future.onComplete {
+////            case Failure(e) => throw e
+////            case Success(lastError) => {
+////                calList.toList
+////            }
+////        }
+//    }
     
     
     def showReminders = Action.async{ implicit request =>         
         val reminders = db[BSONCollection]("reminders")
-        val reminderCursor = reminders.find(BSONDocument("user" -> userID)).cursor[Reminder]
+        val reminderCursor = reminders.find(BSONDocument("user" -> AuthStateDAO.getUserID())).cursor[Reminder]
         
         reminderCursor.collect[List]().map { reminders =>         
                 Ok(views.html.ReminderDisplay(reminders))
         }
     }
     
-    def showCreationForm = Action.async {
+    def showCreationForm = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
         
         val userCollection = db[BSONCollection]("users")
-        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
         
         cursor.collect[List]().map { user =>
             var calMap:Map[String, String] = Map()
@@ -116,7 +116,7 @@ object Events extends Controller with MongoController {
         val iterator = RecurrenceType.values.iterator
         
         val userCollection = db[BSONCollection]("users")
-        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
         
         cursor.collect[List]().map { user =>
             var calMap:Map[String, String] = Map()
@@ -171,7 +171,7 @@ object Events extends Controller with MongoController {
                                 newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
                             }
                             
-                            val updatedEvent = event.copy(id = BSONObjectID.generate, timeRange = newTimeRange) 
+                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = event.calendar, timeRange = newTimeRange) 
                             val future = collection.insert(updatedEvent)
                         } 
                     }
