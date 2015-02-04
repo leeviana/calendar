@@ -1,0 +1,9 @@
+@(eventID: String, deleteForm: Form[models.Event])
+@import helper.twitterBootstrap._
+
+@main("Confirm Delete"){
+	@helper.form(routes.Events.deleteEvent(eventID)) { 
+			<input type="submit" value="Delete this event" class="btn btn-danger">
+			<a class="btn btn-default" href="/events" role="button">Back</a>
+		}
+}

@@ -51,17 +51,43 @@
     <br>
     
     <legend>Rules</legend><br>
-    Show info about existing rules here: (@event.rules)
-    @if(event.rules.isEmpty){
-    	No Rules
-    } else {
-    <ul class="list-group">
-    @for(r <- event.rules.iterator){
-    	<li class="list-group-item">@r </li>
-    	
-    }
-    </ul>
-    }
+    <div class="container">
+    	<table class="table">
+    		<thead>
+    			<tr>
+    				<td>Rule Number</td>
+    				<td>Rule Type</td>
+    				<td>Entity ID</td>
+    				<td>Access Type</td>
+    				<td>Reorder</td>
+    				<td>Delete</td>
+    			</tr>	
+    		</thead>
+    		<tbody>
+    			@if(event.rules.isEmpty){
+    				<tr>
+    					<td>None</td>
+    					<td>None</td>
+    					<td>None</td>
+    					<td>None</td>
+    					<td>None</td>
+    					<td>None</td>
+    				</tr>
+    			} else {
+    				@for(r <- event.rules){
+    					<tr>
+    						<td>@r.orderNum</td>
+    						<td>@r.entityType</td>
+    						<td>@r.entityID.stringify</td>
+    						<td>@r.accessType</td>
+    						<td><a class="btn btn-default" onclick="location.href='/events/@event.id.stringify/@r.orderNum/move/up'" role="button">Up</a><a class="btn btn-default" href="/events" role="button">Down</a></td>
+    						<td><a href="/events/@event.id.stringify/@r.orderNum/deleteRule" class="btn btn-info" role="button">Delete</a></td>
+    					</tr>
+    				}
+    			}
+    		</tbody>
+    	</table>
+    </div>
     <br>
         @helper.form(action = routes.Events.addRule(event.id.stringify), 'class -> "form-horizontal") {
         
