@@ -2,16 +2,34 @@
 
 @main("Reminders"){
 
-@if(reminders.isEmpty){
-    <p>No reminders yet</p>
-} else {
-    <ul>
-        @reminders.map { reminder =>
-            <li>
-                @reminder.timestamp.startTime.get.toString("hh:mm")
-                <em>for @reminder.eventID</a></em>
-            </li>
+<h1>Reminders</h1>
+
+<div class="container">  
+	
+	@if(reminders.isEmpty){
+    	<p>No reminders yet</p>
+	} else {
+		
+<table class="table">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Time</th>
+				<th>Event ID </th>
+			</tr>
+		</thead>
+			<tbody>
+				
+        		@reminders.map { reminder =>
+            		<tr>
+            			<td>@reminder.timestamp.startDate.get.toString("MMM-dd-yyyy")</td>
+                		<td>@reminder.timestamp.startTime.get.toString("hh:mm a")</td>
+                		<td>@reminder.eventID</td>
+            		</tr>
             }
-    </ul>
-}
+    	</tbody>
+	</table>
+</div>
+    
+	}
 }
