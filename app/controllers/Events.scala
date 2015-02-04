@@ -28,17 +28,18 @@ object Events extends Controller with MongoController {
     def index = Action.async { implicit request =>         
         val query = BSONDocument(
         "$query" -> BSONDocument())
+       
     
-        val found = collection.find(query).cursor[Event]
-
-        found.collect[List]().map { events =>
-            Ok(views.html.events(events))
-        } 
+        //val found = collection.find(query).cursor[Event]
+        //found.collect[List]().map { events =>
+            //Ok(views.html.events(events))
+        //} 
         
-        //val sorted = collection.find(query).sort(BSONDocument("timeRange" -> 1)).cursor[Event]
-        //sorted.collect[List]().map { events =>
-           //Ok(views.html.events(events))
-        //}
+        val sorted = collection.find(BSONDocument()).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
+        //val sorted = collection.find(query).sort((models.event.scala.timeRange -> 1))
+        sorted.collect[List]().map { events =>
+           Ok(views.html.events(events))
+        }
     }
     
     def showReminders = Action.async{ implicit request =>         
@@ -146,6 +147,16 @@ object Events extends Controller with MongoController {
                 }
             )
         }
+    }
+    
+    def deleteRule (eventID: String) = Action { implicit request =>
+      val objectID = BSONObjectID.apply(eventID)  
+      
+      val future = collection.remove(BSONDocument(" id" -> objectID), firstMatchOnly = true)
+      
+      Redirect(routes.Events.showEvent(eventID))
+      
+      
     }
         
 //    // TODO: refactor out this method from the others
