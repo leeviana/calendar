@@ -13,7 +13,7 @@ case class Event(
     timeRange: TimeRange,
     name: String,
     description: String,
-    rules: BSONArray, // list of rule objects
+    rules: List[Rule], // list of rule objects
     recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
     nextRecurrence: Option[BSONObjectID] // BSONID pointer, can be null if not recurring
 )
@@ -27,7 +27,7 @@ object Event {
                 doc.getAs[TimeRange]("timeRange").get,
                 doc.getAs[String]("name").get,
                 doc.getAs[String]("description").get,
-                doc.getAs[BSONArray]("rules").get,
+                doc.getAs[List[Rule]]("rules").get,
                 doc.getAs[RecurrenceMeta]("recurrenceMeta"),
                 doc.getAs[BSONObjectID]("nextRecurrence")
             )
@@ -58,7 +58,7 @@ object Event {
             "timeRange" -> TimeRange.form.mapping,
             "name" -> nonEmptyText,
             "description" -> nonEmptyText,
-            "rules" -> ignored(BSONArray.empty),
+            "rules" -> optional(list(Rule.form.mapping)),
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
             "nextRecurrence" -> optional(nonEmptyText) // BSONObjectID
         ) { (id, calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence) =>
@@ -68,7 +68,7 @@ object Event {
               timeRange,
               name,
               description,
-              rules,
+              rules.getOrElse(List[Rule]()),
               recurrenceMeta,
               nextRecurrence.map(id => BSONObjectID.apply(id)))
         } { event =>
@@ -78,7 +78,7 @@ object Event {
               event.timeRange,
               event.name,
               event.description,
-              event.rules,
+              Some(event.rules),
               event.recurrenceMeta,
               event.nextRecurrence.map (id => id.stringify)))
           }

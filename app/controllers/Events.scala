@@ -34,7 +34,7 @@ object Events extends Controller with MongoController {
 //        val query = BSONDocument(
 //        "$query" -> BSONDocument())
 //      
-        val calendarID = BSONObjectID.apply("54d1bd651efe0f0e01cdbfb1")
+        val calendarID = BSONObjectID.apply("54d1d3801efe0fa201cdbfb4")
         val query = BSONDocument(
             "$query" -> BSONDocument(
                 //"owner" -> userID,

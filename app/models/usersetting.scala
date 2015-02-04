@@ -28,6 +28,7 @@ object UserSetting {
     implicit object UserSettingReader extends BSONDocumentReader[UserSetting] {
         def read(doc: BSONDocument): UserSetting = {
             UserSetting(
+                // TODO: replace this
                 doc.getAs[String]("settingType").get,
                 doc.getAs[String]("settingValue").get
             )
