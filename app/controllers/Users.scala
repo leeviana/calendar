@@ -39,7 +39,7 @@ object Users extends Controller with MongoController {
             
             user => {
                 collection.insert(user)
-                Redirect(routes.Users.index())
+                Redirect(routes.Application.index())
             }
         )
     }
