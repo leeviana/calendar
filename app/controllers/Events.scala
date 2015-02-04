@@ -30,16 +30,53 @@ object Events extends Controller with MongoController {
     // PLACEHOLDER UNTIL AUTHENTICATION
     val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
     
-    def index = Action.async { implicit request =>         
-      
-        val calendarID = BSONObjectID.apply("54d1d3801efe0fa201cdbfb4")
+    def index = Action.async { implicit request =>
         
-        val sorted = collection.find(BSONDocument()).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
-        //val sorted = collection.find(query).sort((models.event.scala.timeRange -> 1))
-        sorted.collect[List]().map { events =>
-           Ok(views.html.events(events))
+        val userCollection = db[BSONCollection]("users")
+        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+            
+        cursor.collect[List]().flatMap { user =>
+            
+            val query = BSONDocument(
+                "calendar" -> BSONDocument(
+                    "$in" -> user.head.subscriptions))
+            
+            val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
+          
+            sorted.collect[List]().map { events =>
+               Ok(views.html.events(events))
+            }  
         }
     }
+    
+    def getCalendars: Future[List[Calendar]] = {      
+        val userCollection = db[BSONCollection]("users")
+        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+            
+        cursor.collect[List]().map { user =>
+            var calList = ListBuffer[Calendar]()
+            
+            //var calMap:Map[String, String] = Map()
+            for(calID <- user.headOption.get.subscriptions) {
+                val calendarCollection = db[BSONCollection]("calendars")
+                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+                
+                calCursor.collect[List]().map { cal =>
+                    calList ++= cal
+                }            
+            }
+            
+            calList.toList
+        }
+        
+//        future.onComplete {
+//            case Failure(e) => throw e
+//            case Success(lastError) => {
+//                calList.toList
+//            }
+//        }
+    }
+    
     
     def showReminders = Action.async{ implicit request =>         
         val reminders = db[BSONCollection]("reminders")
@@ -156,10 +193,10 @@ object Events extends Controller with MongoController {
         Redirect(routes.Events.index())
     }
     
-    def confirmDelete(eventID: String) = Action{
-      Ok(views.html.confirmDelete(eventID, Event.form))
-    }
-    
+//    def confirmDelete(eventID: String) = Action{
+//      Ok(views.html.confirmDelete(eventID, Event.form))
+//    }
+//    
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
