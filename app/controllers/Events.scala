@@ -57,6 +57,32 @@ object Events extends Controller with MongoController {
             errors => Ok(views.html.editEvent(errors, iterator)),
             
             event => {
+                
+                if(event.recurrenceMeta.isDefined) {
+                    // TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
+                    val recType = event.recurrenceMeta.get.recurrenceType
+                
+                    if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
+                        if(recType.compare(RecurrenceType.Daily) == 0) {
+                            println("Let's recur, daily!")
+                        }
+                        if(recType.compare(RecurrenceType.Weekly) == 0) {
+                            println("Let's recur, weekly!")
+                        }
+                        if(recType.compare(RecurrenceType.Monthly) == 0) {
+                            println("Let's recur, monthly!")
+                            //MonthMeta.generateRecurrence(event.timeRange.startDate), 
+                        }
+                        if(recType.compare(RecurrenceType.Yearly) == 0) {
+                            println("Let's recur, yearly!")
+                        }    
+                    }
+                    else {
+                        // for future expansion, infinite recurrence
+                    }
+                    
+                }
+                    
                 val updatedEvent = event.copy()
                 collection.insert(updatedEvent)
                 Redirect(routes.Events.index())
@@ -72,9 +98,6 @@ object Events extends Controller with MongoController {
         cursor.collect[List]().map { event =>
             Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm))
         }
-        
-        
-        //Redirect(routes.Events.index())
     }
     
     def addReminder(eventID: String) = Action.async { implicit request => 

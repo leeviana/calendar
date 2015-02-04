@@ -16,22 +16,23 @@
         @helper.checkbox(form("timeRange.allday")) 
         <br><br>
         -Recurrence JQuery toggle magic- 
+        @helper.inputDate(form("recurrenceMeta.timeRange.endDate"))
         <br>
+        <!--
         Recurrence start and end<br><br>
         @helper.inputDate(form("recurrenceMeta.timeRange.startDate"))
-        @helper.inputDate(form("recurrenceMeta.timeRange.endDate"))
-        
         <br><br>
+        -->
         <!--  going to ignore these for now, this is if you want recurring reminders
         "reminderTime" -> optional(longNumber),
         "reminderType" -> optional(nonEmptyText), -->
         <br><br>
         
-        Specific recurrence info<br><br>
         <input type="text" name="recurrenceMeta.recurrenceType" value='@form("recurrenceMeta.recurrenceType").value' ><br>
         Required. Default "Daily". Dropdown that sends string, options should be "Daily", "Weekly", "Monthly" or "Yearly"<br>
         You can use this iterator I pass in: @recurrenceTypes
        
+        <!--
         <br><br>
         -recurrenceType: Daily-<br>
         Number of days: <input type="number" name="recurrenceMeta.daily.numberOfDays" value='@form("recurrenceMeta.daily.numberOfDays").value' >
@@ -49,7 +50,7 @@
         Month (number): <input type="number" name="recurrenceMeta.yearly.month" value='@form("recurrenceMeta.yearly.month").value' ><br>
         Day: <input type="number" name="recurrenceMeta.yearly.day" value='@form("recurrenceMeta.yearly.day").value' ><br>
         Idea: Change this field to a datepicker and then send a date object to the backend          
-         
+        --> 
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>

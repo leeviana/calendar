@@ -3,6 +3,8 @@ package models
 import play.api.data.Forms._
 import reactivemongo.bson._
 import play.api.data.Form
+import org.joda.time.DateTime
+import scala.collection.mutable.ListBuffer
 
 /**
  * @author Leevi
@@ -43,4 +45,16 @@ object MonthMeta {
             )
           }
     )
+    
+    def generateRecurrence(start: DateTime, end: DateTime): List[DateTime] = {
+        var current = start
+        var timestamps = ListBuffer[DateTime]()
+        
+        while(current.compareTo(end) <= 0) {
+            timestamps += current
+            current = current.plusMonths(1)
+        }
+        
+        timestamps.toList
+    }
 }
