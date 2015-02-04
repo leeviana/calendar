@@ -8,6 +8,9 @@ import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
 
+import models.utils.AuthStateDAO
+import org.mindrot.jbcrypt.BCrypt;
+
 /**
  * @author Leevi
  */
@@ -38,8 +41,16 @@ object Users extends Controller with MongoController {
             errors => Ok(views.html.editUser(errors)),
             
             user => {
-                collection.insert(user)
-                Redirect(routes.Application.index())
+				val updatedUser = user.copy(id = BSONObjectID.generate)
+                collection.insert(updatedUser)
+
+				val collection2 = db[BSONCollection]("authstate")
+				val requestMap = (request.body.asFormUrlEncoded)
+	            val password = requestMap.get.get("password").get.head
+				val hash =  BCrypt.hashpw(password, BCrypt.gensalt());
+				val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser.id, lastAuthToken="", passwordHash=hash)
+				collection2.insert(newAuthData)
+				Redirect(routes.Authentication.signIn())
             }
         )
     }
@@ -88,9 +99,9 @@ object Users extends Controller with MongoController {
     
     def addUsertoGroup = Action { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)
-        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)        
+        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
         val addUserID = BSONObjectID.apply(requestMap.get.get("userID").get.head)
-        
+		
         val query = BSONDocument(
             "$query" -> BSONDocument(
                 //"owner" -> userID,

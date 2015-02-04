@@ -7,6 +7,7 @@ GET     /                               controllers.Application.index
 GET     /agenda						    controllers.Application.showAgenda
 GET     /signUp                         controllers.Application.signUp
 GET     /signIn                         controllers.Application.signIn
+GET     /login                         controllers.Application.signIn
 
 # Users
 
@@ -32,7 +33,7 @@ POST    /events/addrule/:eventID        controllers.Events.addRule(eventID)
 
 # Authentication
 
-POST     /signUp                         controllers.Authentication.signUp
+POST     /signUp                         controllers.Users.create
 POST     /signIn                         controllers.Authentication.signIn
 GET     /signOut                         controllers.Authentication.signOut
 

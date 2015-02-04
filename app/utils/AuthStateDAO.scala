@@ -14,16 +14,17 @@ object AuthStateDAO {
   def isAuthenticated()(implicit req: RequestHeader): Boolean = {
     val sessionUserID = ""
 	val sessionAuthToken = ""
+	val output = false
     req.session.get("userID").map { thisID =>
 	  val sessionUserID = thisID
     }.getOrElse {
-      false
+      return output
     }
 	
 	req.session.get("authToken").map { thisToken =>
 	  val sessionAuthToken = thisToken
     }.getOrElse {
-      false
+      return output
     }
 	
     val driver = new MongoDriver
@@ -35,12 +36,12 @@ object AuthStateDAO {
 
     val cursor = collection.find(BSONDocument("userID" -> sessionUserID)).cursor[AuthInfo]
 	val temp = false
-	val output = cursor.collect[List]().map { authinfos =>      
+	val irrelevant = cursor.collect[List]().map { authinfos =>      
 	  authinfos.map { authinfo => 
 	    val temp = (authinfo.lastAuthToken == sessionAuthToken)
 	  }
 	}
-	temp
+	return temp
   }
   
   def getUserID()(implicit req: RequestHeader): String = {

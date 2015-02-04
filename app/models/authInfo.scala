@@ -11,7 +11,8 @@ import reactivemongo.api.collections.default.BSONCollection
 case class AuthInfo (
     id: BSONObjectID,
     userID: BSONObjectID, // foreign pointer to user in question
-    lastAuthToken: String
+    lastAuthToken: String,
+	passwordHash: String
 )
 
 object AuthInfo {
@@ -20,7 +21,8 @@ object AuthInfo {
             AuthInfo(
                 doc.getAs[BSONObjectID]("_id").get,
                 doc.getAs[BSONObjectID]("userID").get,
-                doc.getAs[String]("lastAuthToken").get
+                doc.getAs[String]("lastAuthToken").get,
+				doc.getAs[String]("passwordHash").get
             )
         }
     }
@@ -29,7 +31,8 @@ object AuthInfo {
         def write(authinfo: AuthInfo): BSONDocument = BSONDocument(
             "_id" -> authinfo.id,
             "userID" -> authinfo.userID,
-            "lastAuthToken" -> authinfo.lastAuthToken
+            "lastAuthToken" -> authinfo.lastAuthToken,
+			"passwordHash" -> authinfo.passwordHash
         )
     }
 }
