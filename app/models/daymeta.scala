@@ -3,6 +3,8 @@ package models
 import play.api.data.Forms._
 import reactivemongo.bson._
 import play.api.data.Form
+import scala.collection.mutable.ListBuffer
+import org.joda.time.DateTime
 
 /**
  * @author Leevi
@@ -43,4 +45,16 @@ object DayMeta {
             )
           }
     )
+    
+    def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
+        var current = start
+        var timestamps = ListBuffer[Long]()
+        
+        while(current.compareTo(end) <= 0) {
+            timestamps += current.getMillis - start.getMillis
+            current = current.plusDays(1)
+        }
+        
+        timestamps.toList
+    }
 }

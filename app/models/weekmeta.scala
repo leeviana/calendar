@@ -4,6 +4,8 @@ import play.api.data.Forms._
 import reactivemongo.bson._
 import play.api.data.Form
 import java.util.Date
+import scala.collection.mutable.ListBuffer
+import org.joda.time.DateTime
 
 /**
  * @author Leevi
@@ -44,4 +46,16 @@ object WeekMeta {
             )
           }
     )
+    
+    def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
+        var current = start
+        var timestamps = ListBuffer[Long]()
+        
+        while(current.compareTo(end) <= 0) {
+            timestamps += current.getMillis - start.getMillis
+            current = current.plusWeeks(1)
+        }
+        
+        timestamps.toList
+    }
 }

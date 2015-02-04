@@ -1,0 +1,15 @@
+@(field: Field, label: String = "")
+
+
+ 	<div class="form-group @if(field.hasErrors) {has-error}">
+    	<label class="col-sm-2 control-label">@label</label>
+    		<div class="col-sm-5">
+    			<select name="@field.name" class="form-control" style="width:150px">
+    				<option value="User"> User </option>
+    				<option value="Group"> Group </option>
+    			</select>
+    			</div>
+    		</div>
+	
+    
+    
