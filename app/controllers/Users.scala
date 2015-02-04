@@ -7,6 +7,8 @@ import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * @author Leevi
@@ -16,7 +18,7 @@ object Users extends Controller with MongoController {
     val collection = db[BSONCollection]("users")
     
     // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1d37c1efe0f8e01cdbfb2")
+    val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
     
     def index = Action.async { implicit request =>         
         val query = BSONDocument(
@@ -37,13 +39,14 @@ object Users extends Controller with MongoController {
         User.form.bindFromRequest.fold(
             errors => Ok(views.html.editUser(errors)),
             
-            user => {
-                
-                val calendarColl = db[BSONCollection]("calendar")
-                var personalCalendar = new Calendar(BSONObjectID.generate, userID, user.username + "'s personal calendar", BSONArray.empty, BSONArray.empty)
+            user => { 
+                val calendarColl = db[BSONCollection]("calendars")
+                val calName = user.username + "'s personal calendar"
+                val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, BSONArray.empty, BSONArray.empty)
+            
                 calendarColl.insert(personalCalendar)
                 
-                var updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
+                val updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
                 collection.insert(updatedUser)
                 Redirect(routes.Application.index())
             }
