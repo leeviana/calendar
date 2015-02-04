@@ -201,23 +201,76 @@ object Events extends Controller with MongoController {
         }
     }
     
-//    def deleteRule (eventID: String, ruleID: Int) = Action { implicit request =>
-//      val objectID = BSONObjectID.apply(eventID)  
-//      
-//      val event = collection.find(BSONDocument(" id" -> objectID)).cursor[Event]
-//      event.collect[List]().map { event =>
-//        for(e <- event.headOption.get.rules.values){
-//          if(e.orderNum == ruleID)
-//        }
-//      }
+    def deleteRule (eventID: String, ruleID: String) = Action { implicit request =>
+      val objectID = BSONObjectID.apply(eventID)  
+     
+            val modifier = BSONDocument(
+            "$pull" -> BSONDocument(
+                "rules" -> BSONDocument(
+                    "orderNum" -> ruleID.toInt)))
+                
+        val future = collection.update(BSONDocument("_id" -> objectID), modifier)
 
- 
-//      val future = collection.remove(BSONDocument(" id" -> objectID), firstMatchOnly = true)
+        future.onComplete {
+          case Failure(e) => throw e
+          case Success(lastError) => {
+             Redirect(routes.Events.showEvent(eventID))
+          }
+        }
+
+      Redirect(routes.Events.showEvent(eventID))
+    }
+    
+    def confirmDeleteRule(eventID: String, ruleID: String) = Action{
+      Ok(views.html.confirmDeleteRule(eventID, Event.form, ruleID))
+    }
+    
+    def moveRule(eventID: String, ruleID: String, dir: String) = Action.async { implicit request =>
+      val objectID = BSONObjectID.apply(eventID)
       
-//      Redirect(routes.Events.showEvent(eventID))
-      
-      
-//    }
+      val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
+      cursor.collect[List]().map { event =>
+        //val rules = event.headOption.get.rules
+        var rules = event.headOption.get.rules.toBuffer
+        if(ruleID.toInt == 0 && dir.equals("up")){
+          Redirect(routes.Events.showEvent(eventID))
+        }else if(ruleID.toInt == rules.length-1 && dir.equals("down")){
+          Redirect(routes.Events.showEvent(eventID))
+        }else if(dir.equals("up")){
+          println("length of list - " + rules.length)
+          for(x <- 0 to rules.length-1){
+            if(rules(x).orderNum == ruleID.toInt){
+              val temp_orderNum = rules(x).orderNum
+              val temp_entityType = rules(x).entityType
+              val temp_entityID = rules(x).entityID
+              val temp_accessType = rules(x).accessType
+              val newRule1 = new Rule(rules(x).orderNum-1, rules(x).entityType, rules(x).entityID, rules(x).accessType)
+              val newRule2 = new Rule(rules(x-1).orderNum+1, rules(x-1).entityType, rules(x-1).entityID, rules(x-1).accessType)
+              
+              val modifier1 = BSONDocument(
+            "$pull" -> BSONDocument(
+                "rules" -> rules(x)))
+                val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
+                val modifier2 = BSONDocument(
+            "$pull" -> BSONDocument(
+                "rules" -> rules(x-1)))
+                val future2 = collection.update(BSONDocument("_id" -> objectID), modifier2)
+                rules.remove(x)
+                rules.remove(x-1)
+                val modifier3 = BSONDocument(
+                        "$push" -> BSONDocument(
+                            "rules" -> newRule1))  
+                val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
+                val modifier4 = BSONDocument(
+                        "$push" -> BSONDocument(
+                            "rules" -> newRule2))  
+                val future4 = collection.update(BSONDocument("_id" -> objectID), modifier4)
+            }
+          }
+      } 
+        Redirect(routes.Events.showEvent(eventID))
+      }
+    }
         
 //    // TODO: refactor out this method from the others
 //    def findEvent(id: BSONObjectID): Event = {
@@ -227,5 +280,4 @@ object Events extends Controller with MongoController {
 //            return event.headOption.get
 //        }
 //    }
-    
 }

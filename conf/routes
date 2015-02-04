@@ -29,6 +29,10 @@ POST    /events/addreminder/:eventID    controllers.Events.addReminder(eventID)
 POST    /events/addrule/:eventID        controllers.Events.addRule(eventID)
 GET		/events/:eventID/delete			controllers.Events.confirmDelete(eventID)
 POST	/events/:eventID/delete			controllers.Events.deleteEvent(eventID)
+GET		/events/:eventID/:ruleID/deleteRule		controllers.Events.confirmDeleteRule(eventID, ruleID)
+POST	/events/:eventID/:ruleID/deleteRule		controllers.Events.deleteRule(eventID, ruleID)
+GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ruleID, dir)
+
 
 
 # Map static resources from the /public folder to the /assets URL path
