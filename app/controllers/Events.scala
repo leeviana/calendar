@@ -38,14 +38,17 @@ object Events extends Controller with MongoController {
         cursor.collect[List]().flatMap { user =>
             
             val query = BSONDocument(
+                "$or" -> List[BSONDocument](BSONDocument(
                 "calendar" -> BSONDocument(
-                    "$in" -> user.head.subscriptions))
+                    "$in" -> user.head.subscriptions)),
+                BSONDocument("rules.entityID" -> user.head.id)
+            ))
+            
             
             val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
-          
-            sorted.collect[List]().map { events =>
-               Ok(views.html.events(events))
-            }  
+                sorted.collect[List]().map { events =>
+                   Ok(views.html.events(events))
+            }    
         }
     }
     

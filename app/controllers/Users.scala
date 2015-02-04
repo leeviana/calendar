@@ -70,7 +70,7 @@ object Users extends Controller with MongoController {
     }
     
     def newGroupForm = Action {
-        Ok(views.html.createGroup(Group.form))
+        Ok(views.html.createGroup(Group.form, userID.stringify))
     }
     
     def addGroup = Action.async { implicit request =>

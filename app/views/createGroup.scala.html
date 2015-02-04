@@ -1,4 +1,4 @@
-@(groupForm: Form[models.Group])
+@(groupForm: Form[models.Group], userID: String)
 
 @main("Create Group"){
 
@@ -8,13 +8,13 @@
 	    @helper.form(action = routes.Users.addGroup, 'class -> "form-horizontal") {
 	    @helper.inputText(groupForm("name"))
 	    
-	    @helper.inputText(groupForm("owner"))
-	    Hidden form: auto fill with authenticated userid (I can pass that in). Possibly use placeholder fake ID.
-	    Idea: just make this an optional field that is always filled in later?
-	    
-	    <br><br> 
-	    Add users in form, not on page
-	    
+	    <input type="text"
+                id='@groupForm("owner").id' 
+                name='@groupForm("owner").name'
+                value='@userID' 
+                placeholder='@userID'
+                style="visibility: hidden" />
+                
 	    <div class="form-actions">
 	        <input class="btn btn-primary" type="submit">
 	    </div>
