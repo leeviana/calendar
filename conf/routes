@@ -19,10 +19,6 @@ GET 	/groups/new						controllers.Users.newGroupForm
 POST    /groups/new                     controllers.Users.addGroup
 POST    /groups/addUsertoGroup          controllers.Users.addUsertoGroup
 
-<<<<<<< HEAD
-
-=======
->>>>>>> c6174a0f4997d403c942930e639c32285ea3d0b1
 # Events
 GET     /events                         controllers.Events.index
 GET     /events/reminders               controllers.Events.showReminders

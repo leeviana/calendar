@@ -34,6 +34,11 @@ object Events extends Controller with MongoController {
         found.collect[List]().map { events =>
             Ok(views.html.events(events))
         } 
+        
+        //val sorted = collection.find(query).sort(BSONDocument("timeRange" -> 1)).cursor[Event]
+        //sorted.collect[List]().map { events =>
+           //Ok(views.html.events(events))
+        //}
     }
     
     def showReminders = Action.async{ implicit request =>         

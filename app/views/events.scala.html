@@ -5,11 +5,7 @@
 <div class="container">
 	<div class="row">
 	<div class="col-md-9">
-	<h1>Date</h1>
-	<div class="btn-group" role="group">
-		<a href="/events" class="btn btn-default" role="button">Prev</a>
-		<a href="/events" class="btn btn-default" role="button">Next</a>	
-	</div>
+	<h1>Events</h1>
 	</div>
 	<div class="col-md-3">
 		<a href="/events/new" class="btn btn-info" role="button">Add Event</a>
@@ -41,9 +37,9 @@
 			} else {
 				@for(e <- events){
 				<tr>
-					<td>@e.timeRange.date.get.toString("MM/dd/yyyy")</td>
-					<td>@e.timeRange.start.get.toString("hh:mm a")-@e.timeRange.end.get.toString("hh:mm a")</td>
-					<td>@e.name</td>
+					<td>@e.timeRange.startDate.get.toString("MMM-dd-yyyy")</td>
+					<td>@e.timeRange.startTime.get.toString("hh:mm a")-@e.timeRange.endTime.get.toString("hh:mm a")</td>
+					<td><a href="./events/@e.id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@e.calendar</td>
 				</tr>
