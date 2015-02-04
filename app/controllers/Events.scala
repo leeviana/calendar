@@ -120,6 +120,24 @@ object Events extends Controller with MongoController {
         )
     }
     
+    def deleteEvent(eventID: String) = Action { implicit request =>
+        val objectID = BSONObjectID.apply(eventID)  
+        
+        val future = collection.remove(BSONDocument("_id" -> objectID), firstMatchOnly = true)
+      
+        future.onComplete {
+          case Failure(e) => throw e
+          case Success(lastError) => {
+             Redirect(routes.Events.index())
+          }
+        }
+        Redirect(routes.Events.index())
+    }
+    
+    def confirmDelete(eventID: String) = Action{
+      Ok(views.html.confirmDelete(eventID, Event.form))
+    }
+    
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
@@ -173,15 +191,23 @@ object Events extends Controller with MongoController {
         }
     }
     
-    def deleteRule (eventID: String) = Action { implicit request =>
-      val objectID = BSONObjectID.apply(eventID)  
+//    def deleteRule (eventID: String, ruleID: Int) = Action { implicit request =>
+//      val objectID = BSONObjectID.apply(eventID)  
+//      
+//      val event = collection.find(BSONDocument(" id" -> objectID)).cursor[Event]
+//      event.collect[List]().map { event =>
+//        for(e <- event.headOption.get.rules.values){
+//          if(e.orderNum == ruleID)
+//        }
+//      }
+
+ 
+//      val future = collection.remove(BSONDocument(" id" -> objectID), firstMatchOnly = true)
       
-      val future = collection.remove(BSONDocument(" id" -> objectID), firstMatchOnly = true)
-      
-      Redirect(routes.Events.showEvent(eventID))
+//      Redirect(routes.Events.showEvent(eventID))
       
       
-    }
+//    }
         
 //    // TODO: refactor out this method from the others
 //    def findEvent(id: BSONObjectID): Event = {

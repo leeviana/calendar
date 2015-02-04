@@ -33,6 +33,7 @@
 					<td>No Name</td>
 					<td>No Description</td>
 					<td>No Owner</td>
+					<td>Delete</td>
 				</tr>
 			} else {
 				@for(e <- events){
@@ -42,6 +43,7 @@
 					<td><a href="./events/@e.id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@e.calendar</td>
+					<td><a href="/events/@e.id.stringify/delete" class="btn btn-info" role="button">Delete</a></td>
 				</tr>
 				}
 			}
