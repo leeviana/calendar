@@ -28,13 +28,14 @@ object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
     // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1d37c1efe0f8e01cdbfb2")
+    val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
     
     def index = Action.async { implicit request =>         
 //        val query = BSONDocument(
 //        "$query" -> BSONDocument())
 //      
         val calendarID = BSONObjectID.apply("54d1d3801efe0fa201cdbfb4")
+        //54d1eda31efe0f0b06808d8e
         val query = BSONDocument(
             "$query" -> BSONDocument(
                 //"owner" -> userID,
@@ -62,10 +63,30 @@ object Events extends Controller with MongoController {
         }
     }
     
-    def showCreationForm = Action {
+    def showCreationForm = Action.async {
         val iterator = RecurrenceType.values.iterator
-        // get a user
-        // send the user's calendars or iterators to front
+        
+        val userCollection = db[BSONCollection]("users")
+        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+        
+        cursor.collect[List]().map { user =>
+            var calMap:Map[String, String] = Map()
+            for(calID <- user.headOption.get.subscriptions) {
+                val calendarCollection = db[BSONCollection]("calendars")
+                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+                
+                calCursor.collect[List]().map { cal =>
+                    calMap += (calID.stringify -> cal.head.name)
+                }
+            }
+            
+            Ok(views.html.editEvent(Event.form, iterator, calMap)) 
+        }
+    }
+    
+    // TODO: refactor out the recurrence code
+    def create = Action.async { implicit request =>
+        val iterator = RecurrenceType.values.iterator
         
         val userCollection = db[BSONCollection]("users")
         val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
@@ -74,72 +95,64 @@ object Events extends Controller with MongoController {
             var calMap:Map[String, String] = Map()
             for(calID <- user.headOption.get.subscriptions) {
                 calMap += (calID.stringify -> "name")
-            } 
-            
-            Ok(views.html.editEvent(Event.form, iterator, calMap)) 
-        }
-        
-        Ok(views.html.editEvent(Event.form, iterator, Map()))
-    }
-    
-    def create = Action { implicit request =>
-        val iterator = RecurrenceType.values.iterator
-        
-        Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.editEvent(errors, iterator, Map())),
-            
-            event => {
-                
-                collection.insert(event)
-                
-                if(event.recurrenceMeta.isDefined) {
-                    val recurrenceDates = new ListBuffer[Long]()
-                    // TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
-                    val recType = event.recurrenceMeta.get.recurrenceType
-                    if(event.timeRange.startDate.isDefined) {
-                        if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
-                            val start = event.timeRange.startDate.get
-                            val end = event.recurrenceMeta.get.timeRange.endDate.get
-                            
-                            if(recType.compare(RecurrenceType.Daily) == 0) {
-                                recurrenceDates ++= DayMeta.generateRecurrence(start, end)
-                            }
-                            if(recType.compare(RecurrenceType.Weekly) == 0) {
-                                recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
-                            }
-                            if(recType.compare(RecurrenceType.Monthly) == 0) {
-                                recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
-                            }
-                            if(recType.compare(RecurrenceType.Yearly) == 0) {
-                                recurrenceDates ++= YearMeta.generateRecurrence(start, end)
-                            }    
-                        }
-                        else {
-                            // for future expansion, infinite recurrence
-                        }
-                    }
-                    
-                    for(difference <- recurrenceDates) {
-                        println("Difference:" + difference)
-                        val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
-                        var newTimeRange = new TimeRange
-                        
-                        if(event.timeRange.endDate.isDefined) {
-                            val newEndDate = new DateTime(event.timeRange.endDate.get.getMillis + difference)
-                            newTimeRange = event.timeRange.copy(startDate = Some(newStartDate), endDate = Some(newEndDate))   
-                        }
-                        else {
-                            newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
-                        }
-                        
-                        val updatedEvent = event.copy(id = BSONObjectID.generate, timeRange = newTimeRange) 
-                        val future = collection.insert(updatedEvent)
-                    } 
-                }
-                    
-                Redirect(routes.Events.index())
             }
-        )
+        
+            Event.form.bindFromRequest.fold(
+                errors => Ok(views.html.editEvent(errors, iterator, calMap)),
+                
+                event => {
+                    
+                    collection.insert(event)
+                    
+                    if(event.recurrenceMeta.isDefined) {
+                        val recurrenceDates = new ListBuffer[Long]()
+                        // TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
+                        val recType = event.recurrenceMeta.get.recurrenceType
+                        if(event.timeRange.startDate.isDefined) {
+                            if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
+                                val start = event.timeRange.startDate.get
+                                val end = event.recurrenceMeta.get.timeRange.endDate.get
+                                
+                                if(recType.compare(RecurrenceType.Daily) == 0) {
+                                    recurrenceDates ++= DayMeta.generateRecurrence(start, end)
+                                }
+                                if(recType.compare(RecurrenceType.Weekly) == 0) {
+                                    recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
+                                }
+                                if(recType.compare(RecurrenceType.Monthly) == 0) {
+                                    recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
+                                }
+                                if(recType.compare(RecurrenceType.Yearly) == 0) {
+                                    recurrenceDates ++= YearMeta.generateRecurrence(start, end)
+                                }    
+                            }
+                            else {
+                                // for future expansion, infinite recurrence
+                            }
+                        }
+                        
+                        for(difference <- recurrenceDates) {
+                            println("Difference:" + difference)
+                            val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
+                            var newTimeRange = new TimeRange
+                            
+                            if(event.timeRange.endDate.isDefined) {
+                                val newEndDate = new DateTime(event.timeRange.endDate.get.getMillis + difference)
+                                newTimeRange = event.timeRange.copy(startDate = Some(newStartDate), endDate = Some(newEndDate))   
+                            }
+                            else {
+                                newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
+                            }
+                            
+                            val updatedEvent = event.copy(id = BSONObjectID.generate, timeRange = newTimeRange) 
+                            val future = collection.insert(updatedEvent)
+                        } 
+                    }
+                        
+                    Redirect(routes.Events.index())
+                }
+            )
+        }
     }
     
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
