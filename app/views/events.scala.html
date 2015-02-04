@@ -1,16 +1,52 @@
 @(events: List[models.Event])
 
-@if(events.isEmpty){
-    <p>No events yet</p>
-} else {
-    <ul>
-        @events.map { event =>
-            <li>
-                @event.timeRange.startDate
-                <em>is @event.name</em>
-            </li>
-            }
-    </ul>
-}
+@main("Events"){
 
-<a href = "./events/new">Add new event</a>
+<div class="container">
+	<div class="row">
+	<div class="col-md-9">
+	<h1>Events</h1>
+	</div>
+	<div class="col-md-3">
+		<a href="/events/new" class="btn btn-info" role="button">Add Event</a>
+	</div>
+	</div>
+</div>
+
+
+<div class="container">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Time</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Owner</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if(events.isEmpty){
+				<tr>
+					<td>No Date</td>
+					<td>No Time</td>
+					<td>No Name</td>
+					<td>No Description</td>
+					<td>No Owner</td>
+				</tr>
+			} else {
+				@for(e <- events){
+				<tr>
+					<td>@e.timeRange.startDate.get.toString("MMM-dd-yyyy")</td>
+					<td>@e.timeRange.startTime.get.toString("hh:mm a")-@e.timeRange.endTime.get.toString("hh:mm a")</td>
+					<td><a href="./events/@e.id.stringify">@e.name</a></td>
+					<td>@e.description</td>
+					<td>@e.calendar</td>
+				</tr>
+				}
+			}
+		</tbody>
+	
+	</table>
+</div>
+}

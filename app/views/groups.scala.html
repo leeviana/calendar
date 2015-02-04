@@ -1,6 +1,53 @@
 @(groups: List[models.Group], groupForm: Form[models.Group])
 
-@if(groups.isEmpty){
+@main("Settings") {
+<div class="container">
+	<h1>Groups</h1>
+	<a href="./groups/new" class="btn btn-info" role="button">Create
+		Group</a>
+
+	<div class="container">
+		<table class="table">
+			<thead>
+				<th>Name</th>
+				<th>Users</th>
+				<th>Add User</th>
+			</thead>
+			<tbody>
+				@if(groups.isEmpty){
+					<tr>
+						<td>No Groups</td>
+						<td>None</td>
+						<td>None</td>
+					</tr>
+				} else { 
+					@for(g <- groups){
+					<tr>
+						<td>@g.name</td>
+						<td>@g.userIDs</td>
+						<td>
+							@helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-horizontal") {
+                    			<input type="hidden" name="groupID" value='@g.id.stringify' >			        
+			        			userID: <input type="text" name="userID" value="userID" >                    
+			            			<input class="btn btn-primary" type="submit">
+		       				 }
+						</td>
+					</tr>
+					}
+				}
+			</tbody>
+		</table>
+	</div>
+
+
+</div>
+}
+
+
+
+
+
+<!-- @if(groups.isEmpty){
     <p>You don't own any groups</p>
 } else {
     <ul>
@@ -15,10 +62,9 @@
                 Call to addUsertoGroup with parameters (@group.id.stringify, username or ID)
                 <br><br>
                 Add user to <b>@group.name</b><br>
-                @helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-horizontal") {
+                @helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-inline") {
                     <input type="hidden" name="groupID" value='@group.id.stringify' >			        
 			        userID: <input type="text" name="userID" value='userID' >                    
-                    
 			        <div class="form-actions">
 			            <input class="btn btn-primary" type="submit">
 			        </div>
@@ -26,22 +72,6 @@
             </li>
             }
     </ul>
-}
+} -->
 
-<div class="row">
-    <div class="span8">
-    <h2>Add a group</h2>
-	    @helper.form(action = routes.Users.addGroup, 'class -> "form-horizontal") {
-	    @helper.inputText(groupForm("name"))
-	    
-	    @helper.inputText(groupForm("owner"))
-	    Hidden form: auto fill with authenticated userid (I can pass that in). Possibly use placeholder fake ID.
-	    Idea: just make this an optional field that is always filled in later?
-	    
-	    <div class="form-actions">
-	        <input class="btn btn-primary" type="submit">
-	    </div>
-	}
-    </div>
-</div>
 
