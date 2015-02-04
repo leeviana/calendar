@@ -19,24 +19,12 @@ object EntityType extends Enumeration {
     type EntityType = Value
 
     val User, Group = Value
-    
-    implicit object EntityTypeReader extends BSONDocumentReader[EntityType] {
-        def read(doc: BSONDocument): EntityType = {
-           EntityType.withName(doc.getAs[String]("entityType").get)
-        }
-    }
 }
 
 object AccessType extends Enumeration {
     type AccessType = Value
 
     val BusyOnly, SeeAll, Modify = Value
-    
-    implicit object AccessTypeReader extends BSONDocumentReader[AccessType] {
-        def read(doc: BSONDocument): AccessType = {
-           AccessType.withName(doc.getAs[String]("accessType").get)
-        }
-    }
 }
 
 object Rule {
@@ -45,9 +33,9 @@ object Rule {
         def read(doc: BSONDocument): Rule = {
             Rule(
                 doc.getAs[Int]("orderNum").get,
-                doc.getAs[EntityType.EntityType]("entityType").get,
+                EntityType.withName(doc.getAs[String]("entityType").get),
                 doc.getAs[BSONObjectID]("entityID").get,
-                doc.getAs[AccessType.AccessType]("accessType").get
+                AccessType.withName(doc.getAs[String]("accessType").get)
             )
         }
     }

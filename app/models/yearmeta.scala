@@ -53,7 +53,7 @@ object YearMeta {
     )
     
     def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
-        var current = start
+        var current = start.plusYears(1)
         var timestamps = ListBuffer[Long]()
         
         while(current.compareTo(end) <= 0) {

@@ -29,12 +29,6 @@ object RecurrenceType extends Enumeration {
     type RecurrenceType = Value
 
     val Daily, Weekly, Monthly, Yearly = Value
-    
-    implicit object RecurrenceTypeReader extends BSONDocumentReader[RecurrenceType] {
-        def read(doc: BSONDocument): RecurrenceType = {
-           RecurrenceType.withName(doc.getAs[String]("recurrenceType").get)
-        }
-    }
 }
 
 object RecurrenceMeta {
@@ -44,8 +38,9 @@ object RecurrenceMeta {
             RecurrenceMeta(
                 doc.getAs[TimeRange]("timeRange").get,
                 doc.getAs[Long]("reminderTime"),
+                //TODO: fix this
                 doc.getAs[ReminderType.ReminderType]("reminderType"),
-                doc.getAs[RecurrenceType.RecurrenceType]("recurrenceType").get,
+                RecurrenceType.withName(doc.getAs[String]("recurrenceType").get),
                 doc.getAs[DayMeta]("daily"),
                 doc.getAs[WeekMeta]("weekly"),
                 doc.getAs[MonthMeta]("monthly"),

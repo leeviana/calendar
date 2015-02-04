@@ -34,11 +34,8 @@ object Reminder {
             Reminder(
                 doc.getAs[BSONObjectID]("eventID").get,
                 doc.getAs[TimeRange]("timestamp").get,
-                //new TimeRange(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime())),
                 doc.getAs[BSONObjectID]("user").get,
-                // TODO: why doesn't this work?
-                //doc.getAs[ReminderType.ReminderType]("reminderType").get
-                ReminderType.Email
+                ReminderType.withName(doc.getAs[String]("reminderType").get)
             )
         }
     }
