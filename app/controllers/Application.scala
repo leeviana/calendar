@@ -23,17 +23,4 @@ object Application extends Controller {
   def signIn = Action {
     Ok(views.html.login())
   }
-
-    def addEvent = Action {
-      Ok(views.html.addEvent(Event.form))
-    }
-    
-	
-    //def settings = Action {
-      //Ok(views.html.settings())
-    //}
-    
-    //def newGroup = Action {
-      //Ok(views.html.createGroup())
-    //}
 }
