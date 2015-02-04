@@ -51,7 +51,18 @@
     <br>
     
     <legend>Rules</legend><br>
-    Show info about existing rules here: (@event.rules)<br>
+    Show info about existing rules here: (@event.rules)
+    @if(event.rules.isEmpty){
+    	No Rules
+    } else {
+    <ul class="list-group">
+    @for(r <- event.rules.iterator){
+    	<li class="list-group-item">@r </li>
+    	
+    }
+    </ul>
+    }
+    <br>
         @helper.form(action = routes.Events.addRule(event.id.stringify), 'class -> "form-horizontal") {
         
         <input type="number" 

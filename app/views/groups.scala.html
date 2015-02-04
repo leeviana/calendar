@@ -24,7 +24,15 @@
 					@for(g <- groups){
 					<tr>
 						<td>@g.name</td>
-						<td>@g.userIDs</td>
+						@if(g.userIDs.isEmpty){
+							<td>No Members</td>
+						}else{
+							<td><ul>
+							@for(uid <- g.userIDs.values){
+								<li>@uid</li>
+							}
+							</ul></td>
+						}
 						<td>
 							@helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-horizontal") {
                     			<input type="hidden" name="groupID" value='@g.id.stringify' >			        
