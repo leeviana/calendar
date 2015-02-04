@@ -47,7 +47,7 @@ object MonthMeta {
     )
     
     def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
-        var current = start
+        var current = start.plusMonths(1)
         var timestamps = ListBuffer[Long]()
         
         while(current.compareTo(end) <= 0) {

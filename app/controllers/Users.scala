@@ -16,7 +16,7 @@ object Users extends Controller with MongoController {
     val collection = db[BSONCollection]("users")
     
     // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54cee76d1efe0fc108e5e698")
+    val userID = BSONObjectID.apply("54d1d37c1efe0f8e01cdbfb2")
     
     def index = Action.async { implicit request =>         
         val query = BSONDocument(
@@ -38,7 +38,13 @@ object Users extends Controller with MongoController {
             errors => Ok(views.html.editUser(errors)),
             
             user => {
-                collection.insert(user)
+                
+                val calendarColl = db[BSONCollection]("calendar")
+                var personalCalendar = new Calendar(BSONObjectID.generate, userID, user.username + "'s personal calendar", BSONArray.empty, BSONArray.empty)
+                calendarColl.insert(personalCalendar)
+                
+                var updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
+                collection.insert(updatedUser)
                 Redirect(routes.Application.index())
             }
         )
