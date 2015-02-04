@@ -1,6 +1,7 @@
 package controllers
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Map
 import scala.concurrent.Future
 
 import org.joda.time.DateTime
@@ -27,12 +28,19 @@ object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
     // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54cee76d1efe0fc108e5e698")
+    val userID = BSONObjectID.apply("54d1d37c1efe0f8e01cdbfb2")
     
     def index = Action.async { implicit request =>         
+//        val query = BSONDocument(
+//        "$query" -> BSONDocument())
+//      
+        val calendarID = BSONObjectID.apply("54d1bd651efe0f0e01cdbfb1")
         val query = BSONDocument(
-        "$query" -> BSONDocument())
-    
+            "$query" -> BSONDocument(
+                //"owner" -> userID,
+                "calendar" -> calendarID))
+        
+                
         val found = collection.find(query).cursor[Event]
 
         found.collect[List]().map { events =>
@@ -56,14 +64,29 @@ object Events extends Controller with MongoController {
     
     def showCreationForm = Action {
         val iterator = RecurrenceType.values.iterator
-        Ok(views.html.editEvent(Event.form, iterator))
+        // get a user
+        // send the user's calendars or iterators to front
+        
+        val userCollection = db[BSONCollection]("users")
+        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+        
+        cursor.collect[List]().map { user =>
+            var calMap:Map[String, String] = Map()
+            for(calID <- user.headOption.get.subscriptions) {
+                calMap += (calID.stringify -> "name")
+            } 
+            
+            Ok(views.html.editEvent(Event.form, iterator, calMap)) 
+        }
+        
+        Ok(views.html.editEvent(Event.form, iterator, Map()))
     }
     
     def create = Action { implicit request =>
         val iterator = RecurrenceType.values.iterator
         
         Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.editEvent(errors, iterator)),
+            errors => Ok(views.html.editEvent(errors, iterator, Map())),
             
             event => {
                 
