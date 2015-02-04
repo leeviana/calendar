@@ -1,18 +1,22 @@
 package controllers
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
+
+import org.joda.time.DateTime
+
 import models._
+import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONArray
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
 import scala.util.Failure
 import scala.util.Success
-import play.api.data.Form
+
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
  * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
@@ -58,33 +62,53 @@ object Events extends Controller with MongoController {
             
             event => {
                 
+                collection.insert(event)
+                
                 if(event.recurrenceMeta.isDefined) {
+                    val recurrenceDates = new ListBuffer[Long]()
                     // TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
                     val recType = event.recurrenceMeta.get.recurrenceType
-                
-                    if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
-                        if(recType.compare(RecurrenceType.Daily) == 0) {
-                            println("Let's recur, daily!")
+                    if(event.timeRange.startDate.isDefined) {
+                        if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
+                            val start = event.timeRange.startDate.get
+                            val end = event.recurrenceMeta.get.timeRange.endDate.get
+                            
+                            if(recType.compare(RecurrenceType.Daily) == 0) {
+                                recurrenceDates ++= DayMeta.generateRecurrence(start, end)
+                            }
+                            if(recType.compare(RecurrenceType.Weekly) == 0) {
+                                recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
+                            }
+                            if(recType.compare(RecurrenceType.Monthly) == 0) {
+                                recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
+                            }
+                            if(recType.compare(RecurrenceType.Yearly) == 0) {
+                                recurrenceDates ++= YearMeta.generateRecurrence(start, end)
+                            }    
                         }
-                        if(recType.compare(RecurrenceType.Weekly) == 0) {
-                            println("Let's recur, weekly!")
+                        else {
+                            // for future expansion, infinite recurrence
                         }
-                        if(recType.compare(RecurrenceType.Monthly) == 0) {
-                            println("Let's recur, monthly!")
-                            //MonthMeta.generateRecurrence(event.timeRange.startDate), 
-                        }
-                        if(recType.compare(RecurrenceType.Yearly) == 0) {
-                            println("Let's recur, yearly!")
-                        }    
-                    }
-                    else {
-                        // for future expansion, infinite recurrence
                     }
                     
+                    for(difference <- recurrenceDates) {
+                        println("Difference:" + difference)
+                        val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
+                        var newTimeRange = new TimeRange
+                        
+                        if(event.timeRange.endDate.isDefined) {
+                            val newEndDate = new DateTime(event.timeRange.endDate.get.getMillis + difference)
+                            newTimeRange = event.timeRange.copy(startDate = Some(newStartDate), endDate = Some(newEndDate))   
+                        }
+                        else {
+                            newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
+                        }
+                        
+                        val updatedEvent = event.copy(id = BSONObjectID.generate, timeRange = newTimeRange) 
+                        val future = collection.insert(updatedEvent)
+                    } 
                 }
                     
-                val updatedEvent = event.copy()
-                collection.insert(updatedEvent)
                 Redirect(routes.Events.index())
             }
         )
