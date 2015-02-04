@@ -15,16 +15,20 @@ object Application extends Controller {
   def showAgenda = Action {
     Ok(views.html.agenda())
   }
-
-    def login = Action {
-      Ok(views.html.login())
-    }
+  
+  def signUp = Action {
+    Ok(views.html.editUser(User.form))
+  }
+  
+  def signIn = Action {
+    Ok(views.html.login())
+  }
 
     def addEvent = Action {
-
       Ok(views.html.addEvent(Event.form))
     }
     
+	
     //def settings = Action {
       //Ok(views.html.settings())
     //}
