@@ -1,4 +1,4 @@
-@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule])
+@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String)
 @import helper.twitterBootstrap._
 
 @main("Event Information"){
@@ -10,12 +10,12 @@
 		'class -> "form-horizontal") { 
 		
 		<!-- Event ID (Auto-filled) -->
-			<input type="text"
-				id='@reminderForm("eventID").id' 
-				name='@reminderForm("eventID").name'
-				value='@event.id.stringify' 
-				placeholder='@event.id.stringify'
-				style="visibility: hidden" />
+		<input type="text"
+			id='@reminderForm("eventID").id' 
+			name='@reminderForm("eventID").name'
+			value='@event.id.stringify' 
+			placeholder='@event.id.stringify'
+			style="visibility: hidden" />
 
 		<!-- Date -->
 		@datepicker(reminderForm("timestamp.startDate"), label = "Date")
@@ -27,8 +27,8 @@
 		<input type="text" 
 			id='@reminderForm("user").id'
 			name='@reminderForm("user").name' 
-			value="54cee76d1efe0fc108e5e698"
-			placeholder="54cee76d1efe0fc108e5e698" 
+			value="@userID"
+			placeholder="@userID"
 			style="visibility: hidden" /> 
 			
 		<input type="text" 

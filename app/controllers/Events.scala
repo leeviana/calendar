@@ -91,13 +91,13 @@ object Events extends Controller with MongoController {
         
         val userCollection = db[BSONCollection]("users")
         val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
-        
         cursor.collect[List]().map { user =>
             var calMap:Map[String, String] = Map()
+
             for(calID <- user.headOption.get.subscriptions) {
                 val calendarCollection = db[BSONCollection]("calendars")
                 val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
-                calCursor.collect[List]().map { cal =>
+                val future = calCursor.collect[List]().map { cal =>
                     calMap += (calID.stringify -> cal.head.name)
                 }
             }
@@ -127,6 +127,7 @@ object Events extends Controller with MongoController {
                 errors => Ok(views.html.editEvent(errors, iterator, calMap)),
                 
                 event => {
+                    val calendar = event.calendar
                     
                     collection.insert(event)
                     
@@ -158,7 +159,6 @@ object Events extends Controller with MongoController {
                         }
                         
                         for(difference <- recurrenceDates) {
-                            println("Difference:" + difference)
                             val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
                             var newTimeRange = new TimeRange
                             
@@ -170,7 +170,7 @@ object Events extends Controller with MongoController {
                                 newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
                             }
                             
-                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = event.calendar, timeRange = newTimeRange) 
+                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
                             val future = collection.insert(updatedEvent)
                         } 
                     }
@@ -205,7 +205,7 @@ object Events extends Controller with MongoController {
         val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
         
         cursor.collect[List]().map { event =>
-            Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm))
+            Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify))
         }
     }
     
@@ -218,7 +218,7 @@ object Events extends Controller with MongoController {
             val reminders = db[BSONCollection]("reminders")
 
             Reminder.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.headOption.get, errors, Rule.form)),
+                errors => Ok(views.html.EventInfo(event.headOption.get, errors, Rule.form, AuthStateDAO.getUserID().stringify)),
        
                 reminder => {
                     reminders.insert(reminder)
@@ -236,7 +236,7 @@ object Events extends Controller with MongoController {
         cursor.collect[List]().map { event =>
                 
             Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.headOption.get, Reminder.form, errors)),
+                errors => Ok(views.html.EventInfo(event.headOption.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify)),
             
                 rule => {
                     val modifier = BSONDocument(
