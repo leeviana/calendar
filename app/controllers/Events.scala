@@ -28,7 +28,7 @@ object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
     // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1ed9c1efe0fe905808d8c")
+    val userID = BSONObjectID.apply("54d1f07114558f6000d1c366")
     
     def index = Action.async { implicit request =>         
 //        val query = BSONDocument(
@@ -63,7 +63,7 @@ object Events extends Controller with MongoController {
         }
     }
     
-    def showCreationForm = Action.async {
+def showCreationForm = Action.async {
         val iterator = RecurrenceType.values.iterator
         
         val userCollection = db[BSONCollection]("users")
@@ -74,7 +74,6 @@ object Events extends Controller with MongoController {
             for(calID <- user.headOption.get.subscriptions) {
                 val calendarCollection = db[BSONCollection]("calendars")
                 val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
-                
                 calCursor.collect[List]().map { cal =>
                     calMap += (calID.stringify -> cal.head.name)
                 }
@@ -93,8 +92,12 @@ object Events extends Controller with MongoController {
         
         cursor.collect[List]().map { user =>
             var calMap:Map[String, String] = Map()
-            for(calID <- user.headOption.get.subscriptions) {
-                calMap += (calID.stringify -> "name")
+             for(calID <- user.headOption.get.subscriptions) {
+                val calendarCollection = db[BSONCollection]("calendars")
+                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+                calCursor.collect[List]().map { cal =>
+                    calMap += (calID.stringify -> cal.head.name)
+                }
             }
         
             Event.form.bindFromRequest.fold(

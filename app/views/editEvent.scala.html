@@ -7,15 +7,27 @@
     <div class="span8">
     <legend>Add an event</legend>
 
-
 	@helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
 
         <!-- Calendar -->
-        @text(form("calendar"),
-    		label = "Calendar",
-        	placeholder = "Calendar",
-        	help = "Calendar ID")
-        	
+        <label class="col-sm-2 control-label"> Calendar </label>
+    		<div class="col-sm-10"> 
+        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
+        	<option value=""> </option>
+        @for((eventID, eventName) <- calMap){
+        	<option value='@eventID'>@eventName </option>
+        }
+        </select>
+        </div>
+        
+        <script>
+        function test() {
+        	$('#@form("calendar").id').trigger("create");
+        }
+        </script>
+        <br>
+       <br>
+       
       	<!-- Event Name -->
 		@text(form("name"),
     		label = "Name",
