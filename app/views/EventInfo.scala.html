@@ -13,8 +13,8 @@
 		'class -> "form-horizontal") { 
 		
 			<input type="text"
-				id='reminderForm("eventID").id' 
-				name='reminderForm("eventID").name'
+				id='@reminderForm("eventID").id' 
+				name='@reminderForm("eventID").name'
 				value='@event.id.stringify' 
 				placeholder='@event.id.stringify'
 				style="visibility: hidden" />
@@ -24,15 +24,15 @@
 		@timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
 
 		<input type="text" 
-			id='reminderForm("user").id'
-			name='reminderForm("user").name' 
-			value="54cbd8251efe0f5201a39705"
-			placeholder="54cbd8251efe0f5201a39705" 
+			id='@reminderForm("user").id'
+			name='@reminderForm("user").name' 
+			value="54cee76d1efe0fc108e5e698"
+			placeholder="54cee76d1efe0fc108e5e698" 
 			style="visibility: hidden" /> 
 			
 		<input type="text" 
-			id='reminderForm("reminderType").id'
-			name='reminderForm("reminderType").name' 
+			id='@reminderForm("reminderType").id'
+			name='@reminderForm("reminderType").name' 
 			value="Email"
 			placeholder="Email" 
 			style="visibility: hidden" /> 
