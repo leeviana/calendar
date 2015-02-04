@@ -18,13 +18,12 @@
 				<th>Event ID </th>
 			</tr>
 		</thead>
-			<tbody>
-				
+			<tbody>		
         		@reminders.map { reminder =>
             		<tr>
             			<td>@reminder.timestamp.startDate.get.toString("MMM-dd-yyyy")</td>
                 		<td>@reminder.timestamp.startTime.get.toString("hh:mm a")</td>
-                		<td>@reminder.eventID</td>
+                		<td><a href="/events/@reminder.eventID.stringify">@reminder.eventID.toString()</a></td>
             		</tr>
             }
     	</tbody>

@@ -1,7 +1,6 @@
 @(field: Field, label: String = "")
 
 <head>
-	
 	  	<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/datepicker.css")">
 	  	<script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-datepicker.js")"></script>
 </head>
@@ -18,9 +17,6 @@
 			
 				<span class="help-block">@{field.error.map { error => error.message }}</span>	        
 			</div>
-
-
-       		
-          
+     
     </div>
 </body>

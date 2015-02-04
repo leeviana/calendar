@@ -19,11 +19,6 @@ object Application extends Controller {
     def login = Action {
       Ok(views.html.login())
     }
-
-    def addEvent = Action {
-
-      Ok(views.html.addEvent(Event.form))
-    }
     
     //def settings = Action {
       //Ok(views.html.settings())
