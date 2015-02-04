@@ -12,7 +12,7 @@ case class User (
     id: BSONObjectID,
     username: String,
     email: String,
-    subscriptions: BSONArray, // list of calIDs
+    subscriptions: List[BSONObjectID], // list of calIDs
     settings: BSONArray // list of UserSettings
 )
 
@@ -23,7 +23,7 @@ object User {
                 doc.getAs[BSONObjectID]("_id").get,
                 doc.getAs[String]("username").get,
                 doc.getAs[String]("email").get,
-                doc.getAs[BSONArray]("subscriptions").get,
+                doc.getAs[List[BSONObjectID]]("subscriptions").get,
                 doc.getAs[BSONArray]("settings").get
             )
         }
@@ -48,7 +48,7 @@ object User {
             "id" -> ignored(BSONObjectID.generate),
             "username" -> nonEmptyText,
             "email" -> nonEmptyText,
-            "subscriptions" -> ignored(BSONArray.empty),
+            "subscriptions" -> list(ignored(BSONObjectID.generate)),
             "settings" -> ignored(BSONArray()) 
         )  { (id, username, email, subscriptions, settings) =>
             User (

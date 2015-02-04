@@ -1,13 +1,13 @@
-@(form: Form[models.Event], recurrenceTypes: Iterator[RecurrenceType.Value])
+@(form: Form[models.Event], recurrenceTypes: Iterator[RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
 @import helper.twitterBootstrap._
-
 
 @main("Add Event"){
 
 <div class="row">
     <div class="span8">
     <legend>Add an event</legend>
-    @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
+
+        @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
 
         <!-- Calendar -->
         @text(form("calendar"),
