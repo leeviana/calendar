@@ -16,6 +16,8 @@ import reactivemongo.bson.BSONObjectID
 import scala.util.Failure
 import scala.util.Success
 import utils.AuthStateDAO
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -100,6 +102,8 @@ object Events extends Controller with MongoController {
                 val future = calCursor.collect[List]().map { cal =>
                     calMap += (calID.stringify -> cal.head.name)
                 }
+                // Await... until I can figure out how to use futures/double cursors correctly
+                Await.ready(future, Duration(5000, MILLISECONDS))
             }
             
             Ok(views.html.editEvent(Event.form, iterator, calMap)) 

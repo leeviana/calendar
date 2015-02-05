@@ -46,12 +46,8 @@ object Users extends Controller with MongoController {
             
                 calendarColl.insert(personalCalendar)
 
-                // val updatedUser = user.copy(id = BSONObjectID.generate)
-                val updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
+                val updatedUser = user.copy(id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar.id))
                 collection.insert(updatedUser)
-                
-                
-                
 
                 val collection2 = db[BSONCollection]("authstate")
                 val requestMap = (request.body.asFormUrlEncoded)
@@ -60,8 +56,6 @@ object Users extends Controller with MongoController {
                 val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser.id, lastAuthToken="", passwordHash=hash)
                 collection2.insert(newAuthData)
                 Redirect(routes.Application.signIn())
-                
-                // Redirect(routes.Application.index())
             }
         )
     }
