@@ -4,7 +4,6 @@
 
 # Home page
 GET     /                               controllers.Application.index
-GET     /agenda						    controllers.Application.showAgenda
 GET     /signUp                         controllers.Application.signUp
 GET     /signIn                         controllers.Application.signIn
 GET     /login                          controllers.Application.signIn

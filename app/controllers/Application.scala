@@ -12,10 +12,6 @@ object Application extends Controller {
     Ok(views.html.index("Your new application is ready."))
   }
   
-  def showAgenda = Action {
-    Ok(views.html.agenda())
-  }
-  
   def signUp = Action {
     Ok(views.html.editUser(User.form))
   }
