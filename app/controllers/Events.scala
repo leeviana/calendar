@@ -19,6 +19,8 @@ import utils.AuthStateDAO
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+
+
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
  * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
@@ -218,7 +220,7 @@ object Events extends Controller with MongoController {
     }
     
     def confirmDelete(eventID: String) = Action{
-      Ok(views.html.confirmDelete(eventID, Event.form))
+      Ok(viewComponents.html.confirmDelete(eventID, Event.form))
     }
     
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
@@ -327,7 +329,7 @@ object Events extends Controller with MongoController {
     }
     
     def confirmDeleteRule(eventID: String, ruleID: String) = Action{
-      Ok(views.html.confirmDeleteRule(eventID, Event.form, ruleID))
+      Ok(viewComponents.html.confirmDeleteRule(eventID, Event.form, ruleID))
     }
     
     def moveRule(eventID: String, ruleID: String, dir: String) = Action.async { implicit request =>
