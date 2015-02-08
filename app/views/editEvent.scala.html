@@ -7,14 +7,27 @@
     <div class="span8">
     <legend>Add an event</legend>
 
-        @helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
+	@helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
 
         <!-- Calendar -->
-        @text(form("calendar"),
-    		label = "Calendar",
-        	placeholder = "Calendar",
-        	help = "Calendar ID")
-        	
+        <label class="col-sm-2 control-label"> Calendar </label>
+    		<div class="col-sm-10"> 
+        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
+        	<option value=""> </option>
+        @for((eventID, eventName) <- calMap){
+        	<option value='@eventID'>@eventName </option>
+        }
+        </select>
+        </div>
+        
+        <script>
+        function test() {
+        	$('#@form("calendar").id').trigger("create");
+        }
+        </script>
+        <br>
+       <br>
+       
       	<!-- Event Name -->
 		@text(form("name"),
     		label = "Name",
@@ -29,35 +42,47 @@
         
         <!--  Time Range -->
         @datepicker(form("timeRange.startDate"),
-        	"Start Date")  
+        	label = "Start Date")  
        
         @timepicker(form("timeRange.startTime"),
-        	"Start Time")  
+        	label = "Start Time")  
         	
         @datepicker(form("timeRange.endDate"),
-        	"End Date")  
+        	label = "End Date")  
         
         @timepicker(form("timeRange.endTime"),
-        	"End Time")  
+        	label = "End Time")  
         	
-      	<!--  All day -->      
+      	<!--  All day -->  
+      	<!-- <div>
      	<label class="col-sm-2 control-label"> All Day </label>
     		<div class="col-sm-10">   	
        			@helper.checkbox(form("timeRange.allday"))
        		</div>
+       	</div> -->
        	
-       	<!--  Recurrence -->
-      	
-       			 @dropdown(form("recurrenceMeta.recurrenceType"),
-    				label = "Recurrence Type",
-        			it = recurrenceTypes)
+       	<input type="checkbox"
+                id='@form("timeRange.allday").id' 
+                name='@form("timeRange.allday").name'
+                value='@false' 
+                placeholder='@false'
+                style="visibility: hidden" />
+       	
+       	<!--  Recurrence Details -->    	
+       	@dropdown(form("recurrenceMeta.recurrenceType"),
+    		label = "Recurrence Type",
+        	it = recurrenceTypes)
+        			
+        @datepicker(form("recurrenceMeta.timeRange.endDate"),
+        	label = "Recurrence End Date")
        		
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">
-				<input class="btn btn-primary" type="submit">
+				<input class="btn btn-primary" type="submit"> 
 			</div>
 		</div>
+		
 		<br>
 		<br>
 		<br>

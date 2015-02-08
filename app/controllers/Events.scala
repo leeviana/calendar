@@ -3,9 +3,7 @@ package controllers
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
 import scala.concurrent.Future
-
 import org.joda.time.DateTime
-
 import models._
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -17,6 +15,9 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
 import scala.util.Failure
 import scala.util.Success
+import utils.AuthStateDAO
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -27,107 +28,179 @@ import scala.util.Success
 object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
-    // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1d37c1efe0f8e01cdbfb2")
-    
-    def index = Action.async { implicit request =>         
-      
-        val calendarID = BSONObjectID.apply("54d1d3801efe0fa201cdbfb4")
+    def index = Action.async { implicit request =>
         
-        val sorted = collection.find(BSONDocument()).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
-        //val sorted = collection.find(query).sort((models.event.scala.timeRange -> 1))
-        sorted.collect[List]().map { events =>
-           Ok(views.html.events(events))
+        val userCollection = db[BSONCollection]("users")
+        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
+            
+        cursor.collect[List]().flatMap { user =>
+            
+            val groupQuery = BSONDocument(
+                "userIDs" -> user.head.id
+            )
+            val groupColl = db[BSONCollection]("groups")
+            val groupCursor = groupColl.find(groupQuery).cursor[Group]
+            
+            var userGroupIDs = ListBuffer[BSONObjectID]()
+            val futureGroups = groupCursor.collect[List]().map {
+                groups => 
+                    for(group <- groups) {
+                        userGroupIDs += group.id   
+                    }
+            }
+            Await.ready(futureGroups, Duration(5000, MILLISECONDS))
+            
+            println(futureGroups)
+            val query = BSONDocument(
+                "$or" -> List[BSONDocument](BSONDocument(
+                "calendar" -> BSONDocument(
+                    "$in" -> user.head.subscriptions)),
+                BSONDocument("rules.entityID" -> user.head.id),
+                BSONDocument("rules.entityID" -> BSONDocument(
+                    "$in" -> userGroupIDs))
+            ))
+            
+            val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
+            sorted.collect[List]().map { events =>
+                // TODO: applyAccesses(events)
+                Ok(views.html.events(events))
+            }    
         }
     }
     
+//    def getCalendars: Future[List[Calendar]] = {      
+//        val userCollection = db[BSONCollection]("users")
+//        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
+//            
+//        cursor.collect[List]().map { user =>
+//            var calList = ListBuffer[Calendar]()
+//            
+//            //var calMap:Map[String, String] = Map()
+//            for(calID <- user.headOption.get.subscriptions) {
+//                val calendarCollection = db[BSONCollection]("calendars")
+//                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+//                
+//                calCursor.collect[List]().map { cal =>
+//                    calList ++= cal
+//                }            
+//            }
+//            
+//            calList.toList
+//        }
+//        
+////        future.onComplete {
+////            case Failure(e) => throw e
+////            case Success(lastError) => {
+////                calList.toList
+////            }
+////        }
+//    }
+    
+    
     def showReminders = Action.async{ implicit request =>         
         val reminders = db[BSONCollection]("reminders")
-        val reminderCursor = reminders.find(BSONDocument("user" -> userID)).cursor[Reminder]
+        val reminderCursor = reminders.find(BSONDocument("user" -> AuthStateDAO.getUserID())).cursor[Reminder]
         
         reminderCursor.collect[List]().map { reminders =>         
                 Ok(views.html.ReminderDisplay(reminders))
         }
     }
     
-    def showCreationForm = Action {
+    def showCreationForm = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
-        // get a user
-        // send the user's calendars or iterators to front
         
         val userCollection = db[BSONCollection]("users")
-        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
-        
+        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
         cursor.collect[List]().map { user =>
             var calMap:Map[String, String] = Map()
+
             for(calID <- user.headOption.get.subscriptions) {
-                calMap += (calID.stringify -> "name")
-            } 
+                val calendarCollection = db[BSONCollection]("calendars")
+                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+                val future = calCursor.collect[List]().map { cal =>
+                    calMap += (calID.stringify -> cal.head.name)
+                }
+                // Await... until I can figure out how to use futures/double cursors correctly
+                Await.ready(future, Duration(5000, MILLISECONDS))
+            }
             
             Ok(views.html.editEvent(Event.form, iterator, calMap)) 
         }
-        
-        Ok(views.html.editEvent(Event.form, iterator, Map()))
     }
     
-    def create = Action { implicit request =>
+    // TODO: refactor out the recurrence code
+    def create = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
         
-        Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.editEvent(errors, iterator, Map())),
-            
-            event => {
-                
-                collection.insert(event)
-                
-                if(event.recurrenceMeta.isDefined) {
-                    val recurrenceDates = new ListBuffer[Long]()
-                    // TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
-                    val recType = event.recurrenceMeta.get.recurrenceType
-                    if(event.timeRange.startDate.isDefined) {
-                        if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
-                            val start = event.timeRange.startDate.get
-                            val end = event.recurrenceMeta.get.timeRange.endDate.get
-                            
-                            if(recType.compare(RecurrenceType.Daily) == 0) {
-                                recurrenceDates ++= DayMeta.generateRecurrence(start, end)
-                            }
-                            if(recType.compare(RecurrenceType.Weekly) == 0) {
-                                recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
-                            }
-                            if(recType.compare(RecurrenceType.Monthly) == 0) {
-                                recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
-                            }
-                            if(recType.compare(RecurrenceType.Yearly) == 0) {
-                                recurrenceDates ++= YearMeta.generateRecurrence(start, end)
-                            }    
-                        }
-                        else {
-                            // for future expansion, infinite recurrence
-                        }
-                    }
-                    
-                    for(difference <- recurrenceDates) {
-                        println("Difference:" + difference)
-                        val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
-                        var newTimeRange = new TimeRange
-                        
-                        if(event.timeRange.endDate.isDefined) {
-                            val newEndDate = new DateTime(event.timeRange.endDate.get.getMillis + difference)
-                            newTimeRange = event.timeRange.copy(startDate = Some(newStartDate), endDate = Some(newEndDate))   
-                        }
-                        else {
-                            newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
-                        }
-                        
-                        val updatedEvent = event.copy(id = BSONObjectID.generate, timeRange = newTimeRange) 
-                        val future = collection.insert(updatedEvent)
-                    } 
+        val userCollection = db[BSONCollection]("users")
+        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
+        
+        cursor.collect[List]().map { user =>
+            var calMap:Map[String, String] = Map()
+             for(calID <- user.headOption.get.subscriptions) {
+                val calendarCollection = db[BSONCollection]("calendars")
+                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
+                calCursor.collect[List]().map { cal =>
+                    calMap += (calID.stringify -> cal.head.name)
                 }
-                    
-                Redirect(routes.Events.index())
             }
-        )
+        
+            Event.form.bindFromRequest.fold(
+                errors => Ok(views.html.editEvent(errors, iterator, calMap)),
+                
+                event => {
+                    val calendar = event.calendar
+                    
+                    collection.insert(event)
+                    
+                    if(event.recurrenceMeta.isDefined) {
+                        val recurrenceDates = new ListBuffer[Long]()
+                        // TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
+                        val recType = event.recurrenceMeta.get.recurrenceType
+                        if(event.timeRange.startDate.isDefined) {
+                            if(event.recurrenceMeta.get.timeRange.endDate.isDefined) {
+                                val start = event.timeRange.startDate.get
+                                val end = event.recurrenceMeta.get.timeRange.endDate.get
+                                
+                                if(recType.compare(RecurrenceType.Daily) == 0) {
+                                    recurrenceDates ++= DayMeta.generateRecurrence(start, end)
+                                }
+                                if(recType.compare(RecurrenceType.Weekly) == 0) {
+                                    recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
+                                }
+                                if(recType.compare(RecurrenceType.Monthly) == 0) {
+                                    recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
+                                }
+                                if(recType.compare(RecurrenceType.Yearly) == 0) {
+                                    recurrenceDates ++= YearMeta.generateRecurrence(start, end)
+                                }    
+                            }
+                            else {
+                                // for future expansion, infinite recurrence
+                            }
+                        }
+                        
+                        for(difference <- recurrenceDates) {
+                            val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
+                            var newTimeRange = new TimeRange
+                            
+                            if(event.timeRange.endDate.isDefined) {
+                                val newEndDate = new DateTime(event.timeRange.endDate.get.getMillis + difference)
+                                newTimeRange = event.timeRange.copy(startDate = Some(newStartDate), endDate = Some(newEndDate))   
+                            }
+                            else {
+                                newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
+                            }
+                            
+                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
+                            val future = collection.insert(updatedEvent)
+                        } 
+                    }
+                        
+                    Redirect(routes.Events.index())
+                }
+            )
+        }
     }
     
     def deleteEvent(eventID: String) = Action { implicit request =>
@@ -154,7 +227,7 @@ object Events extends Controller with MongoController {
         val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
         
         cursor.collect[List]().map { event =>
-            Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm))
+            Ok(views.html.EventInfo(event.headOption.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify))
         }
     }
     
@@ -179,7 +252,7 @@ object Events extends Controller with MongoController {
             val reminders = db[BSONCollection]("reminders")
 
             Reminder.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.headOption.get, errors, Rule.form)),
+                errors => Ok(views.html.EventInfo(event.headOption.get, errors, Rule.form, AuthStateDAO.getUserID().stringify)),
        
                 reminder => {
                     reminders.insert(reminder)
@@ -197,7 +270,7 @@ object Events extends Controller with MongoController {
         cursor.collect[List]().map { event =>
                 
             Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.headOption.get, Reminder.form, errors)),
+                errors => Ok(views.html.EventInfo(event.headOption.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify)),
             
                 rule => {
                     val modifier = BSONDocument(

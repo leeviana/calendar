@@ -2,9 +2,16 @@
 
 @main("Settings") {
 <div class="container">
-	<h1>Groups</h1>
-	<a href="./groups/new" class="btn btn-info" role="button">Create
-		Group</a>
+	<div class="row">
+		<div class="col-md-9">
+			<h1>Groups</h1>
+		</div>
+		<div class="col-md-3">
+			<br>
+			<a href="./groups/new" class="btn btn-info" role="button">Create Group</a>
+		</div>
+	</div>
+</div>
 
 	<div class="container">
 		<table class="table">
@@ -23,7 +30,7 @@
 				} else { 
 					@for(g <- groups){
 					<tr>
-						<td>@g.name</td>
+						<td>@g.name <br>(@g.id.stringify)</td>
 						@if(g.userIDs.isEmpty){
 							<td>No Members</td>
 						}else{

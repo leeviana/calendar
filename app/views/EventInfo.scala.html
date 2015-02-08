@@ -1,33 +1,34 @@
-@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule])
+@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String)
 @import helper.twitterBootstrap._
 
 @main("Event Information"){
 <div class="row">
 	<div class="span8">
-		<h2>Event Info</h2>
-		<h4>Event Name: @event.name</h4>
-		<br>
-		<br>
+		<h2>Event Information: @event.name</h2>
 		<legend>Add Reminder</legend>
 		@helper.form(action = routes.Events.addReminder(event.id.stringify),
 		'class -> "form-horizontal") { 
 		
-			<input type="text"
-				id='@reminderForm("eventID").id' 
-				name='@reminderForm("eventID").name'
-				value='@event.id.stringify' 
-				placeholder='@event.id.stringify'
-				style="visibility: hidden" />
+		<!-- Event ID (Auto-filled) -->
+		<input type="text"
+			id='@reminderForm("eventID").id' 
+			name='@reminderForm("eventID").name'
+			value='@event.id.stringify' 
+			placeholder='@event.id.stringify'
+			style="visibility: hidden" />
 
+		<!-- Date -->
 		@datepicker(reminderForm("timestamp.startDate"), label = "Date")
 
+		<!-- Start Time -->
 		@timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
 
+		<!--  User ID (Auto-filled) -->
 		<input type="text" 
 			id='@reminderForm("user").id'
 			name='@reminderForm("user").name' 
-			value="54cee76d1efe0fc108e5e698"
-			placeholder="54cee76d1efe0fc108e5e698" 
+			value="@userID"
+			placeholder="@userID"
 			style="visibility: hidden" /> 
 			
 		<input type="text" 

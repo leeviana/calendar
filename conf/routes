@@ -4,7 +4,9 @@
 
 # Home page
 GET     /                               controllers.Application.index
-
+GET     /signUp                         controllers.Application.signUp
+GET     /signIn                         controllers.Application.signIn
+GET     /login                          controllers.Application.signIn
 
 # Users
 
@@ -33,7 +35,10 @@ GET		/events/:eventID/:ruleID/deleteRule		controllers.Events.confirmDeleteRule(e
 POST	/events/:eventID/:ruleID/deleteRule		controllers.Events.deleteRule(eventID, ruleID)
 GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ruleID, dir)
 
-
+# Authentication
+POST     /signUp                         controllers.Users.create
+POST     /signIn                         controllers.Authentication.signIn
+GET     /signOut                         controllers.Authentication.signOut
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)

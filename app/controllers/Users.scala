@@ -7,6 +7,11 @@ import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
+import scala.util.Failure
+import scala.util.Success
+
+import models.utils.AuthStateDAO
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * @author Leevi
@@ -14,9 +19,6 @@ import reactivemongo.bson._
 object Users extends Controller with MongoController {
     
     val collection = db[BSONCollection]("users")
-    
-    // PLACEHOLDER UNTIL AUTHENTICATION
-    val userID = BSONObjectID.apply("54d1d37c1efe0f8e01cdbfb2")
     
     def index = Action.async { implicit request =>         
         val query = BSONDocument(
@@ -37,15 +39,23 @@ object Users extends Controller with MongoController {
         User.form.bindFromRequest.fold(
             errors => Ok(views.html.editUser(errors)),
             
-            user => {
-                
-                val calendarColl = db[BSONCollection]("calendar")
-                var personalCalendar = new Calendar(BSONObjectID.generate, userID, user.username + "'s personal calendar", BSONArray.empty, BSONArray.empty)
+            user => { 
+                val calendarColl = db[BSONCollection]("calendars")
+                val calName = user.username + "'s personal calendar"
+                val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, BSONArray.empty, BSONArray.empty)
+            
                 calendarColl.insert(personalCalendar)
-                
-                var updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
+
+                val updatedUser = user.copy(id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar.id))
                 collection.insert(updatedUser)
-                Redirect(routes.Application.index())
+
+                val collection2 = db[BSONCollection]("authstate")
+                val requestMap = (request.body.asFormUrlEncoded)
+                val password = requestMap.get.get("password").get.head
+                val hash =  BCrypt.hashpw(password, BCrypt.gensalt());
+                val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser.id, lastAuthToken="", passwordHash=hash)
+                collection2.insert(newAuthData)
+                Redirect(routes.Application.signIn())
             }
         )
     }
@@ -55,7 +65,7 @@ object Users extends Controller with MongoController {
         
         val query = BSONDocument(
             "$query" -> BSONDocument(
-                "owner" -> userID))
+                "owner" -> AuthStateDAO.getUserID()))
     
         val groupCollection = db[BSONCollection]("groups")
     
@@ -66,14 +76,14 @@ object Users extends Controller with MongoController {
         }  
     }
     
-    def newGroupForm = Action {
-        Ok(views.html.createGroup(Group.form))
+    def newGroupForm = Action { implicit request =>
+        Ok(views.html.createGroup(Group.form, AuthStateDAO.getUserID().stringify))
     }
     
     def addGroup = Action.async { implicit request =>
         val query = BSONDocument(
             "$query" -> BSONDocument(
-                "owner" -> userID))
+                "owner" -> AuthStateDAO.getUserID()))
     
         val groupCollection = db[BSONCollection]("groups")
     
@@ -84,7 +94,7 @@ object Users extends Controller with MongoController {
                 errors => Ok(views.html.groups(groups, errors)),
                 
                 user => {
-                    val updatedUser = user.copy(owner = userID)
+                    val updatedUser = user.copy(owner = AuthStateDAO.getUserID())
                     groupCollection.insert(updatedUser)
                     Redirect(routes.Users.showGroups())
                 }
@@ -94,9 +104,9 @@ object Users extends Controller with MongoController {
     
     def addUsertoGroup = Action { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)
-        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)        
+        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
         val addUserID = BSONObjectID.apply(requestMap.get.get("userID").get.head)
-        
+		
         val query = BSONDocument(
             "$query" -> BSONDocument(
                 //"owner" -> userID,
