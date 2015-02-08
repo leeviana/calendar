@@ -1,10 +1,6 @@
 @(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String)
 @import helper.twitterBootstrap._
-@import viewComponents.html.timepicker
-@import viewComponents.html.accessDropdown
-@import viewComponents.html.datepicker
-@import viewComponents.html.text
-@import viewComponents.html.ruleDropdown
+
 
 @main("Event Information"){
 <div class="row">
@@ -23,10 +19,10 @@
 			style="visibility: hidden" />
 
 		<!-- Date -->
-		@datepicker(reminderForm("timestamp.startDate"), label = "Date")
+		@viewComponents.html.datepicker(reminderForm("timestamp.startDate"), label = "Date")
 
 		<!-- Start Time -->
-		@timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
+		@viewComponents.html.timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
 
 		<!--  User ID (Auto-filled) -->
 		<input type="text" 
@@ -105,15 +101,16 @@
              style="visibility:hidden"
              />         
       
-        @ruleDropdown(ruleForm("entityType"), 
+        @viewComponents.html.ruleDropdown(ruleForm("entityType"), 
         	label = "Rule Type")
         
-        @text(ruleForm("entityID"), 
+        @viewComponents.html.text(ruleForm("entityID"), 
        		label = "Entity ID",
        		placeholder = "placeholder")
         
-        @accessDropdown(ruleForm("accessType"),
-        	label = "Access Type")
+        @viewComponents.html.dropdown(ruleForm("accessType"),
+        	label = "Access Type",
+        	List("BusyOnly", "SeeAll", "Modify"))
         
        	<label class="col-sm-2"></label>
 		<div class="col-sm-5">

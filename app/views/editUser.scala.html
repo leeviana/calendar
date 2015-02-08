@@ -5,11 +5,16 @@
 @main("Add User"){
 <div class="row">
     <div class="span8">
-    <h2>Add user</h2>
+    <legend>Add user</legend>
     @helper.form(action = routes.Users.create, 'class -> "form-horizontal") {
-        @helper.inputText(form("username"))
-        @helper.inputText(form("email"))
-        <input type="text" name="password" value="password" 
+        @viewComponents.html.text(form("username"), label = "Username")
+        @viewComponents.html.text(form("email"), label = "Email")
+        
+			<label class="col-sm-2 control-label">Password</label>
+    			<div class="col-sm-5">
+        			<input type="password" name="password" value="password" class="form-control">
+        		</div>
+        		
         <div class="form-actions">
             <input class="btn btn-primary" type="submit">
         </div>

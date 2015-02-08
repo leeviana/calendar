@@ -1,10 +1,5 @@
 @(form: Form[models.Event], recurrenceTypes: Iterator[RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
 @import helper.twitterBootstrap._
-@import viewComponents.html.text
-@import viewComponents.html.textarea
-@import viewComponents.html.timepicker
-@import viewComponents.html.datepicker
-@import viewComponents.html.dropdown
 
 @main("Add Event"){
 
@@ -34,28 +29,28 @@
        <br>
        
       	<!-- Event Name -->
-		@text(form("name"),
+		@viewComponents.html.text(form("name"),
     		label = "Name",
         	placeholder = "Event Name",
         	help = "Event Name")
  
  		<!--  Description -->
-		@textarea(form("description"),
+		@viewComponents.html.textarea(form("description"),
     	label = "Description",
         placeholder = "Event Description",
         help = "Event description")
         
         <!--  Time Range -->
-        @datepicker(form("timeRange.startDate"),
+        @viewComponents.html.datepicker(form("timeRange.startDate"),
         	label = "Start Date")  
        
-        @timepicker(form("timeRange.startTime"),
+        @viewComponents.html.timepicker(form("timeRange.startTime"),
         	label = "Start Time")  
         	
-        @datepicker(form("timeRange.endDate"),
+        @viewComponents.html.datepicker(form("timeRange.endDate"),
         	label = "End Date")  
         
-        @timepicker(form("timeRange.endTime"),
+        @viewComponents.html.timepicker(form("timeRange.endTime"),
         	label = "End Time")  
         	
       	<!--  All day -->  
@@ -74,11 +69,11 @@
                 style="visibility: hidden" />
        	
        	<!--  Recurrence Details -->    	
-       	@dropdown(form("recurrenceMeta.recurrenceType"),
+       	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),
     		label = "Recurrence Type",
-        	it = recurrenceTypes)
+        	List("", "Daily", "Weekly", "Monthly", "Yearly"))
         			
-        @datepicker(form("recurrenceMeta.timeRange.endDate"),
+        @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
        		
 		<label class="col-sm-2"> </label>
