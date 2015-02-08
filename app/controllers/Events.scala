@@ -35,17 +35,35 @@ object Events extends Controller with MongoController {
             
         cursor.collect[List]().flatMap { user =>
             
+            val groupQuery = BSONDocument(
+                "userIDs" -> user.head.id
+            )
+            val groupColl = db[BSONCollection]("groups")
+            val groupCursor = groupColl.find(groupQuery).cursor[Group]
+            
+            var userGroupIDs = ListBuffer[BSONObjectID]()
+            val futureGroups = groupCursor.collect[List]().map {
+                groups => 
+                    for(group <- groups) {
+                        userGroupIDs += group.id   
+                    }
+            }
+            Await.ready(futureGroups, Duration(5000, MILLISECONDS))
+            
+            println(futureGroups)
             val query = BSONDocument(
                 "$or" -> List[BSONDocument](BSONDocument(
                 "calendar" -> BSONDocument(
                     "$in" -> user.head.subscriptions)),
-                BSONDocument("rules.entityID" -> user.head.id)
+                BSONDocument("rules.entityID" -> user.head.id),
+                BSONDocument("rules.entityID" -> BSONDocument(
+                    "$in" -> userGroupIDs))
             ))
             
-            
             val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
-                sorted.collect[List]().map { events =>
-                   Ok(views.html.events(events))
+            sorted.collect[List]().map { events =>
+                // TODO: applyAccesses(events)
+                Ok(views.html.events(events))
             }    
         }
     }
