@@ -15,7 +15,8 @@ case class Event(
     description: String,
     rules: List[Rule], // list of rule objects
     recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
-    nextRecurrence: Option[BSONObjectID] // BSONID pointer, can be null if not recurring
+    nextRecurrence: Option[BSONObjectID], // BSONID pointer, can be null if not recurring
+    accessType: AccessType.AccessType
 )
 
 object Event {
@@ -29,7 +30,8 @@ object Event {
                 doc.getAs[String]("description").get,
                 doc.getAs[List[Rule]]("rules").get,
                 doc.getAs[RecurrenceMeta]("recurrenceMeta"),
-                doc.getAs[BSONObjectID]("nextRecurrence")
+                doc.getAs[BSONObjectID]("nextRecurrence"),
+                AccessType.Private
             )
         }
     }
@@ -70,7 +72,8 @@ object Event {
               description,
               rules.getOrElse(List[Rule]()),
               recurrenceMeta,
-              nextRecurrence.map(id => BSONObjectID.apply(id)))
+              nextRecurrence.map(id => BSONObjectID.apply(id)),
+              AccessType.Private)
         } { event =>
             Some(
               (event.id,

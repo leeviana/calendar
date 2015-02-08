@@ -24,7 +24,7 @@ object EntityType extends Enumeration {
 object AccessType extends Enumeration {
     type AccessType = Value
 
-    val BusyOnly, SeeAll, Modify = Value
+    val Private, BusyOnly, SeeAll, Modify = Value
 }
 
 object Rule {

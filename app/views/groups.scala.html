@@ -30,7 +30,7 @@
 				} else { 
 					@for(g <- groups){
 					<tr>
-						<td>@g.name</td>
+						<td>@g.name <br>(@g.id.stringify)</td>
 						@if(g.userIDs.isEmpty){
 							<td>No Members</td>
 						}else{
