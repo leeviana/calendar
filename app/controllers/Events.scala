@@ -27,25 +27,28 @@ object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
     def index = Action.async { implicit request =>
-        
-        val userCollection = db[BSONCollection]("users")
-        val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
-            
-        cursor.collect[List]().flatMap { user =>
-            
-            val query = BSONDocument(
-                "$or" -> List[BSONDocument](BSONDocument(
-                "calendar" -> BSONDocument(
-                    "$in" -> user.head.subscriptions)),
-                BSONDocument("rules.entityID" -> user.head.id)
-            ))
-            
-            
-            val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
-                sorted.collect[List]().map { events =>
-                   Ok(views.html.events(events))
-            }    
-        }
+		 if (AuthStateDAO.isAuthenticated()) {
+            val userCollection = db[BSONCollection]("users")
+            val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
+             
+            cursor.collect[List]().flatMap { user =>
+                
+                val query = BSONDocument(
+                    "$or" -> List[BSONDocument](BSONDocument(
+                    "calendar" -> BSONDocument(
+                        "$in" -> user.head.subscriptions)),
+                    BSONDocument("rules.entityID" -> user.head.id)
+                ))
+                
+                
+                val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
+                    sorted.collect[List]().map { events =>
+                       Ok(views.html.events(events))
+                }
+            }
+		} else {
+			Future.successful(Redirect(routes.Application.index))
+		}
     }
     
 //    def getCalendars: Future[List[Calendar]] = {      
@@ -78,12 +81,16 @@ object Events extends Controller with MongoController {
     
     
     def showReminders = Action.async{ implicit request =>         
-        val reminders = db[BSONCollection]("reminders")
-        val reminderCursor = reminders.find(BSONDocument("user" -> AuthStateDAO.getUserID())).cursor[Reminder]
-        
-        reminderCursor.collect[List]().map { reminders =>         
-                Ok(views.html.ReminderDisplay(reminders))
-        }
+		if (AuthStateDAO.isAuthenticated()) {
+            val reminders = db[BSONCollection]("reminders")
+            val reminderCursor = reminders.find(BSONDocument("user" -> AuthStateDAO.getUserID())).cursor[Reminder]
+            
+            reminderCursor.collect[List]().map { reminders =>         
+                    Ok(views.html.ReminderDisplay(reminders))
+            }
+		} else {
+			Future.successful(Redirect(routes.Application.index))
+		}
     }
     
     def showCreationForm = Action.async { implicit request =>

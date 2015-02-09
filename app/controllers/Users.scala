@@ -7,6 +7,7 @@ import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
+import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 
@@ -69,17 +70,21 @@ object Users extends Controller with MongoController {
     // TODO: ...yeah. Users and Groups should probably have their own controllers, despite their similarities
     def showGroups = Action.async { implicit request =>
         
-        val query = BSONDocument(
-            "$query" -> BSONDocument(
-                "owner" -> AuthStateDAO.getUserID()))
-    
-        val groupCollection = db[BSONCollection]("groups")
-    
-        val found = groupCollection.find(query).cursor[Group]
-        
-        found.collect[List]().map { groups =>
-            Ok(views.html.groups(groups, Group.form))
-        }  
+		if (AuthStateDAO.isAuthenticated()) {
+            val query = BSONDocument(
+                "$query" -> BSONDocument(
+                    "owner" -> AuthStateDAO.getUserID()))
+            
+            val groupCollection = db[BSONCollection]("groups")
+            
+            val found = groupCollection.find(query).cursor[Group]
+            
+            found.collect[List]().map { groups =>
+                Ok(views.html.groups(groups, Group.form))
+            }  
+		} else {
+			Future.successful(Redirect(routes.Application.index))
+		}
     }
     
     def newGroupForm = Action { implicit request =>
