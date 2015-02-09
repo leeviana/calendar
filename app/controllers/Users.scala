@@ -1,18 +1,24 @@
 package controllers
 
 import models._
-import models.User._
+import models.utils.AuthStateDAO
+import models.utils.GroupDAO
+import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.mvc._
+import play.api.mvc.Action
+import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson._
 import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
 
 import models.utils.AuthStateDAO
 import org.mindrot.jbcrypt.BCrypt;
+import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.BSONDocumentIdentity
+import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.BSONObjectIDIdentity
+import reactivemongo.bson.Producer.nameValue2Producer
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * @author Leevi
@@ -43,48 +49,36 @@ object Users extends Controller with MongoController {
             user => { 
                 val calendarColl = db[BSONCollection]("calendars")
                 val calName = user.username + "'s personal calendar"
-                val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, BSONArray.empty, BSONArray.empty)
+                val personalCalendar = new Calendar(BSONObjectID.generate, user._id, calName, List[Rule](), List[UserSetting]())
             
                 calendarColl.insert(personalCalendar)
 
-                // val updatedUser = user.copy(id = BSONObjectID.generate)
-                val updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar.id))
+                val updatedUser = user.copy(_id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar._id))
                 collection.insert(updatedUser)
-                
-                
-                
 
                 val collection2 = db[BSONCollection]("authstate")
                 val requestMap = (request.body.asFormUrlEncoded)
                 val password = requestMap.get.get("password").get.head
                 val hash =  BCrypt.hashpw(password, BCrypt.gensalt());
-                val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser.id, lastAuthToken="", passwordHash=hash)
+                val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser._id, lastAuthToken="", passwordHash=hash)
                 collection2.insert(newAuthData)
                 Redirect(routes.Application.signIn())
-                
-                // Redirect(routes.Application.index())
             }
         )
     }
     
-    // TODO: ...yeah. Users and Groups should probably have their own controllers, despite their similarities
-    def showGroups = Action.async { implicit request =>
-        
-		if (AuthStateDAO.isAuthenticated()) {
+    // TODO: Users and Groups should probably have their own controllers, despite their similarities
+    def showGroups = Action.async { implicit request =>    
+        if (AuthStateDAO.isAuthenticated()) {
             val query = BSONDocument(
-                "$query" -> BSONDocument(
-                    "owner" -> AuthStateDAO.getUserID()))
-            
-            val groupCollection = db[BSONCollection]("groups")
-            
-            val found = groupCollection.find(query).cursor[Group]
-            
-            found.collect[List]().map { groups =>
+                "owner" -> AuthStateDAO.getUserID())
+        
+            GroupDAO.findAll(query).map { groups => 
                 Ok(views.html.groups(groups, Group.form))
-            }  
-		} else {
-			Future.successful(Redirect(routes.Application.index))
-		}
+            } 
+        } else {
+            Future.successful(Redirect(routes.Application.index))
+        }
     }
     
     def newGroupForm = Action { implicit request =>
@@ -93,20 +87,15 @@ object Users extends Controller with MongoController {
     
     def addGroup = Action.async { implicit request =>
         val query = BSONDocument(
-            "$query" -> BSONDocument(
-                "owner" -> AuthStateDAO.getUserID()))
+            "owner" -> AuthStateDAO.getUserID())
     
-        val groupCollection = db[BSONCollection]("groups")
-    
-        val found = groupCollection.find(query).cursor[Group]
-        
-        found.collect[List]().map { groups =>
+        GroupDAO.findAll(query).map { groups => 
             Group.form.bindFromRequest.fold(
                 errors => Ok(views.html.groups(groups, errors)),
                 
-                user => {
-                    val updatedUser = user.copy(owner = AuthStateDAO.getUserID())
-                    groupCollection.insert(updatedUser)
+                group => {
+                    val updatedGroup = group.copy(owner = AuthStateDAO.getUserID())
+                    GroupDAO.insert(updatedGroup)
                     Redirect(routes.Users.showGroups())
                 }
             )
@@ -135,14 +124,4 @@ object Users extends Controller with MongoController {
 
        
     }
-    
-//    def findUser(id: BSONObjectID): User = {
-//
-//        val query = BSONDocument(
-//            "$query" -> BSONDocument("_id" -> id)
-//        )
-//    
-//        val found = collection.find(query).one[User]
-//        
-//    }
 }

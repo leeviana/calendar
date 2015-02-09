@@ -2,9 +2,14 @@ package controllers
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
-import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.MILLISECONDS
+import scala.util.Failure
+import scala.util.Success
 import org.joda.time.DateTime
 import models._
+import models.utils.AuthStateDAO
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
@@ -13,9 +18,12 @@ import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
-import scala.util.Failure
-import scala.util.Success
-import utils.AuthStateDAO
+import reactivemongo.bson.Producer.nameValue2Producer
+import models.enums.RecurrenceType
+import models.enums.RecurrenceType
+import models.enums.RecurrenceType
+import scala.concurrent.Future
+import models.enums.RecurrenceType
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -27,59 +35,48 @@ object Events extends Controller with MongoController {
     val collection = db[BSONCollection]("events")
 
     def index = Action.async { implicit request =>
-		 if (AuthStateDAO.isAuthenticated()) {
+        if (AuthStateDAO.isAuthenticated()) {
+         
             val userCollection = db[BSONCollection]("users")
             val cursor = userCollection.find(BSONDocument("_id" -> AuthStateDAO.getUserID())).cursor[User]
-             
+                
             cursor.collect[List]().flatMap { user =>
+                
+                val groupQuery = BSONDocument(
+                    "userIDs" -> user.head._id
+                )
+                val groupColl = db[BSONCollection]("groups")
+                val groupCursor = groupColl.find(groupQuery).cursor[Group]
+                
+                var userGroupIDs = ListBuffer[BSONObjectID]()
+                val futureGroups = groupCursor.collect[List]().map {
+                    groups => 
+                        for(group <- groups) {
+                            userGroupIDs += group._id   
+                        }
+                }
+                Await.ready(futureGroups, Duration(5000, MILLISECONDS))
                 
                 val query = BSONDocument(
                     "$or" -> List[BSONDocument](BSONDocument(
                     "calendar" -> BSONDocument(
                         "$in" -> user.head.subscriptions)),
-                    BSONDocument("rules.entityID" -> user.head.id)
+                    BSONDocument("rules.entityID" -> user.head._id),
+                    BSONDocument("rules.entityID" -> BSONDocument(
+                        "$in" -> userGroupIDs))
                 ))
                 
-                
                 val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
-                    sorted.collect[List]().map { events =>
-                       Ok(views.html.events(events))
-                }
+                sorted.collect[List]().map { events =>
+                    // TODO: applyAccesses(events)
+                    Ok(views.html.events(events))
+                }    
             }
-		} else {
-			Future.successful(Redirect(routes.Application.index))
-		}
+        } else {
+            Future.successful(Redirect(routes.Application.index))
+        }
     }
-    
-//    def getCalendars: Future[List[Calendar]] = {      
-//        val userCollection = db[BSONCollection]("users")
-//        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
-//            
-//        cursor.collect[List]().map { user =>
-//            var calList = ListBuffer[Calendar]()
-//            
-//            //var calMap:Map[String, String] = Map()
-//            for(calID <- user.headOption.get.subscriptions) {
-//                val calendarCollection = db[BSONCollection]("calendars")
-//                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
-//                
-//                calCursor.collect[List]().map { cal =>
-//                    calList ++= cal
-//                }            
-//            }
-//            
-//            calList.toList
-//        }
-//        
-////        future.onComplete {
-////            case Failure(e) => throw e
-////            case Success(lastError) => {
-////                calList.toList
-////            }
-////        }
-//    }
-    
-    
+
     def showReminders = Action.async{ implicit request =>         
 		if (AuthStateDAO.isAuthenticated()) {
             val reminders = db[BSONCollection]("reminders")
@@ -107,6 +104,8 @@ object Events extends Controller with MongoController {
                 val future = calCursor.collect[List]().map { cal =>
                     calMap += (calID.stringify -> cal.head.name)
                 }
+                // Await... until I can figure out how to use futures/double cursors correctly
+                Await.ready(future, Duration(5000, MILLISECONDS))
             }
             
             Ok(views.html.editEvent(Event.form, iterator, calMap)) 
@@ -177,7 +176,7 @@ object Events extends Controller with MongoController {
                                 newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
                             }
                             
-                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
+                            val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
                             val future = collection.insert(updatedEvent)
                         } 
                     }

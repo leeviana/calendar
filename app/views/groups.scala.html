@@ -30,7 +30,7 @@
 				} else { 
 					@for(g <- groups){
 					<tr>
-						<td>@g.name</td>
+						<td>@g.name <br>(@g._id.stringify)</td>
 						@if(g.userIDs.isEmpty){
 							<td>No Members</td>
 						}else{
@@ -42,7 +42,7 @@
 						}
 						<td>
 							@helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-horizontal") {
-                    			<input type="hidden" name="groupID" value='@g.id.stringify' >			        
+                    			<input type="hidden" name="groupID" value='@g._id.stringify' >			        
 			        			userID: <input type="text" name="userID" value="userID" >                    
 			            			<input class="btn btn-primary" type="submit">
 		       				 }
@@ -74,11 +74,11 @@
                 Also probably need to call some sort of frontend helper function that returns the username given an ID<br>
                 And vice versa<br>
                 
-                Call to addUsertoGroup with parameters (@group.id.stringify, username or ID)
+                Call to addUsertoGroup with parameters (@group._id.stringify, username or ID)
                 <br><br>
                 Add user to <b>@group.name</b><br>
                 @helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-inline") {
-                    <input type="hidden" name="groupID" value='@group.id.stringify' >			        
+                    <input type="hidden" name="groupID" value='@group._id.stringify' >			        
 			        userID: <input type="text" name="userID" value='userID' >                    
 			        <div class="form-actions">
 			            <input class="btn btn-primary" type="submit">
