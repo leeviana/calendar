@@ -17,19 +17,29 @@ object MongoContext {
     def db: DB = connection("caldb")
 }
 object CalendarDAO extends BsonDao[Calendar, BSONObjectID](MongoContext.db, "calendars") {
-    def getCalendarFromID(id: BSONObjectID): Calendar = { 
+    def getCalendarFromID(id: BSONObjectID): Calendar = {
         val futureCalendar = this.findById(id)
-              
+
         var calendar = Await.result(futureCalendar, Duration(5000, MILLISECONDS))
-        if(calendar.isDefined)
+        if (calendar.isDefined)
             calendar.get
         else
             throw new Exception("Database incongruity: Calendar ID not found")
-    } 
+    }
 }
 
 object EventDAO extends BsonDao[Event, BSONObjectID](MongoContext.db, "events")
 object GroupDAO extends BsonDao[Group, BSONObjectID](MongoContext.db, "groups")
 object ReminderDAO extends BsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object RuleDAO extends BsonDao[Rule, BSONObjectID](MongoContext.db, "rules")
-object UserDAO extends BsonDao[User, BSONObjectID](MongoContext.db, "users")
+object UserDAO extends BsonDao[User, BSONObjectID](MongoContext.db, "users") {
+    def getUserFromID(id: BSONObjectID): User = { 
+        val futureUser = this.findById(id)
+              
+        var user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        if(user.isDefined)
+            user.get
+        else
+            throw new Exception("Database incongruity: User ID not found")
+    } 
+}
