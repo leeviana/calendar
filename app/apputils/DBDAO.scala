@@ -1,4 +1,4 @@
-package models.utils
+package apputils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.MILLISECONDS
@@ -7,9 +7,9 @@ import reactivemongo.api.DB
 import reactivemongo.api.MongoDriver
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.extensions.dao.BsonDao
-import utils.Constants
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import apputils.Constants._
 
 object MongoContext {
     val driver = new MongoDriver

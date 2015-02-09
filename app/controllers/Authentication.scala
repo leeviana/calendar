@@ -10,7 +10,7 @@ import models.Event._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import models.utils.AuthStateDAO
+import apputils.AuthStateDAO
 import org.mindrot.jbcrypt.BCrypt;
 import scala.util.Random
 

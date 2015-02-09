@@ -1,8 +1,8 @@
 package controllers
 
 import models._
-import models.utils.AuthStateDAO
-import models.utils.GroupDAO
+import apputils.AuthStateDAO
+import apputils.GroupDAO
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
@@ -11,7 +11,7 @@ import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import scala.concurrent.Future
 
-import models.utils.AuthStateDAO
+import apputils.AuthStateDAO
 import org.mindrot.jbcrypt.BCrypt;
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONDocumentIdentity
