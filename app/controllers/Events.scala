@@ -2,9 +2,14 @@ package controllers
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
-import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.MILLISECONDS
+import scala.util.Failure
+import scala.util.Success
 import org.joda.time.DateTime
 import models._
+import models.utils.AuthStateDAO
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
@@ -13,11 +18,8 @@ import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
-import scala.util.Failure
-import scala.util.Success
-import utils.AuthStateDAO
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import reactivemongo.bson.Producer.nameValue2Producer
+import models.enums.RecurrenceType
 
 
 
@@ -38,7 +40,7 @@ object Events extends Controller with MongoController {
         cursor.collect[List]().flatMap { user =>
             
             val groupQuery = BSONDocument(
-                "userIDs" -> user.head.id
+                "userIDs" -> user.head._id
             )
             val groupColl = db[BSONCollection]("groups")
             val groupCursor = groupColl.find(groupQuery).cursor[Group]
@@ -47,17 +49,16 @@ object Events extends Controller with MongoController {
             val futureGroups = groupCursor.collect[List]().map {
                 groups => 
                     for(group <- groups) {
-                        userGroupIDs += group.id   
+                        userGroupIDs += group._id   
                     }
             }
             Await.ready(futureGroups, Duration(5000, MILLISECONDS))
             
-            println(futureGroups)
             val query = BSONDocument(
                 "$or" -> List[BSONDocument](BSONDocument(
                 "calendar" -> BSONDocument(
                     "$in" -> user.head.subscriptions)),
-                BSONDocument("rules.entityID" -> user.head.id),
+                BSONDocument("rules.entityID" -> user.head._id),
                 BSONDocument("rules.entityID" -> BSONDocument(
                     "$in" -> userGroupIDs))
             ))
@@ -69,36 +70,7 @@ object Events extends Controller with MongoController {
             }    
         }
     }
-    
-//    def getCalendars: Future[List[Calendar]] = {      
-//        val userCollection = db[BSONCollection]("users")
-//        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
-//            
-//        cursor.collect[List]().map { user =>
-//            var calList = ListBuffer[Calendar]()
-//            
-//            //var calMap:Map[String, String] = Map()
-//            for(calID <- user.headOption.get.subscriptions) {
-//                val calendarCollection = db[BSONCollection]("calendars")
-//                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
-//                
-//                calCursor.collect[List]().map { cal =>
-//                    calList ++= cal
-//                }            
-//            }
-//            
-//            calList.toList
-//        }
-//        
-////        future.onComplete {
-////            case Failure(e) => throw e
-////            case Success(lastError) => {
-////                calList.toList
-////            }
-////        }
-//    }
-    
-    
+
     def showReminders = Action.async{ implicit request =>         
         val reminders = db[BSONCollection]("reminders")
         val reminderCursor = reminders.find(BSONDocument("user" -> AuthStateDAO.getUserID())).cursor[Reminder]
@@ -194,7 +166,7 @@ object Events extends Controller with MongoController {
                                 newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
                             }
                             
-                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
+                            val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
                             val future = collection.insert(updatedEvent)
                         } 
                     }

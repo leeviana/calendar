@@ -7,15 +7,15 @@
 	<div class="span8">
 		<h2>Event Information: @event.name</h2>
 		<legend>Add Reminder</legend>
-		@helper.form(action = routes.Events.addReminder(event.id.stringify),
+		@helper.form(action = routes.Events.addReminder(event._id.stringify),
 		'class -> "form-horizontal") { 
 		
 		<!-- Event ID (Auto-filled) -->
 		<input type="text"
 			id='@reminderForm("eventID").id' 
 			name='@reminderForm("eventID").name'
-			value='@event.id.stringify' 
-			placeholder='@event.id.stringify'
+			value='@event._id.stringify' 
+			placeholder='@event._id.stringify'
 			style="visibility: hidden" />
 
 		<!-- Date -->
@@ -82,8 +82,8 @@
     						<td>@r.entityType</td>
     						<td>@r.entityID.stringify</td>
     						<td>@r.accessType</td>
-    						<td><a class="btn btn-default" onclick="location.href='/events/@event.id.stringify/@r.orderNum/move/up'" role="button">Up</a><a class="btn btn-default" onclick="location.href='/events/@event.id.stringify/@r.orderNum/move/down'" role="button">Down</a></td>
-    						<td><a href="/events/@event.id.stringify/@r.orderNum/deleteRule" class="btn btn-info" role="button">Delete</a></td>
+    						<td><a class="btn btn-default" onclick="location.href='/events/@event._id.stringify/@r.orderNum/move/up'" role="button">Up</a><a class="btn btn-default" onclick="location.href='/events/@event._id.stringify/@r.orderNum/move/down'" role="button">Down</a></td>
+    						<td><a href="/events/@event._id.stringify/@r.orderNum/deleteRule" class="btn btn-info" role="button">Delete</a></td>
     					</tr>
     				}
     			}
@@ -91,7 +91,7 @@
     	</table>
     </div>
     <br>
-        @helper.form(action = routes.Events.addRule(event.id.stringify), 'class -> "form-horizontal") {
+        @helper.form(action = routes.Events.addRule(event._id.stringify), 'class -> "form-horizontal") {
         
         <input type="number" 
              id='@ruleForm("orderNum").id' 
