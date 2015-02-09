@@ -9,7 +9,7 @@ import scala.util.Failure
 import scala.util.Success
 import org.joda.time.DateTime
 import models._
-import models.utils.AuthStateDAO
+import apputils.AuthStateDAO
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
