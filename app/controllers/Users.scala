@@ -70,12 +70,12 @@ object Users extends Controller with MongoController {
     }
     
     // TODO: Users and Groups should probably have their own controllers, despite their similarities
-    def showGroups(groupForm: Form[Group] = Group.form) = Action.async { implicit request =>    
+    def showGroups = Action.async { implicit request =>    
         val query = BSONDocument(
             "owner" -> AuthStateDAO.getUserID())
     
         GroupDAO.findAll(query).map { groups => 
-            Ok(views.html.groups(groups, groupForm))
+            Ok(views.html.groups(groups, Group.form))
         } 
     }
     
@@ -83,7 +83,6 @@ object Users extends Controller with MongoController {
         Ok(views.html.createGroup(Group.form, AuthStateDAO.getUserID().stringify))
     }
     
-    // TODO: Figure out how to get a Result from calling showGroups(errors)
     def addGroup = Action.async { implicit request =>
         val query = BSONDocument(
             "owner" -> AuthStateDAO.getUserID())
