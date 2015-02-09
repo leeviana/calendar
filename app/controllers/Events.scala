@@ -53,7 +53,6 @@ object Events extends Controller with MongoController {
             }
             Await.ready(futureGroups, Duration(5000, MILLISECONDS))
             
-            println(futureGroups)
             val query = BSONDocument(
                 "$or" -> List[BSONDocument](BSONDocument(
                 "calendar" -> BSONDocument(
@@ -70,36 +69,7 @@ object Events extends Controller with MongoController {
             }    
         }
     }
-    
-//    def getCalendars: Future[List[Calendar]] = {      
-//        val userCollection = db[BSONCollection]("users")
-//        val cursor = userCollection.find(BSONDocument("_id" -> userID)).cursor[User]
-//            
-//        cursor.collect[List]().map { user =>
-//            var calList = ListBuffer[Calendar]()
-//            
-//            //var calMap:Map[String, String] = Map()
-//            for(calID <- user.headOption.get.subscriptions) {
-//                val calendarCollection = db[BSONCollection]("calendars")
-//                val calCursor = calendarCollection.find(BSONDocument("_id" -> calID)).cursor[Calendar]
-//                
-//                calCursor.collect[List]().map { cal =>
-//                    calList ++= cal
-//                }            
-//            }
-//            
-//            calList.toList
-//        }
-//        
-////        future.onComplete {
-////            case Failure(e) => throw e
-////            case Success(lastError) => {
-////                calList.toList
-////            }
-////        }
-//    }
-    
-    
+
     def showReminders = Action.async{ implicit request =>         
         val reminders = db[BSONCollection]("reminders")
         val reminderCursor = reminders.find(BSONDocument("user" -> AuthStateDAO.getUserID())).cursor[Reminder]

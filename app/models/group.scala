@@ -15,28 +15,6 @@ case class Group (
 )
 
 object Group {
-    
-/*    implicit object GroupReader extends BSONDocumentReader[Group] {
-        def read(doc: BSONDocument): Group = {
-            Group(
-                doc.getAs[BSONObjectID]("_id").get,
-                doc.getAs[String]("name").get,
-                doc.getAs[BSONObjectID]("owner").get,
-                doc.getAs[BSONArray]("userIDs").get
-            )
-        }
-    }
-    
-    implicit object GroupWriter extends BSONDocumentWriter[Group] {
-        def write(group: Group): BSONDocument = BSONDocument(
-            "_id" -> group.id, // is this necessary?
-            "name" -> group.name,
-            "owner" -> group.owner,
-            "userIDs" -> group.userIDs
-        )
-    }
-*/
-    
     implicit val UserHandler = Macros.handler[Group]
     
     val form = Form(

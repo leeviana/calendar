@@ -1,17 +1,26 @@
 package controllers
 
-import models._
-import models.User._
+import org.mindrot.jbcrypt.BCrypt
+import models.AuthInfo
+import models.Calendar
+import models.Group
+import models.User
+import models.User.UserReader
+import models.User.UserWriter
+import models.utils.AuthStateDAO
+import models.utils.GroupDAO
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.mvc._
+import play.api.mvc.Action
+import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson._
-import scala.util.Failure
-import scala.util.Success
-
-import models.utils.AuthStateDAO
-import org.mindrot.jbcrypt.BCrypt;
+import reactivemongo.bson.BSONArray
+import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.BSONDocumentIdentity
+import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.BSONObjectIDIdentity
+import reactivemongo.bson.Producer.nameValue2Producer
+import play.api.data.Form
 
 /**
  * @author Leevi
@@ -60,42 +69,32 @@ object Users extends Controller with MongoController {
         )
     }
     
-    // TODO: ...yeah. Users and Groups should probably have their own controllers, despite their similarities
-    def showGroups = Action.async { implicit request =>
-        
+    // TODO: Users and Groups should probably have their own controllers, despite their similarities
+    def showGroups(groupForm: Form[Group] = Group.form) = Action.async { implicit request =>    
         val query = BSONDocument(
-            "$query" -> BSONDocument(
-                "owner" -> AuthStateDAO.getUserID()))
+            "owner" -> AuthStateDAO.getUserID())
     
-        val groupCollection = db[BSONCollection]("groups")
-    
-        val found = groupCollection.find(query).cursor[Group]
-        
-        found.collect[List]().map { groups =>
-            Ok(views.html.groups(groups, Group.form))
-        }  
+        GroupDAO.findAll(query).map { groups => 
+            Ok(views.html.groups(groups, groupForm))
+        } 
     }
     
     def newGroupForm = Action { implicit request =>
         Ok(views.html.createGroup(Group.form, AuthStateDAO.getUserID().stringify))
     }
     
+    // TODO: Figure out how to get a Result from calling showGroups(errors)
     def addGroup = Action.async { implicit request =>
         val query = BSONDocument(
-            "$query" -> BSONDocument(
-                "owner" -> AuthStateDAO.getUserID()))
+            "owner" -> AuthStateDAO.getUserID())
     
-        val groupCollection = db[BSONCollection]("groups")
-    
-        val found = groupCollection.find(query).cursor[Group]
-        
-        found.collect[List]().map { groups =>
+        GroupDAO.findAll(query).map { groups => 
             Group.form.bindFromRequest.fold(
                 errors => Ok(views.html.groups(groups, errors)),
                 
-                user => {
-                    val updatedUser = user.copy(owner = AuthStateDAO.getUserID())
-                    groupCollection.insert(updatedUser)
+                group => {
+                    val updatedGroup = group.copy(owner = AuthStateDAO.getUserID())
+                    GroupDAO.insert(updatedGroup)
                     Redirect(routes.Users.showGroups())
                 }
             )
@@ -124,14 +123,4 @@ object Users extends Controller with MongoController {
 
        
     }
-    
-//    def findUser(id: BSONObjectID): User = {
-//
-//        val query = BSONDocument(
-//            "$query" -> BSONDocument("_id" -> id)
-//        )
-//    
-//        val found = collection.find(query).one[User]
-//        
-//    }
 }

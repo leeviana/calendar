@@ -47,22 +47,16 @@ object Authentication extends Controller with MongoController {
         
         val cursor = collection.find(query).cursor[AuthInfo]
 	    val irrelevant = cursor.collect[List]().map { authinfos =>
-		  println(authinfos.length)
-	      authinfos.map { authinfo => 
-	        println("AUTHINFO" + authinfo)
+		  authinfos.map { authinfo => 
 	        pwHash = authinfo.passwordHash
-			println("HASHINNER" + pwHash)
-	      }
+		  }
 	    }		
 		Await.ready(irrelevant, Duration(5000, MILLISECONDS))
 	  }
 	}
 	Await.ready(irrelevant2, Duration(5000, MILLISECONDS))
 	
-	println("PASSWORD" + password)
-	println("HASH" + pwHash)
-    if (BCrypt.checkpw(password, pwHash)) {
-	  println("AND WE EVEN PASSED THE HASH STUFF!")
+	if (BCrypt.checkpw(password, pwHash)) {
 	  val random = new Random().nextString(15)
 	  val updatedAuthData = AuthInfo(id=BSONObjectID.generate, userID=BSONObjectID.apply(userID), lastAuthToken=random, passwordHash=pwHash)
 	  collection.insert(updatedAuthData)
