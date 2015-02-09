@@ -2,9 +2,16 @@ package controllers
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
-import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.MILLISECONDS
+import scala.util.Failure
+import scala.util.Success
+
 import org.joda.time.DateTime
+
 import models._
+import models.utils.AuthStateDAO
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
@@ -13,11 +20,7 @@ import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
-import scala.util.Failure
-import scala.util.Success
-import utils.AuthStateDAO
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import reactivemongo.bson.Producer.nameValue2Producer
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -45,7 +48,7 @@ object Events extends Controller with MongoController {
             val futureGroups = groupCursor.collect[List]().map {
                 groups => 
                     for(group <- groups) {
-                        userGroupIDs += group.id   
+                        userGroupIDs += group._id   
                     }
             }
             Await.ready(futureGroups, Duration(5000, MILLISECONDS))

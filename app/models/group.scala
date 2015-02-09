@@ -8,7 +8,7 @@ import reactivemongo.bson._
  * @author Leevi
  */
 case class Group (
-    id: BSONObjectID,    
+    _id: BSONObjectID = BSONObjectID.generate,    
     name: String,
     owner: BSONObjectID, // foreign ref
     userIDs: BSONArray // List[BSONObjectID]
@@ -16,7 +16,7 @@ case class Group (
 
 object Group {
     
-    implicit object GroupReader extends BSONDocumentReader[Group] {
+/*    implicit object GroupReader extends BSONDocumentReader[Group] {
         def read(doc: BSONDocument): Group = {
             Group(
                 doc.getAs[BSONObjectID]("_id").get,
@@ -35,11 +35,14 @@ object Group {
             "userIDs" -> group.userIDs
         )
     }
-      
+*/
+    
+    implicit val UserHandler = Macros.handler[Group]
+    
     val form = Form(
             
         mapping(
-            "id" -> ignored(BSONObjectID.generate),
+            "_id" -> ignored(BSONObjectID.generate),
             "name" -> nonEmptyText,
             "owner" -> nonEmptyText,
             "userIDs" -> ignored(BSONArray.empty)
@@ -53,7 +56,7 @@ object Group {
             )
         } { group =>
             Some(
-                (group.id,
+                (group._id,
                 group.name,
                 group.owner.toString(),
                 group.userIDs)
