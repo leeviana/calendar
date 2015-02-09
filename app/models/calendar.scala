@@ -17,28 +17,6 @@ case class Calendar (
 
 object Calendar {
     implicit val CalendarHandler = Macros.handler[Calendar]
-
-//    implicit object CalendarReader extends BSONDocumentReader[Calendar] {
-//        def read(doc: BSONDocument): Calendar = {
-//            Calendar(
-//                doc.getAs[BSONObjectID]("_id").get,    
-//                doc.getAs[BSONObjectID]("owner").get,
-//                doc.getAs[String]("name").get,
-//                doc.getAs[List[Rule]]("rules").get,
-//                doc.getAs[List[UserSetting]]("settings").get
-//            )
-//        }
-//    }
-//    
-//    implicit object CalendarWriter extends BSONDocumentWriter[Calendar] {
-//        def write(calendar: Calendar): BSONDocument = BSONDocument(
-//            "_id" -> calendar._id,
-//            "owner" -> calendar.owner,
-//            "name" -> calendar.name,
-//            "rules" -> calendar.rules,
-//            "settings" -> calendar.settings
-//        )
-//    }
       
     val form = Form(
         mapping(

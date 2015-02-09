@@ -11,10 +11,10 @@ object RecurrenceType extends Enumeration {
     type RecurrenceType = Value
 
     val Daily, Weekly, Monthly, Yearly = Value
-    
+
     implicit object BSONEnumHandler extends BSONHandler[BSONString, RecurrenceType] {
         def read(doc: BSONString) = RecurrenceType.Value(doc.value)
-        
+
         def write(recurrenceType: RecurrenceType) = BSON.write(recurrenceType.toString)
     }
 }

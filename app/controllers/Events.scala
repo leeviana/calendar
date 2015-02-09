@@ -38,7 +38,7 @@ object Events extends Controller with MongoController {
         cursor.collect[List]().flatMap { user =>
             
             val groupQuery = BSONDocument(
-                "userIDs" -> user.head.id
+                "userIDs" -> user.head._id
             )
             val groupColl = db[BSONCollection]("groups")
             val groupCursor = groupColl.find(groupQuery).cursor[Group]
@@ -56,7 +56,7 @@ object Events extends Controller with MongoController {
                 "$or" -> List[BSONDocument](BSONDocument(
                 "calendar" -> BSONDocument(
                     "$in" -> user.head.subscriptions)),
-                BSONDocument("rules.entityID" -> user.head.id),
+                BSONDocument("rules.entityID" -> user.head._id),
                 BSONDocument("rules.entityID" -> BSONDocument(
                     "$in" -> userGroupIDs))
             ))
@@ -164,7 +164,7 @@ object Events extends Controller with MongoController {
                                 newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
                             }
                             
-                            val updatedEvent = event.copy(id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
+                            val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange) 
                             val future = collection.insert(updatedEvent)
                         } 
                     }

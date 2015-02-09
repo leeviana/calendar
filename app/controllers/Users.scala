@@ -1,28 +1,25 @@
 package controllers
 
-import org.mindrot.jbcrypt.BCrypt
 import models.AuthInfo
 import models.Calendar
 import models.Group
+import models.Rule
 import models.User
-import models.User.UserReader
-import models.User.UserWriter
+import models.UserSetting
 import models.utils.AuthStateDAO
 import models.utils.GroupDAO
+import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONArray
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONDocumentIdentity
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.bson.BSONObjectIDIdentity
 import reactivemongo.bson.Producer.nameValue2Producer
-import play.api.data.Form
-import models.UserSetting
-import models.Rule
+import org.mindrot.jbcrypt.BCrypt
 
 /**
  * @author Leevi
@@ -53,18 +50,18 @@ object Users extends Controller with MongoController {
             user => { 
                 val calendarColl = db[BSONCollection]("calendars")
                 val calName = user.username + "'s personal calendar"
-                val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, List[Rule](), List[UserSetting]())
+                val personalCalendar = new Calendar(BSONObjectID.generate, user._id, calName, List[Rule](), List[UserSetting]())
             
                 calendarColl.insert(personalCalendar)
 
-                val updatedUser = user.copy(id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar._id))
+                val updatedUser = user.copy(_id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar._id))
                 collection.insert(updatedUser)
 
                 val collection2 = db[BSONCollection]("authstate")
                 val requestMap = (request.body.asFormUrlEncoded)
                 val password = requestMap.get.get("password").get.head
                 val hash =  BCrypt.hashpw(password, BCrypt.gensalt());
-                val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser.id, lastAuthToken="", passwordHash=hash)
+                val newAuthData = AuthInfo(id=BSONObjectID.generate, userID=updatedUser._id, lastAuthToken="", passwordHash=hash)
                 collection2.insert(newAuthData)
                 Redirect(routes.Application.signIn())
             }

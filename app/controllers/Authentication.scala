@@ -38,7 +38,7 @@ object Authentication extends Controller with MongoController {
         var pwHash = ""
         val irrelevant2 = cursor2.collect[List]().map { users =>
             users.map { user =>
-                userID = user.id.stringify
+                userID = user._id.stringify
 
                 val query = BSONDocument(
                     "$query" -> BSONDocument(
