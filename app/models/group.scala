@@ -1,8 +1,14 @@
 package models
 
 import play.api.data.Form
-import play.api.data.Forms._
-import reactivemongo.bson._
+import play.api.data.Forms.ignored
+import play.api.data.Forms.mapping
+import play.api.data.Forms.nonEmptyText
+import reactivemongo.bson.BSONArray
+import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.BSONObjectIDIdentity
+import reactivemongo.bson.Macros
+import reactivemongo.bson.Producer.valueProducer
 
 /**
  * @author Leevi
@@ -15,10 +21,9 @@ case class Group(
     )
 
 object Group {
-    implicit val UserHandler = Macros.handler[Group]
+    implicit val GroupHandler = Macros.handler[Group]
 
     val form = Form(
-
         mapping(
             "_id" -> ignored(BSONObjectID.generate),
             "name" -> nonEmptyText,
@@ -31,10 +36,10 @@ object Group {
                     ownID,
                     userIDs.add(ownID))
             } { group =>
-                Some(
-                    (group._id,
-                        group.name,
-                        group.owner.toString(),
-                        group.userIDs))
+                Some((
+                    group._id,
+                    group.name,
+                    group.owner.toString(),
+                    group.userIDs))
             })
 }

@@ -7,9 +7,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 import scala.util.Failure
 import scala.util.Success
-
 import org.joda.time.DateTime
-
 import models._
 import models.utils.AuthStateDAO
 import play.api.data.Form
@@ -21,6 +19,7 @@ import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.bson.Producer.nameValue2Producer
+import models.enums.RecurrenceType
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo

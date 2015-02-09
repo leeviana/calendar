@@ -21,6 +21,8 @@ import reactivemongo.bson.BSONObjectID
 import reactivemongo.bson.BSONObjectIDIdentity
 import reactivemongo.bson.Producer.nameValue2Producer
 import play.api.data.Form
+import models.UserSetting
+import models.Rule
 
 /**
  * @author Leevi
@@ -51,11 +53,11 @@ object Users extends Controller with MongoController {
             user => { 
                 val calendarColl = db[BSONCollection]("calendars")
                 val calName = user.username + "'s personal calendar"
-                val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, BSONArray.empty, BSONArray.empty)
+                val personalCalendar = new Calendar(BSONObjectID.generate, user.id, calName, List[Rule](), List[UserSetting]())
             
                 calendarColl.insert(personalCalendar)
 
-                val updatedUser = user.copy(id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar.id))
+                val updatedUser = user.copy(id = BSONObjectID.generate, subscriptions = List[BSONObjectID](personalCalendar._id))
                 collection.insert(updatedUser)
 
                 val collection2 = db[BSONCollection]("authstate")

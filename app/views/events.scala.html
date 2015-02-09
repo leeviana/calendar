@@ -1,7 +1,10 @@
 @(events: List[models.Event])
 
-@main("Events"){
+@import scala.concurrent.ExecutionContext.Implicits.global
+@import models.utils.CalendarDAO
 
+@main("Events"){
+        
 <div class="container">
 	<div class="row">
 		<div class="col-md-9">
@@ -42,7 +45,7 @@
 					<td>@e.timeRange.startTime.get.toString("hh:mm a")-@e.timeRange.endTime.get.toString("hh:mm a")</td>
 					<td><a href="./events/@e.id.stringify">@e.name</a></td>
 					<td>@e.description</td>
-					<td>@e.calendar</td>
+					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
 					<td><a href="/events/@e.id.stringify/delete" class="btn btn-info" role="button">Delete</a></td>
 				</tr>
 				}

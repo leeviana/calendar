@@ -3,8 +3,9 @@ package models
 import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
-
 import org.joda.time.DateTime
+import models.enums.ReminderType
+import models.enums.RecurrenceType
 
 /**
  * Metadata for event recurrence information
@@ -25,47 +26,9 @@ case class RecurrenceMeta (
     // move all the recurrence meta classes into their own package
 )
 
-object RecurrenceType extends Enumeration {
-    type RecurrenceType = Value
-
-    val Daily, Weekly, Monthly, Yearly = Value
-}
-
 object RecurrenceMeta {
-    
-    implicit object RecurrenceMetaReader extends BSONDocumentReader[RecurrenceMeta] {
-        def read(doc: BSONDocument): RecurrenceMeta = {
-            RecurrenceMeta(
-                doc.getAs[TimeRange]("timeRange").get,
-                doc.getAs[Long]("reminderTime"),
-                //TODO: fix this
-                doc.getAs[ReminderType.ReminderType]("reminderType"),
-                RecurrenceType.withName(doc.getAs[String]("recurrenceType").get),
-                doc.getAs[DayMeta]("daily"),
-                doc.getAs[WeekMeta]("weekly"),
-                doc.getAs[MonthMeta]("monthly"),
-                doc.getAs[YearMeta]("yearly")
-            )
-        }
-    }
-    
-    implicit object RecurrenceMetaWriter extends BSONDocumentWriter[RecurrenceMeta] {
-        def write(recurrencemeta: RecurrenceMeta): BSONDocument = {
-            val bson = BSONDocument(
-                "timeRange" -> recurrencemeta.timeRange,
-                "reminderTime" -> recurrencemeta.reminderTime,
-                "reminderType" -> recurrencemeta.reminderType.toString(),
-                "recurrenceType" -> recurrencemeta.recurrenceType.toString(),
-                "daily" -> recurrencemeta.daily,
-                "weekly" -> recurrencemeta.weekly,
-                "monthly" -> recurrencemeta.monthly,
-                "yearly" -> recurrencemeta.yearly  
-            )
-            
-            bson
-        }
-    }
-      
+    implicit val RecurrenceMetaHandler = Macros.handler[RecurrenceMeta]
+
     val form = Form(
             
         mapping(
@@ -77,7 +40,8 @@ object RecurrenceMeta {
             "weekly" -> optional(WeekMeta.form.mapping),
             "monthly" -> optional(MonthMeta.form.mapping),
             "yearly" -> optional(YearMeta.form.mapping)
-        )  { (timeRange, reminderTime, reminderType, recurrenceType, daily, weekly, monthly, yearly) =>
+        )  
+        { (timeRange, reminderTime, reminderType, recurrenceType, daily, weekly, monthly, yearly) =>
              RecurrenceMeta (
                 timeRange,
                 reminderTime,
