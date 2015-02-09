@@ -19,4 +19,8 @@ object Application extends Controller {
   def signIn = Action {
     Ok(views.html.login())
   }
+  
+  def addCalendar = Action{
+    Ok(views.html.addCalendar(Calendar.form))
+  }
 }

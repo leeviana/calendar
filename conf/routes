@@ -7,6 +7,7 @@ GET     /                               controllers.Application.index
 GET     /signUp                         controllers.Application.signUp
 GET     /signIn                         controllers.Application.signIn
 GET     /login                          controllers.Application.signIn
+GET		/addCalendar					controllers.Application.addCalendar
 
 # Users
 
