@@ -5,7 +5,7 @@ import play.api.GlobalSettings
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.concurrent.Akka
 import akka.actor.Props
-import actor.ReminderActor
+import actor.ReminderCheckActor
 
 object Global extends GlobalSettings {
 	override def onStart(app: Application) {
@@ -13,7 +13,7 @@ object Global extends GlobalSettings {
 	}
 
 	def reminderDaemon(app: Application) = {
-		val reminderActor = Akka.system(app).actorOf(Props(new ReminderActor()))
+		val reminderActor = Akka.system(app).actorOf(Props(new ReminderCheckActor()))
 		Akka.system(app).scheduler.schedule(0 seconds, 1 minutes, reminderActor, "reminderDaemon")
     }
 }
