@@ -17,6 +17,10 @@ object MongoContext {
     def db: DB = connection("caldb")
 }
 object CalendarDAO extends BsonDao[Calendar, BSONObjectID](MongoContext.db, "calendars") {
+    /*
+     * Blocking call for getting a calendar object from ID for calls that don't care about performance and/or
+     * would have to immediately block on the call anyways
+     */
     def getCalendarFromID(id: BSONObjectID): Calendar = {
         val futureCalendar = this.findById(id)
 
@@ -33,6 +37,10 @@ object GroupDAO extends BsonDao[Group, BSONObjectID](MongoContext.db, "groups")
 object ReminderDAO extends BsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object RuleDAO extends BsonDao[Rule, BSONObjectID](MongoContext.db, "rules")
 object UserDAO extends BsonDao[User, BSONObjectID](MongoContext.db, "users") {
+    /*
+     * Blocking call for getting user object from ID for calls that don't care about performance and/or
+     * would have to immediately block on the call anyways
+     */
     def getUserFromID(id: BSONObjectID): User = { 
         val futureUser = this.findById(id)
               

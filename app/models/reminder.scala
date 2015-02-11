@@ -13,7 +13,8 @@ case class Reminder(
     eventID: BSONObjectID, // foreign ref
     timestamp: TimeRange,
     user: BSONObjectID, // foreign ref
-    reminderType: ReminderType.ReminderType)
+    reminderType: ReminderType.ReminderType,
+    hasSent: Boolean)
 
 object Reminder {
     implicit val ReminderHandler = Macros.handler[Reminder]
@@ -28,7 +29,8 @@ object Reminder {
                     BSONObjectID.apply(eventID),
                     timestamp,
                     BSONObjectID.apply(user),
-                    ReminderType.withName(reminderType))
+                    ReminderType.withName(reminderType),
+                    false)
             } { reminder =>
                 Some((
                     reminder.eventID.stringify,

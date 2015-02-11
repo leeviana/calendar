@@ -41,7 +41,7 @@
 							</ul></td>
 						}
 						<td>
-							@helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-horizontal") {
+							@helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-horizontal") {
                     			<input type="hidden" name="groupID" value='@g._id.stringify' >			        
 			        			userID: <input type="text" name="userID" value="userID" >                    
 			            			<input class="btn btn-primary" type="submit">
@@ -77,7 +77,7 @@
                 Call to addUsertoGroup with parameters (@group._id.stringify, username or ID)
                 <br><br>
                 Add user to <b>@group.name</b><br>
-                @helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-inline") {
+                @helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-inline") {
                     <input type="hidden" name="groupID" value='@group._id.stringify' >			        
 			        userID: <input type="text" name="userID" value='userID' >                    
 			        <div class="form-actions">

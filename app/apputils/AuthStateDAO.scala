@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
-//import utils.Constants
+import apputils.Constants
 
 
 case class AuthStateDAO ()
@@ -33,7 +33,7 @@ object AuthStateDAO {
     }
 	
     val driver = new MongoDriver
-	val connection = driver.connection(List("127.0.0.1:27017"))
+	val connection = driver.connection(List(Constants.DBLocation))
 	val db = connection("caldb")
 	val collection = db[BSONCollection]("authstate")
 	
