@@ -63,7 +63,7 @@ object Events extends Controller with MongoController {
             val sorted = collection.find(query).sort(BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)).cursor[Event]
             sorted.collect[List]().map { events =>
                 // TODO: applyAccesses(events)
-                Ok(views.html.events(events))
+                Ok(views.html.calendarView(events))
             }    
         }
     }
