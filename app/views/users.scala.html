@@ -7,12 +7,10 @@
     <ul>
         @users.map { user =>
             <li>
-                @user.id
+                @user._id
                 <em>is @user.username</em>
             </li>
             }
     </ul>
 }
-
-<a href = "./users/new">Add new user</a>
 }
