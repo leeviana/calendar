@@ -9,18 +9,19 @@ GET     /signIn                         controllers.Application.signIn
 GET     /login                          controllers.Application.signIn
 GET		/addCalendar					controllers.Application.addCalendar
 
+# Authentication
+POST     /signUp                         controllers.Users.create
+POST     /signIn                         controllers.Authentication.signIn
+GET      /signOut                        controllers.Authentication.signOut
+
 # Users
-
 GET     /users                          controllers.Users.index
-GET     /users/new                      controllers.Users.showCreationForm
-POST    /users/new                      controllers.Users.create
-
 
 # Groups
-GET     /groups                         controllers.Users.showGroups
-GET 	/groups/new						controllers.Users.newGroupForm
-POST    /groups/new                     controllers.Users.addGroup
-POST    /groups/addUsertoGroup          controllers.Users.addUsertoGroup
+GET     /groups                         controllers.Groups.showGroups
+GET 	/groups/new						controllers.Groups.newGroupForm
+POST    /groups/new                     controllers.Groups.addGroup
+POST    /groups/addUsertoGroup          controllers.Groups.addUsertoGroup
 
 # Events
 GET     /events                         controllers.Events.index
@@ -35,11 +36,6 @@ POST	/events/:eventID/delete			controllers.Events.deleteEvent(eventID)
 GET		/events/:eventID/:ruleID/deleteRule		controllers.Events.confirmDeleteRule(eventID, ruleID)
 POST	/events/:eventID/:ruleID/deleteRule		controllers.Events.deleteRule(eventID, ruleID)
 GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ruleID, dir)
-
-# Authentication
-POST     /signUp                         controllers.Users.create
-POST     /signIn                         controllers.Authentication.signIn
-GET     /signOut                         controllers.Authentication.signOut
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)

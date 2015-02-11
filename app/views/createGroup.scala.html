@@ -6,7 +6,7 @@
 	<div class="row">
     <div class="span8">
     <h2>Add a group</h2>
-	    @helper.form(action = routes.Users.addGroup, 'class -> "form-horizontal") {
+	    @helper.form(action = routes.Groups.addGroup, 'class -> "form-horizontal") {
 	    
 	    @viewComponents.html.text(groupForm("name"),
             label = "Group Name",

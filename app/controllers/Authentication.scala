@@ -10,7 +10,7 @@ import models.Event._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import models.utils.AuthStateDAO
+import apputils.AuthStateDAO
 import org.mindrot.jbcrypt.BCrypt;
 import scala.util.Random
 
@@ -54,12 +54,11 @@ object Authentication extends Controller with MongoController {
             }
         }
         Await.ready(irrelevant2, Duration(5000, MILLISECONDS))
-
         if (BCrypt.checkpw(password, pwHash)) {
             val random = new Random().nextString(15)
-            val updatedAuthData = AuthInfo(id = BSONObjectID.generate, userID = BSONObjectID.apply(userID), lastAuthToken = random, passwordHash = pwHash)
+            val updatedAuthData = AuthInfo(_id = BSONObjectID.generate, userID = BSONObjectID.apply(userID), lastAuthToken = random, passwordHash = pwHash)
             collection.insert(updatedAuthData)
-            Ok(views.html.index("Your new application is ready.")).withSession(
+            Ok(views.html.index()).withSession(
                 request.session + ("authToken" -> random) + ("userID" -> userID))
         } else {
             Redirect(routes.Application.signIn())
@@ -67,6 +66,6 @@ object Authentication extends Controller with MongoController {
     }
 
     def signOut = Action { implicit request =>
-        Ok(views.html.index("Your new application is ready.")).withNewSession
+        Ok(views.html.index()).withNewSession
     }
 }

@@ -17,7 +17,7 @@ case class Event(
     rules: List[Rule], // list of rule objects
     recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
     nextRecurrence: Option[BSONObjectID], // BSONID pointer, can be null if not recurring
-    accessType: AccessType.AccessType)
+    accessType: Option[AccessType.AccessType])
 
 object Event {
     implicit val EventHandler = Macros.handler[Event]
@@ -41,7 +41,7 @@ object Event {
                     rules.getOrElse(List[Rule]()),
                     recurrenceMeta,
                     nextRecurrence.map(id => BSONObjectID.apply(id)),
-                    AccessType.Private)
+                    Some(AccessType.Private))
             } { event =>
                 Some((
                     event.calendar.stringify,

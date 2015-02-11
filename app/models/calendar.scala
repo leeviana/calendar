@@ -13,7 +13,11 @@ case class Calendar (
     name: String,
     rules: List[Rule], // list of Rules
     settings: List[UserSetting] // list of [User]Settings, do we need a seperate calendarsetting object? probably not
-)
+) {
+    def this(owner: BSONObjectID, name: String) {
+        this(BSONObjectID.generate, owner, name, List[Rule](), List[UserSetting]())
+    }
+}
 
 object Calendar {
     implicit val CalendarHandler = Macros.handler[Calendar]
