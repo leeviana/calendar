@@ -33,7 +33,7 @@ class SendEmailActor extends Actor {
 		val email = Email(
 			"Nautical Reminder",
 			"NautiCal Nonsense <nauticalnonsense999@gmail.com>",
-			Seq(user.username + " <robert@mailinator.com>"),
+			Seq(user.username + " <nauticalnonsense@mailinator.com>"),
 			// sends text, HTML or both...
 			bodyText = Some("This is the reminder that you requested regarding your event (" + event.name + ")."),
 			bodyHtml = Some("<html><body><p>" + "This is the reminder that you requested regarding your event (" + event.name + ")." + "</p></body></html>")
