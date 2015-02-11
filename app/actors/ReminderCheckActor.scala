@@ -25,7 +25,7 @@ class ReminderCheckActor extends Actor {
 			
 			
 			val query = BSONDocument(
-				"hasSent" -> false ,
+//				"hasSent" -> false ,
 				"timestamp.startDate" -> BSONDocument("$lte" -> BSONDateTime(today.getMillis())), // reminder occurs today or earlier
 				"timestamp.startTime" -> BSONDocument("$lte" -> BSONDateTime(time.getMillis())), // reminder occurs at this time or earlier
 				"timestamp.startTime" -> BSONDocument("$gte" -> BSONDateTime(time.minusMinutes(1).getMillis())) // reminder occurs no earlier than in the last 10 minutes
@@ -34,7 +34,7 @@ class ReminderCheckActor extends Actor {
 			val tempFuture = ReminderDAO.findAll(query).map { reminders =>
 				for (reminder <- reminders) {
 					if (isValid(reminder)) {
-						ReminderDAO.findAndUpdate(BSONDocument("_id" -> BSONObjectID.apply(reminder._id.stringify)),BSONDocument("$set" -> BSONDocument("hasSent" -> true )))
+//						ReminderDAO.findAndUpdate(BSONDocument("_id" -> BSONObjectID.apply(reminder._id.stringify)),BSONDocument("$set" -> BSONDocument("hasSent" -> true )))
 						emailActor ! reminder
 					}
 				}
