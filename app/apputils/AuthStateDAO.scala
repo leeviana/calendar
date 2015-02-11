@@ -1,4 +1,4 @@
-package models.utils
+package apputils
 
 import play.api._
 import play.api.mvc._
@@ -7,40 +7,46 @@ import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
 import models.AuthInfo
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.MILLISECONDS
+import apputils.Constants
+
 
 case class AuthStateDAO ()
 
 object AuthStateDAO {
   def isAuthenticated()(implicit req: RequestHeader): Boolean = {
-    val sessionUserID = ""
-	val sessionAuthToken = ""
-	val output = false
+    var sessionUserID = ""
+	var sessionAuthToken = ""
+	var output = false
     req.session.get("userID").map { thisID =>
-	  val sessionUserID = thisID
+		sessionUserID = thisID
     }.getOrElse {
       return output
     }
 	
 	req.session.get("authToken").map { thisToken =>
-	  val sessionAuthToken = thisToken
+	  sessionAuthToken = thisToken
     }.getOrElse {
       return output
     }
 	
     val driver = new MongoDriver
-	val connection = driver.connection(List("127.0.0.1:27017"))
+	val connection = driver.connection(List(Constants.DBLocation))
 	val db = connection("caldb")
 	val collection = db[BSONCollection]("authstate")
 	
     val objectID = BSONObjectID.apply(sessionUserID)
 
-    val cursor = collection.find(BSONDocument("userID" -> sessionUserID)).cursor[AuthInfo]
-	val temp = false
+    val cursor = collection.find(BSONDocument("userID" -> objectID)).cursor[AuthInfo]
+	var temp = false
 	val irrelevant = cursor.collect[List]().map { authinfos =>      
 	  authinfos.map { authinfo => 
-	    val temp = (authinfo.lastAuthToken == sessionAuthToken)
+	    temp = (authinfo.lastAuthToken == sessionAuthToken)
 	  }
 	}
+	Await.ready(irrelevant, Duration(5000, MILLISECONDS))
 	return temp
   }
   
