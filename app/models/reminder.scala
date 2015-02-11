@@ -3,6 +3,7 @@ package models
 import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
+import reactivemongo.api.collections.default.BSONCollection
 import org.joda.time.DateTime
 import models.enums.ReminderType
 
@@ -10,6 +11,7 @@ import models.enums.ReminderType
  * @author Leevi
  */
 case class Reminder(
+	_id: BSONObjectID,
     eventID: BSONObjectID, // foreign ref
     timestamp: TimeRange,
     user: BSONObjectID, // foreign ref
@@ -25,6 +27,7 @@ object Reminder {
             "user" -> nonEmptyText, // BSONID
             "reminderType" -> nonEmptyText) { (eventID, timestamp, user, reminderType) =>
                 Reminder(
+					BSONObjectID.generate,
                     BSONObjectID.apply(eventID),
                     timestamp,
                     BSONObjectID.apply(user),
