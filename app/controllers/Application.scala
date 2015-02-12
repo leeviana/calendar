@@ -8,6 +8,7 @@ import models.Calendar
 import models.User
 import apputils.CalendarDAO
 import apputils.AuthStateDAO
+import apputils.UserDAO
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
 import play.api.mvc.Controller
@@ -44,8 +45,10 @@ object Application extends Controller with MongoController{
               errors => Ok(views.html.createCalendar(Calendar.form, AuthStateDAO.getUserID().stringify)),
               
               calendar => {
+                
                 val updatedCalendar = calendar.copy(owner = AuthStateDAO.getUserID())
                 CalendarDAO.insert(updatedCalendar)
+                UserDAO.updateById(AuthStateDAO.getUserID(), $push("subscriptions", updatedCalendar._id))
                 Redirect(routes.Events.index())
               })
           
