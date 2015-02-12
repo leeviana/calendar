@@ -4,6 +4,8 @@ import play.api.data.Form
 import play.api.data.Forms._
 import reactivemongo.bson._
 import reactivemongo.api.collections.default.BSONCollection
+import play.api.libs.json.Json
+import play.modules.reactivemongo.json.BSONFormats._
 
 /**
  * @author Leevi
@@ -17,7 +19,7 @@ case class User(
     )
 
 object User {
-    implicit val UserHandler = Macros.handler[User]
+    implicit val UserFormat = Json.format[User]
 
     val form = Form(
         mapping(
