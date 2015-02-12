@@ -1,0 +1,30 @@
+@(form: Form[models.Calendar], userID: String)
+
+@main("Add Calendar"){
+
+<div class="row">
+    <div class="span8">
+	<legend>Add Calendar</legend>
+
+	@helper.form(action = routes.Application.addCalendar, 'class -> "form-horizontal"){
+	
+	@viewComponents.html.text(form("name"),
+		label = "Calendar Name")
+		
+	<input type="text"
+                id='@form("owner").id' 
+                name='@form("owner").name'
+                value='@userID' 
+                placeholder='@userID'
+                style="visibility: hidden" />
+
+	<label class="col-sm-2"> </label>
+		<div class="col-sm-5">
+			<div class="form-actions">
+				<input class="btn btn-primary" type="submit"> 
+			</div>
+		</div>
+	}
+	</div>
+</div>
+}

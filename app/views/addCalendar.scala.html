@@ -1,9 +1,0 @@
-@(form: Form[models.Calendar])
-
-@main("Add Calendar"){
-<legend>Add Calendar</legend>
-
-	@viewComponents.html.text(form("name"),
-		label = "Calendar Name")
-
-}
