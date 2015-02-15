@@ -1,5 +1,5 @@
 @(form: Form[models.Event], recurrenceTypes: Iterator[models.enums.RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
-@import helper.twitterBootstrap._
+
 
 @main("Add Event"){
 
@@ -13,7 +13,7 @@
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
         <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
-        	<option value=""> </option>
+        	
         @for((eventID, eventName) <- calMap){
         	<option value='@eventID'>@eventName </option>
         }
@@ -49,19 +49,15 @@
         	label = "End Time")  
         	
       	<!--  All day -->  
-      	<!-- <div>
-     	<label class="col-sm-2 control-label"> All Day </label>
-    		<div class="col-sm-10">   	
-       			@helper.checkbox(form("timeRange.allday"))
-       		</div>
-       	</div> -->
+<!-- 		@viewComponents.html.checkbox(form("timeRange.allday"),
+			label = "All Day") -->
        	
-       	<input type="checkbox"
+        	<input type="checkbox"
                 id='@form("timeRange.allday").id' 
                 name='@form("timeRange.allday").name'
                 value='@false' 
                 placeholder='@false'
-                style="visibility: hidden" />
+                style="visibility: hidden" /> 
        	
        	<!--  Recurrence Details -->    	
        	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),

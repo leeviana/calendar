@@ -1,0 +1,19 @@
+@(field: Field, label: String = "CHANGEME")
+
+<div class="form-group @if(field.hasErrors) {has-error}">
+	<label class="col-sm-2 control-label">@label</label>
+    	<div class="col-sm-5">
+      		<input type="checkbox"             
+             	id="@field.id" 
+             	name="@field.name" 
+             	/>  		
+      		<span class="help-block">@{field.error.map { error => error.message }}</span>
+    	</div>
+    	
+    		<script type="text/javascript">
+			$('#@field.id').change(function(){
+     			cb = $(this);
+     			cb.val(cb.prop('checked'));
+ 			});
+			</script>
+</div>
