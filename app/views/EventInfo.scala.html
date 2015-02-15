@@ -75,7 +75,7 @@
     					<td>None</td>
     				</tr>
     			} else {
-    				@for(r <- event.rules){
+    				@for(r <- event.rules.sortBy ( rule => rule.orderNum )){
     					<tr>
     						<td>@r.orderNum</td>
     						<td>@r.entityType</td>

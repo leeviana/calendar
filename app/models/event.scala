@@ -1,12 +1,14 @@
 package models
 
-import play.api.data.Form
-import play.api.data.Forms._
-import reactivemongo.bson._
-import play.api.data.format.Formats._
-import org.joda.time.DateTime
-import java.util.Date
 import models.enums.AccessType
+import play.api.data.Form
+import play.api.data.Forms.list
+import play.api.data.Forms.mapping
+import play.api.data.Forms.nonEmptyText
+import play.api.data.Forms.optional
+import play.api.libs.json.Json
+import reactivemongo.bson.BSONObjectID
+import play.modules.reactivemongo.json.BSONFormats._
 
 case class Event(
     _id: BSONObjectID,
@@ -20,7 +22,7 @@ case class Event(
     accessType: Option[AccessType.AccessType])
 
 object Event {
-    implicit val EventHandler = Macros.handler[Event]
+    implicit val EventFormat = Json.format[Event]
 
     val form = Form(
         mapping(

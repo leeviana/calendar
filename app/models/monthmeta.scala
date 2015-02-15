@@ -1,11 +1,14 @@
 package models
 
-import play.api.data.Forms._
-import reactivemongo.bson._
-import play.api.data.Form
-import org.joda.time.DateTime
 import scala.collection.mutable.ListBuffer
+
+import org.joda.time.DateTime
+
 import models.enums.RecurrenceType
+import play.api.data.Form
+import play.api.data.Forms.mapping
+import play.api.data.Forms.number
+import play.api.libs.json.Json
 
 /**
  * @author Leevi
@@ -16,8 +19,7 @@ case class MonthMeta(
 }
 
 object MonthMeta {
-
-    implicit val MonthMetaHandler = Macros.handler[MonthMeta]
+    implicit val MonthMetaFormat = Json.format[MonthMeta]
 
     val form = Form(
         mapping(

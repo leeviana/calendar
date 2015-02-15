@@ -13,7 +13,9 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.bson.BSONObjectIDIdentity
 import reactivemongo.bson.Producer.nameValue2Producer
-import reactivemongo.extensions.dsl.BsonDsl._
+//import reactivemongo.extensions.dsl.BsonDsl._
+import reactivemongo.extensions.json.dsl.JsonDsl._
+import play.modules.reactivemongo.json.BSONFormats._
 
 /**
  * @author Leevi
