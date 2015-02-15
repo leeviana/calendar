@@ -1,45 +1,42 @@
 package controllers
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.MILLISECONDS
-import scala.util.Random
-
-import org.mindrot.jbcrypt.BCrypt
-
-import apputils.UserDAO
-import models.AuthInfo
-import play.api.mvc.Action
-import play.api.mvc.Controller
+import play.api._
+import play.api.mvc._
 import play.modules.reactivemongo.MongoController
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
-import reactivemongo.extensions.json.dsl.JsonDsl.ElementBuilderLike
-import reactivemongo.extensions.json.dsl.JsonDsl.toJsObject
+import models._
+import models.Event._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import apputils.AuthStateDAO
+import org.mindrot.jbcrypt.BCrypt;
+import scala.util.Random
 
 object Authentication extends Controller with MongoController {
 
     val collection = db[BSONCollection]("authstate")
 
-    /*
-     * Renders the sign up page to make a new account
-     */
     def signUp() = Action { implicit request =>
         Redirect(routes.Application.signUp())
     }
 
-    /*
-     * Allows a user to sign in with the correct credentials
-     */
     def signIn = Action { implicit request =>
+
         val requestMap = (request.body.asFormUrlEncoded)
         val email = requestMap.get.get("inputEmail").get.head
         val password = requestMap.get.get("inputPassword").get.head
 
+        val query2 = BSONDocument(
+            "$query" -> BSONDocument(
+                "email" -> email))
+
+        val collection2 = db[BSONCollection]("users")
+        val cursor2 = collection2.find(query2).cursor[User]
         var userID = ""
         var pwHash = ""
-        val irrelevant2 = UserDAO.findOne("email" $eq email).map { users =>
+        val irrelevant2 = cursor2.collect[List]().map { users =>
             users.map { user =>
                 userID = user._id.stringify
 

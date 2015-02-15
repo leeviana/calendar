@@ -18,6 +18,5 @@ libraryDependencies ++= Seq(
   ws,
   "org.reactivemongo" %% "play2-reactivemongo" % "0.10.5.0.akka23",
   "org.reactivemongo" %% "reactivemongo-extensions-bson" % "0.10.5.0.0.akka23",
-  "org.reactivemongo" %% "reactivemongo-extensions-json" % "0.10.5.0.0.akka23",
   "org.mindrot" % "jbcrypt" % "0.3m"
 )

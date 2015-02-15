@@ -1,13 +1,11 @@
 package models
 
-import models.enums.RecurrenceType
-import models.enums.ReminderType
 import play.api.data.Form
-import play.api.data.Forms.longNumber
-import play.api.data.Forms.mapping
-import play.api.data.Forms.nonEmptyText
-import play.api.data.Forms.optional
-import play.api.libs.json.Json
+import play.api.data.Forms._
+import reactivemongo.bson._
+import org.joda.time.DateTime
+import models.enums.ReminderType
+import models.enums.RecurrenceType
 
 /**
  * Metadata for event recurrence information
@@ -28,7 +26,7 @@ case class RecurrenceMeta(
     )
 
 object RecurrenceMeta {
-    implicit val EventFormat = Json.format[RecurrenceMeta]
+    implicit val RecurrenceMetaHandler = Macros.handler[RecurrenceMeta]
 
     val form = Form(
 

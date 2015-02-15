@@ -1,17 +1,20 @@
 package models.enums
 
-import play.api.libs.json.Format
-import play.api.libs.json.JsString
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsValue
+import reactivemongo.bson.BSONDocumentReader
+import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.BSONDocumentWriter
+import reactivemongo.bson.BSONString
+import reactivemongo.bson.BSONHandler
+import reactivemongo.bson.BSON
 
 object RecurrenceType extends Enumeration {
     type RecurrenceType = Value
 
     val Daily, Weekly, Monthly, Yearly = Value
 
-    implicit val EventFormat = new Format[RecurrenceType] {
-        def reads(json: JsValue) = JsSuccess(RecurrenceType.withName(json.as[String]))
-        def writes(recurrenceType: RecurrenceType) = JsString(recurrenceType.toString)
+    implicit object BSONEnumHandler extends BSONHandler[BSONString, RecurrenceType] {
+        def read(doc: BSONString) = RecurrenceType.Value(doc.value)
+
+        def write(recurrenceType: RecurrenceType) = BSON.write(recurrenceType.toString)
     }
 }

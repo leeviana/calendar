@@ -1,17 +1,20 @@
 package models.enums
 
-import play.api.libs.json.Format
-import play.api.libs.json.JsString
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsValue
+import reactivemongo.bson.BSONDocumentReader
+import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.BSONDocumentWriter
+import reactivemongo.bson.BSONString
+import reactivemongo.bson.BSONHandler
+import reactivemongo.bson.BSON
 
 object EntityType extends Enumeration {
     type EntityType = Value
 
     val User, Group = Value
 
-    implicit val EventFormat = new Format[EntityType] {
-        def reads(json: JsValue) = JsSuccess(EntityType.withName(json.as[String]))
-        def writes(entityType: EntityType) = JsString(entityType.toString)
+    implicit object BSONEnumHandler extends BSONHandler[BSONString, EntityType] {
+        def read(doc: BSONString) = EntityType.Value(doc.value)
+
+        def write(entityType: EntityType) = BSON.write(entityType.toString)
     }
 }

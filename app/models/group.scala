@@ -4,9 +4,11 @@ import play.api.data.Form
 import play.api.data.Forms.ignored
 import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
-import play.api.libs.json.Json
-import reactivemongo.bson._
-import play.modules.reactivemongo.json.BSONFormats._
+import reactivemongo.bson.BSONArray
+import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.BSONObjectIDIdentity
+import reactivemongo.bson.Macros
+import reactivemongo.bson.Producer.valueProducer
 
 /**
  * @author Leevi
@@ -19,7 +21,7 @@ case class Group(
     )
 
 object Group {
-    implicit val GroupFormat = Json.format[Group]
+    implicit val GroupHandler = Macros.handler[Group]
 
     val form = Form(
         mapping(

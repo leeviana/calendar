@@ -1,14 +1,11 @@
 package models
 
-import scala.collection.mutable.ListBuffer
-
-import org.joda.time.DateTime
-
-import models.enums.RecurrenceType
+import play.api.data.Forms._
+import reactivemongo.bson._
 import play.api.data.Form
-import play.api.data.Forms.mapping
-import play.api.data.Forms.number
-import play.api.libs.json.Json
+import scala.collection.mutable.ListBuffer
+import org.joda.time.DateTime
+import models.enums.RecurrenceType
 
 /**
  * @author Leevi
@@ -21,7 +18,8 @@ case class YearMeta(
 }
 
 object YearMeta {
-    implicit val YearMetaFormat = Json.format[YearMeta]
+
+    implicit val YearMetaHandler = Macros.handler[YearMeta]
 
     val form = Form(
         mapping(

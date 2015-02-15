@@ -1,12 +1,10 @@
 package models
 
-import models.enums.ReminderType
 import play.api.data.Form
-import play.api.data.Forms.mapping
-import play.api.data.Forms.nonEmptyText
-import play.api.libs.json.Json
-import reactivemongo.bson.BSONObjectID
-import play.modules.reactivemongo.json.BSONFormats._
+import play.api.data.Forms._
+import reactivemongo.bson._
+import org.joda.time.DateTime
+import models.enums.ReminderType
 
 /**
  * @author Leevi
@@ -19,7 +17,7 @@ case class Reminder(
     hasSent: Boolean)
 
 object Reminder {
-    implicit val ReminderFormat = Json.format[Reminder]
+    implicit val ReminderHandler = Macros.handler[Reminder]
 
     val form = Form(
         mapping(
