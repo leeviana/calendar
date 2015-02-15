@@ -17,24 +17,24 @@ import apputils.UserDAO
  * @author Leevi
  */
 object Users extends Controller with MongoController {
-       
+
     /*
      * Deprecated page used for testing purposes. When no longer needed, remove
      */
-    def index = Action.async { implicit request =>              
+    def index = Action.async { implicit request =>
         UserDAO.findAll().map { users =>
             Ok(views.html.users(users))
         }
     }
-    
+
     /*
      * Creates a new user with a default personal calendar and authentication information
      */
     def create = Action { implicit request =>
         User.form.bindFromRequest.fold(
             errors => Ok(views.html.editUser(errors)),
-            
-            user => { 
+
+            user => {
                 val calName = user.username + "'s personal calendar"
                 val personalCalendar = new Calendar(user._id, calName)
                 CalendarDAO.insert(personalCalendar)
@@ -45,11 +45,10 @@ object Users extends Controller with MongoController {
                 val authCollection = db[BSONCollection]("authstate")
                 val requestMap = (request.body.asFormUrlEncoded)
                 val password = requestMap.get.get("password").get.head
-                val hash =  BCrypt.hashpw(password, BCrypt.gensalt());
-                val newAuthData = AuthInfo(_id=BSONObjectID.generate, userID=updatedUser._id, lastAuthToken="", passwordHash=hash)
+                val hash = BCrypt.hashpw(password, BCrypt.gensalt());
+                val newAuthData = AuthInfo(_id = BSONObjectID.generate, userID = updatedUser._id, lastAuthToken = "", passwordHash = hash)
                 authCollection.insert(newAuthData)
                 Redirect(routes.Application.signIn())
-            }
-        )
+            })
     }
 }

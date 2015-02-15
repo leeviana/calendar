@@ -1,17 +1,17 @@
 package models.enums
 
-import reactivemongo.bson.BSON
-import reactivemongo.bson.BSONHandler
-import reactivemongo.bson.BSONString
+import play.api.libs.json.Format
+import play.api.libs.json.JsString
+import play.api.libs.json.JsSuccess
+import play.api.libs.json.JsValue
 
 object ReminderType extends Enumeration {
     type ReminderType = Value
 
     val Email = Value
 
-    implicit object BSONEnumHandler extends BSONHandler[BSONString, ReminderType] {
-        def read(doc: BSONString) = ReminderType.Value(doc.value)
-
-        def write(reminderType: ReminderType) = BSON.write(reminderType.toString)
+    implicit val EventFormat = new Format[ReminderType] {
+        def reads(json: JsValue) = JsSuccess(ReminderType.withName(json.as[String]))
+        def writes(reminderType: ReminderType) = JsString(reminderType.toString)
     }
 }

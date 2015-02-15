@@ -3,26 +3,25 @@ package controllers
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map
 import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
-import scala.util.Failure
-import scala.util.Success
+
 import org.joda.time.DateTime
+
+import apputils._
 import models._
-import apputils.AuthStateDAO
+import models.enums.RecurrenceType
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
-import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONDocument
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.bson.Producer.nameValue2Producer
-import models.enums.RecurrenceType
-import scala.concurrent.Future
-import apputils._
-import reactivemongo.extensions.dsl.BsonDsl._
+import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
+import reactivemongo.bson._
+import reactivemongo.extensions.json.dsl.JsonDsl._
 
 /**
  * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -31,11 +30,9 @@ import reactivemongo.extensions.dsl.BsonDsl._
  * @author Leevi
  */
 object Events extends Controller with MongoController {
-    val collection = db[BSONCollection]("events")
 
     /*
      * Shows the user's events and events shared with the user via rules
-     * TODO: finish refactoring queries into DSL
      */
     def index = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
@@ -58,9 +55,20 @@ object Events extends Controller with MongoController {
                         BSONDocument("rules.entityID" -> BSONDocument(
                             "$in" -> userGroupIDs))))
 
-                val sort = BSONDocument("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
-                
-                EventDAO.findAll(query, sort).map { events =>
+                val jsonquery = Json.obj(
+                    "$or" -> Json.arr(
+                        Json.obj(
+                            "calendar" -> Json.obj(
+                                "$in" -> user.get.subscriptions)),
+                        Json.obj(
+                            "rules.entityID" -> user.get._id),
+                        Json.obj(
+                            "rules.entityID" -> Json.obj(
+                                "$in" -> userGroupIDs))))
+
+                val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
+
+                EventDAO.findAll(jsonquery, sort).map { events =>
                     // TODO: applyAccesses(events)
                     Ok(views.html.events(events))
                 }
@@ -109,7 +117,7 @@ object Events extends Controller with MongoController {
 
         UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
             var calMap: Map[String, String] = Map()
-            
+
             for (calID <- user.get.subscriptions) {
                 CalendarDAO.findById(calID).map { cal =>
                     calMap += (calID.stringify -> cal.get.name)
@@ -161,7 +169,8 @@ object Events extends Controller with MongoController {
                             }
 
                             val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange)
-                            val future = collection.insert(updatedEvent)
+                            // val future = collection.insert(updatedEvent)
+                            EventDAO.insert(updatedEvent)
                         }
                     }
 
@@ -177,7 +186,7 @@ object Events extends Controller with MongoController {
         val objectID = BSONObjectID.apply(eventID)
 
         EventDAO.removeById(objectID)
-        
+
         Redirect(routes.Events.index())
     }
 
@@ -200,21 +209,6 @@ object Events extends Controller with MongoController {
             else
                 throw new Exception("Database incongruity: Event ID not found")
         }
-    }
-
-    /*
-     * Unused? Should be able to replace with scala list sorting anyways
-     */
-    def sortRules(eventID: String): Boolean = {
-        val objectID = BSONObjectID.apply(eventID)
-
-        val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
-        cursor.collect[List]().map { event =>
-            var rules = event.headOption.get.rules
-            rules.sortBy(_.orderNum)
-
-        }
-        return true;
     }
 
     /*
@@ -241,7 +235,7 @@ object Events extends Controller with MongoController {
      */
     def addRule(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        
+
         EventDAO.findById(objectID).map { event =>
             Rule.form.bindFromRequest.fold(
                 errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify)),
@@ -253,40 +247,22 @@ object Events extends Controller with MongoController {
         }
     }
 
+    /*
+     * Deletes a rule
+     */
     def deleteRule(eventID: String, ruleID: String) = Action { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
-        val modifier = BSONDocument(
-            "$pull" -> BSONDocument(
-                "rules" -> BSONDocument(
-                    "orderNum" -> ruleID.toInt)))
-
-        val future = collection.update(BSONDocument("_id" -> objectID), modifier)
-
-        var cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
-        cursor.collect[List]().map { event =>
-            var rules = event.headOption.get.rules.toBuffer
+        EventDAO.updateById(objectID, $pull("rules", Json.obj("orderNum" $eq ruleID.toInt)))
+        EventDAO.findById(objectID).map { event =>
+            var rules = event.get.rules.toBuffer
             for (x <- rules.length - 1 to 0 by -1) {
                 if (x >= ruleID.toInt) {
                     val newRule1 = new Rule(rules(x).orderNum - 1, rules(x).entityType, rules(x).entityID, rules(x).accessType)
-                    val modifier1 = BSONDocument(
-                        "$pull" -> BSONDocument(
-                            "rules" -> rules(x)))
-                    val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
-                    val modifier3 = BSONDocument(
-                        "$push" -> BSONDocument(
-                            "rules" -> newRule1))
-                    val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
 
+                    EventDAO.updateById(objectID, $pull("rules", rules(x)))
+                    EventDAO.updateById(objectID, $push("rules", newRule1))
                 }
-
-            }
-
-        }
-        future.onComplete {
-            case Failure(e) => throw e
-            case Success(lastError) => {
-                Redirect(routes.Events.showEvent(eventID))
             }
         }
 
@@ -300,86 +276,41 @@ object Events extends Controller with MongoController {
         Ok(views.html.confirmDeleteRule(eventID, Event.form, ruleID))
     }
 
+    /*
+     * Moves around rules, depending on the rule and the direction of movement
+     */
     def moveRule(eventID: String, ruleID: String, dir: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
-        val cursor = collection.find(BSONDocument("_id" -> objectID)).cursor[Event]
-        cursor.collect[List]().map { event =>
-            //val rules = event.headOption.get.rules
-            var rules = event.headOption.get.rules.toBuffer
-            if (ruleID.toInt <= 0 && dir.equals("up")) {
+        EventDAO.findById(objectID).map { event =>
+            var adjustment = 0
+            if (dir.equals("up"))
+                adjustment = 1
+            else if (dir.equals("down"))
+                adjustment = -1
+
+            var rules = event.get.rules.toBuffer
+
+            if (ruleID.toInt <= 0 && dir.equals("up") | ruleID.toInt >= rules.length - 1 && dir.equals("down")) {
                 Redirect(routes.Events.showEvent(eventID))
-            } else if (ruleID.toInt >= rules.length - 1 && dir.equals("down")) {
-                Redirect(routes.Events.showEvent(eventID))
-            } else if (dir.equals("up")) {
-                println("length of list - " + rules.length)
+            } else {
                 var one = 0;
                 var two = 0;
                 for (x <- 0 to rules.length - 1) {
                     if (rules(x).orderNum == ruleID.toInt) {
                         one = x;
-                    } else if (rules(x).orderNum == ruleID.toInt - 1) {
+                    } else if (rules(x).orderNum == ruleID.toInt - adjustment) {
                         two = x;
                     }
                 }
 
-                val newRule1 = new Rule(rules(one).orderNum - 1, rules(one).entityType, rules(one).entityID, rules(one).accessType)
+                val newRule1 = new Rule(rules(one).orderNum - adjustment, rules(one).entityType, rules(one).entityID, rules(one).accessType)
+                val newRule2 = new Rule(rules(two).orderNum + adjustment, rules(two).entityType, rules(two).entityID, rules(two).accessType)
 
-                val newRule2 = new Rule(rules(two).orderNum + 1, rules(two).entityType, rules(two).entityID, rules(two).accessType)
-
-                val modifier1 = BSONDocument(
-                    "$pull" -> BSONDocument(
-                        "rules" -> rules(one)))
-                val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
-
-                val modifier2 = BSONDocument(
-                    "$pull" -> BSONDocument(
-                        "rules" -> rules(two)))
-                val future2 = collection.update(BSONDocument("_id" -> objectID), modifier2)
-
-                val modifier3 = BSONDocument(
-                    "$push" -> BSONDocument(
-                        "rules" -> newRule1))
-                val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
-
-                val modifier4 = BSONDocument(
-                    "$push" -> BSONDocument(
-                        "rules" -> newRule2))
-                val future4 = collection.update(BSONDocument("_id" -> objectID), modifier4)
-
-            } else if (dir.equals("down")) {
-                var one = 0;
-                var two = 0;
-                for (x <- 0 to rules.length - 1) {
-                    if (rules(x).orderNum == ruleID.toInt) {
-                        one = x;
-                    } else if (rules(x).orderNum == ruleID.toInt + 1) {
-                        two = x;
-                    }
-                }
-                val newRule1 = new Rule(rules(one).orderNum + 1, rules(one).entityType, rules(one).entityID, rules(one).accessType)
-                val newRule2 = new Rule(rules(two).orderNum - 1, rules(two).entityType, rules(two).entityID, rules(two).accessType)
-
-                val modifier1 = BSONDocument(
-                    "$pull" -> BSONDocument(
-                        "rules" -> rules(one)))
-                val future1 = collection.update(BSONDocument("_id" -> objectID), modifier1)
-
-                val modifier2 = BSONDocument(
-                    "$pull" -> BSONDocument(
-                        "rules" -> rules(two)))
-                val future2 = collection.update(BSONDocument("_id" -> objectID), modifier2)
-
-                val modifier3 = BSONDocument(
-                    "$push" -> BSONDocument(
-                        "rules" -> newRule1))
-                val future3 = collection.update(BSONDocument("_id" -> objectID), modifier3)
-
-                val modifier4 = BSONDocument(
-                    "$push" -> BSONDocument(
-                        "rules" -> newRule2))
-                val future4 = collection.update(BSONDocument("_id" -> objectID), modifier4)
-
+                EventDAO.updateById(objectID, $pull("rules", rules(one)))
+                EventDAO.updateById(objectID, $pull("rules", rules(two)))
+                EventDAO.updateById(objectID, $push("rules", newRule1))
+                EventDAO.updateById(objectID, $push("rules", newRule2))
             }
             Redirect(routes.Events.showEvent(eventID))
         }
