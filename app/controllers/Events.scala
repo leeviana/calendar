@@ -6,9 +6,7 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
-
 import org.joda.time.DateTime
-
 import apputils._
 import models._
 import models.enums.RecurrenceType
@@ -22,19 +20,20 @@ import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 import reactivemongo.bson._
 import reactivemongo.extensions.json.dsl.JsonDsl._
+import models.enums.EventType
 
 /**
- * The Users controllers encapsulates the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
+ * The controllers encapsulate the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
  * play plugin. This provides a non-blocking driver for mongoDB as well as some useful additions for handling JSon.
  * @see https://github.com/ReactiveMongo/Play-ReactiveMongo
  * @author Leevi
  */
 object Events extends Controller with MongoController {
 
-    /*
-     * Shows the user's events and events shared with the user via rules
+    /**
+     * Shows the user's fixed events and events shared with the user via rules
      */
-    def index = Action.async { implicit request =>
+    def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
 
@@ -47,16 +46,11 @@ object Events extends Controller with MongoController {
                 }
                 Await.ready(futureGroups, Duration(5000, MILLISECONDS))
 
-                val query = BSONDocument(
-                    "$or" -> List[BSONDocument](BSONDocument(
-                        "calendar" -> BSONDocument(
-                            "$in" -> user.head.subscriptions)),
-                        BSONDocument("rules.entityID" -> user.head._id),
-                        BSONDocument("rules.entityID" -> BSONDocument(
-                            "$in" -> userGroupIDs))))
-
                 val jsonquery = Json.obj(
-                    "$or" -> Json.arr(
+                    "$and" -> Json.arr(
+                        Json.obj("eventType" -> eventType),
+                        
+                    Json.obj("$or" -> Json.arr(
                         Json.obj(
                             "calendar" -> Json.obj(
                                 "$in" -> user.get.subscriptions)),
@@ -64,7 +58,7 @@ object Events extends Controller with MongoController {
                             "rules.entityID" -> user.get._id),
                         Json.obj(
                             "rules.entityID" -> Json.obj(
-                                "$in" -> userGroupIDs))))
+                                "$in" -> userGroupIDs))))))
 
                 val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
 
@@ -78,7 +72,7 @@ object Events extends Controller with MongoController {
         }
     }
 
-    /*
+    /**
      * Shows reminders that the user has set
      * TODO: Show these on the event info page instead
      */
@@ -92,7 +86,7 @@ object Events extends Controller with MongoController {
         }
     }
 
-    /*
+    /**
      * Shows the event creation form
      */
     def showCreationForm = Action.async { implicit request =>
@@ -109,7 +103,7 @@ object Events extends Controller with MongoController {
         }
     }
 
-    /*
+    /**
      * Creates an event on a calendar
      */
     def create = Action.async { implicit request =>
@@ -174,30 +168,30 @@ object Events extends Controller with MongoController {
                         }
                     }
 
-                    Redirect(routes.Events.index())
+                    Redirect(routes.Events.index(event.eventType.toString()))
                 })
         }
     }
 
-    /*
-     * Deletes an event
+    /**
+     * Deletes an event. Redirects to fixed view
      */
     def deleteEvent(eventID: String) = Action { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
         EventDAO.removeById(objectID)
 
-        Redirect(routes.Events.index())
+        Redirect(routes.Events.index("Fixed"))
     }
 
-    /*
+    /**
      * Confirmation page before actually deleting an event
      */
     def confirmDelete(eventID: String) = Action {
         Ok(views.html.confirmDelete(eventID, Event.form))
     }
 
-    /*
+    /**
      * Renders a page that shows details about a specific event
      */
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
@@ -211,7 +205,7 @@ object Events extends Controller with MongoController {
         }
     }
 
-    /*
+    /**
      * Adds a reminder for an event
      * TODO: extend this so it can remind for PUDs too
      */
@@ -229,9 +223,10 @@ object Events extends Controller with MongoController {
         }
     }
 
-    /*
+    /**
      * Adds a new rule to an Event
      * TODO: May want to do this for a calendar too in the future
+     * @param ID of the event that rule is to be added to
      */
     def addRule(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
@@ -247,7 +242,7 @@ object Events extends Controller with MongoController {
         }
     }
 
-    /*
+    /**
      * Deletes a rule
      */
     def deleteRule(eventID: String, ruleID: String) = Action { implicit request =>
@@ -269,14 +264,14 @@ object Events extends Controller with MongoController {
         Redirect(routes.Events.showEvent(eventID))
     }
 
-    /*
+    /**
      * Confirmation page before actually deleting a rule
      */
     def confirmDeleteRule(eventID: String, ruleID: String) = Action {
         Ok(views.html.confirmDeleteRule(eventID, Event.form, ruleID))
     }
 
-    /*
+    /**
      * Moves around rules, depending on the rule and the direction of movement
      */
     def moveRule(eventID: String, ruleID: String, dir: String) = Action.async { implicit request =>

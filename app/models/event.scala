@@ -9,6 +9,7 @@ import play.api.data.Forms.optional
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
+import models.enums.EventType
 
 case class Event(
     _id: BSONObjectID,
@@ -19,7 +20,8 @@ case class Event(
     rules: List[Rule], // list of rule objects
     recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
     nextRecurrence: Option[BSONObjectID], // BSONID pointer, can be null if not recurring
-    accessType: Option[AccessType.AccessType])
+    accessType: Option[AccessType.AccessType],
+    eventType: EventType.EventType)
 
 object Event {
     implicit val EventFormat = Json.format[Event]
@@ -32,8 +34,9 @@ object Event {
             "description" -> nonEmptyText,
             "rules" -> optional(list(Rule.form.mapping)),
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
-            "nextRecurrence" -> optional(nonEmptyText) // BSONObjectID
-            ) { (calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence) =>
+            "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
+            "eventType" -> nonEmptyText
+            ) { (calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
@@ -43,7 +46,8 @@ object Event {
                     rules.getOrElse(List[Rule]()),
                     recurrenceMeta,
                     nextRecurrence.map(id => BSONObjectID.apply(id)),
-                    Some(AccessType.Private))
+                    Some(AccessType.Private),
+                    EventType.withName(eventType))
             } { event =>
                 Some((
                     event.calendar.stringify,
@@ -52,6 +56,7 @@ object Event {
                     event.description,
                     Some(event.rules),
                     event.recurrenceMeta,
-                    event.nextRecurrence.map(id => id.stringify)))
+                    event.nextRecurrence.map(id => id.stringify),
+                    event.eventType.toString()))
             })
 }

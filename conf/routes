@@ -23,7 +23,8 @@ POST    /groups/new                     controllers.Groups.addGroup
 POST    /groups/addUsertoGroup          controllers.Groups.addUsertoGroup
 
 # Events
-GET     /events                         controllers.Events.index
+GET     /events                         controllers.Events.index(eventType = "Fixed")
+GET     /events/:eventType              controllers.Events.index(eventType)
 GET     /events/reminders               controllers.Events.showReminders
 GET     /events/new                     controllers.Events.showCreationForm
 POST    /events/new                     controllers.Events.create
