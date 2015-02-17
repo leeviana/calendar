@@ -1,4 +1,4 @@
-@(form: Form[models.Event], recurrenceTypes: Iterator[models.enums.RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
+@(id: Option[String], form: Form[models.Event], recurrenceTypes: Iterator[models.enums.RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
 @import helper.twitterBootstrap._
 
 @main("Add Event"){
@@ -7,12 +7,11 @@
     <div class="span8">
     <legend>Add an event</legend>
 
-	@helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
+	@helper.form(action = (if(!id.isDefined) routes.Events.create else routes.Events.editEvent(id.get)), 'class -> "form-horizontal") {
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
         <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
-        	<option value=""> </option>
         @for((eventID, eventName) <- calMap){
         	<option value='@eventID'>@eventName </option>
         }

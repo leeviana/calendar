@@ -102,7 +102,7 @@ object Events extends Controller with MongoController {
                 calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
             }
 
-            Ok(views.html.editEvent(Event.form, iterator, calMap))
+            Ok(views.html.editEvent(None, Event.form, iterator, calMap))
         }
     }
 
@@ -122,7 +122,7 @@ object Events extends Controller with MongoController {
             }
 
             Event.form.bindFromRequest.fold(
-                errors => Ok(views.html.editEvent(errors, iterator, calMap)),
+                errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
 
                 event => {
                     val calendar = event.calendar
@@ -177,6 +177,52 @@ object Events extends Controller with MongoController {
     }
 
     /**
+     * Shows the form for editing an event
+     */
+    def showEventEditForm(eventID: String) = Action.async { implicit request =>
+        
+        EventDAO.findById(BSONObjectID.apply(eventID)).flatMap { event =>
+            val iterator = RecurrenceType.values.iterator
+
+            UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
+                var calMap: Map[String, String] = Map()
+    
+                for (calID <- user.get.subscriptions) {
+                    calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
+                }
+    
+                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap))
+            }
+        } 
+    }
+    
+    /** 
+     *  Edits an event
+     */
+    def editEvent(eventID: String) = Action.async { implicit request =>
+        val iterator = RecurrenceType.values.iterator
+
+        UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
+            var calMap: Map[String, String] = Map()
+
+            for (calID <- user.get.subscriptions) {
+                CalendarDAO.findById(calID).map { cal =>
+                    calMap += (calID.stringify -> cal.get.name)
+                }
+            }
+
+            Event.form.bindFromRequest.fold(
+                errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
+
+                event => {
+                    val newEvent = event.copy(_id = BSONObjectID(eventID))
+                    EventDAO.save(newEvent)
+                    Redirect(routes.Events.index(newEvent.eventType.toString()))
+                })
+        }
+    }
+    
+    /**
      * Deletes a PUD and possibly creates another recurring PUD
      * TODO: Untested
      */
@@ -209,13 +255,7 @@ object Events extends Controller with MongoController {
         
         EventDAO.removeById(objectID)
         Redirect(routes.Events.index(EventType.PUD.toString()))
-        
     }
-    
-    /**
-     * 
-     */
-    
     
     /**
      * Deletes an event. Redirects to fixed view
