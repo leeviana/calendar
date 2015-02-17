@@ -21,12 +21,12 @@ import models.JsonDuration.DurationFormat
  * @author Leevi
  */
 case class TimeRange(
-    allday: Boolean, // True if all day event
-    startDate: Option[DateTime],
-    startTime: Option[DateTime],
-    endDate: Option[DateTime],
-    endTime: Option[DateTime],
-    duration: Option[Duration]) {
+    allday: Boolean = false, // True if all day event
+    startDate: Option[DateTime] = None,
+    startTime: Option[DateTime] = None,
+    endDate: Option[DateTime] = None,
+    endTime: Option[DateTime] = None,
+    duration: Option[Duration] = None) {
     def this() {
         this(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime()), Some(new DateTime()), Some(Duration.ZERO));
     }

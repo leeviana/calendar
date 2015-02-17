@@ -126,7 +126,7 @@ object Events extends Controller with MongoController {
                     EventDAO.insert(event)
 
                     // Recurrence. TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
-                    if (event.recurrenceMeta.isDefined) {
+                    if ((event.recurrenceMeta.isDefined) && (event.eventType == EventType.Fixed)) {
                         val recurrenceDates = new ListBuffer[Long]()
                         val recType = event.recurrenceMeta.get.recurrenceType
                         if (event.timeRange.startDate.isDefined) {
@@ -174,6 +174,47 @@ object Events extends Controller with MongoController {
     }
 
     /**
+     * Deletes a PUD and possibly creates another recurring PUD
+     * TODO: Untested
+     */
+    def completePUD(PUDID: String) = Action { implicit request =>
+        val objectID = BSONObjectID.apply(PUDID)
+        EventDAO.findById(objectID).map(event =>
+            if (event.isDefined) {
+                if (event.get.recurrenceMeta.isDefined) {
+                    val recType = event.get.recurrenceMeta.get.recurrenceType
+                    if (recType.compare(RecurrenceType.Daily) == 0) {
+                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(DayMeta.timeDifference)))))
+                        EventDAO.insert(newEvent)
+                    }
+                    if (recType.compare(RecurrenceType.Weekly) == 0) {
+                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(WeekMeta.timeDifference)))))
+                        EventDAO.insert(newEvent)
+                    }
+                    if (recType.compare(RecurrenceType.Monthly) == 0) {
+                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(MonthMeta.timeDifference)))))
+                        EventDAO.insert(newEvent)
+                    }
+                    if (recType.compare(RecurrenceType.Yearly) == 0) {
+                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(YearMeta.timeDifference)))))
+                        EventDAO.insert(newEvent)
+                    }
+                }    
+            }
+            
+        )
+        
+        EventDAO.removeById(objectID)
+        Redirect(routes.Events.index(EventType.PUD.toString()))
+        
+    }
+    
+    /**
+     * 
+     */
+    
+    
+    /**
      * Deletes an event. Redirects to fixed view
      */
     def deleteEvent(eventID: String) = Action { implicit request =>
@@ -181,7 +222,8 @@ object Events extends Controller with MongoController {
 
         EventDAO.removeById(objectID)
 
-        Redirect(routes.Events.index("Fixed"))
+        // TODO: Check for any associated reminders and delete those too
+        Redirect(routes.Events.index(EventType.Fixed.toString()))
     }
 
     /**
@@ -207,7 +249,6 @@ object Events extends Controller with MongoController {
 
     /**
      * Adds a reminder for an event
-     * TODO: extend this so it can remind for PUDs too
      */
     def addReminder(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
