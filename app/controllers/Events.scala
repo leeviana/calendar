@@ -33,6 +33,7 @@ object Events extends Controller with MongoController {
     /**
      * Shows the user's fixed events and events shared with the user via rules
      */
+    
     def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>

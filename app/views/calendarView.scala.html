@@ -1,4 +1,5 @@
 @(eventList: List[models.Event])
+@import play.api.libs.json.Json
 
 @main("Calendar View"){
 <!DOCTYPE html>
@@ -10,6 +11,21 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/fullcalendar.js")"></script>
 <script>
+	var eventAray = Json.stringify(Json.toJson(eventList));
+	var getEvent = []; 
+	for(var i = 0; i < eventArray.length; i++)
+	{
+		console.log("events in list");
+    	var event = eventArray[i];
+    	var insertEvents = {};
+        insertEvents =
+        {
+            title: event.name,
+            start: event.timeRange.startTime.get,
+        }
+    	getEvent.push(insertEvents);
+	}
+	console.log("endloop");
 
 	$(document).ready(function() {
 		
@@ -20,8 +36,19 @@
 				right: 'month,agendaWeek,agendaDay'
 			},
 			editable: true,
+			
 			eventLimit: true, // allow "more" link when too many events
-			events: []
+			
+			events: eventArray,
+			
+			eventDataTransform: function (rawEventData) {
+                        return {
+                            title: rawEventData.name,
+                            start: rawEventData.timeRange.startTime.get,
+                            
+                        };
+           }
+			
 		});
 		
 	});
