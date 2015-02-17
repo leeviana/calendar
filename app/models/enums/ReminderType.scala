@@ -10,7 +10,7 @@ object ReminderType extends Enumeration {
 
     val Email = Value
 
-    implicit val EventFormat = new Format[ReminderType] {
+    implicit val ReminderTypeFormat = new Format[ReminderType] {
         def reads(json: JsValue) = JsSuccess(ReminderType.withName(json.as[String]))
         def writes(reminderType: ReminderType) = JsString(reminderType.toString)
     }

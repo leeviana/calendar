@@ -1,15 +1,14 @@
 package models
 
 import scala.collection.mutable.ListBuffer
-
 import org.joda.time.DateTime
-
 import models.enums.RecurrenceType
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.data.Forms.number
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
+import org.joda.time.Period
 
 /**
  * @author Leevi
@@ -40,4 +39,5 @@ object WeekMeta {
 
         timestamps.toList
     }
+    val timeDifference = Period.weeks(1).getMillis
 }

@@ -8,7 +8,6 @@
     <legend>Add an event</legend>
 
 	@helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
-
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
@@ -34,6 +33,14 @@
         	placeholder = "Event Name",
         	help = "Event Name")
  
+        <!-- Event Type ("Fixed") -->
+        <input type="text"
+            id='@form("eventType").id' 
+            name='@form("eventType").name'
+            value='Fixed' 
+            placeholder='Fixed'
+            style="visibility: hidden" />
+        
  		<!--  Description -->
 		@textarea(form("description"),
     	label = "Description",

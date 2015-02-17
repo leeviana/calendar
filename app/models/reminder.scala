@@ -4,6 +4,7 @@ import models.enums.ReminderType
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
+import play.api.data.Forms.optional
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
@@ -16,6 +17,7 @@ case class Reminder(
     timestamp: TimeRange,
     user: BSONObjectID, // foreign ref
     reminderType: ReminderType.ReminderType,
+    recurrenceMeta: Option[RecurrenceMeta],
     hasSent: Boolean)
 
 object Reminder {
@@ -26,18 +28,21 @@ object Reminder {
             "eventID" -> nonEmptyText,
             "timestamp" -> TimeRange.form.mapping,
             "user" -> nonEmptyText, // BSONID
-            "reminderType" -> nonEmptyText) { (eventID, timestamp, user, reminderType) =>
+            "reminderType" -> nonEmptyText,
+            "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping)) { (eventID, timestamp, user, reminderType, recurrenceMeta) =>
                 Reminder(
                     BSONObjectID.apply(eventID),
                     timestamp,
                     BSONObjectID.apply(user),
                     ReminderType.withName(reminderType),
+                    recurrenceMeta,
                     false)
             } { reminder =>
                 Some((
                     reminder.eventID.stringify,
                     reminder.timestamp,
                     reminder.user.stringify,
-                    reminder.reminderType.toString()))
+                    reminder.reminderType.toString(),
+                    reminder.recurrenceMeta))
             })
 }
