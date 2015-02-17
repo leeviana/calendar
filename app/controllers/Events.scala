@@ -351,4 +351,22 @@ object Events extends Controller with MongoController {
             Redirect(routes.Events.showEvent(eventID))
         }
     }
+    
+    
+    /* CREATION REQUESTS */
+//    
+//    // modify event
+//        if masterEvent and masterEvent != eventID
+//            send creation request to owner
+//        if masterEvent == eventID
+//            Change details of master event
+//            send creation request to all who have this event in their calendars with this as a master
+//         
+//    // accept creation request
+//        put event on calendar, update creation request field and event type
+//        if master event already on calendar, delete that old event
+//        
+//    // create creation request
+//        create creation requests and with multiple copies of events with accesstype = Modify and master = master, status pending
+//        
 }

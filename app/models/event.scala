@@ -12,11 +12,12 @@ import play.modules.reactivemongo.json.BSONFormats._
 import models.enums.EventType
 
 case class Event(
-    _id: BSONObjectID,
+    _id: BSONObjectID = BSONObjectID.generate,
     calendar: BSONObjectID, // pointer/foreign reference to Calendar
     timeRange: TimeRange,
     name: String,
     description: String,
+    master: Option[BSONObjectID] = None, // foreign reference to a "master" event, if shared
     rules: List[Rule], // list of rule objects
     recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
     nextRecurrence: Option[BSONObjectID], // BSONID pointer, can be null if not recurring
@@ -43,6 +44,7 @@ object Event {
                     timeRange,
                     name,
                     description,
+                    None,
                     rules.getOrElse(List[Rule]()),
                     recurrenceMeta,
                     nextRecurrence.map(id => BSONObjectID.apply(id)),
