@@ -1,6 +1,8 @@
 @(groups: List[models.Group], groupForm: Form[models.Group])
+@import apputils.UserDAO
 
 @main("Settings") {
+
 <div class="container">
 	<div class="row">
 		<div class="col-md-9">
@@ -35,15 +37,15 @@
 							<td>No Members</td>
 						}else{
 							<td><ul>
-							@for(uid <- g.userIDs.values){
-								<li>@uid</li>
+							@for(uid <- g.userIDs){
+								<li>@UserDAO.getUserFromID(uid).username</li>
 							}
 							</ul></td>
 						}
 						<td>
 							@helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-horizontal") {
                     			<input type="hidden" name="groupID" value='@g._id.stringify' >			        
-			        			userID: <input type="text" name="userID" value="userID" >                    
+			        			User's email address: <input type="text" name="userEmail">                    
 			            			<input class="btn btn-primary" type="submit">
 		       				 }
 						</td>
