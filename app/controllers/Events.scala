@@ -34,6 +34,7 @@ object Events extends Controller with MongoController {
     /**
      * Shows the user's fixed events and events shared with the user via rules
      */
+    
     def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
@@ -50,6 +51,7 @@ object Events extends Controller with MongoController {
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
                         Json.obj("eventType" -> eventType),
+                        //TODO: date after a certain time
                         
                     Json.obj("$or" -> Json.arr(
                         Json.obj(
@@ -63,13 +65,17 @@ object Events extends Controller with MongoController {
 
                 val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
 
+                //call update PUD
+                
                 EventDAO.findAll(jsonquery, sort).map { events =>
                     // TODO: applyAccesses(events)
                     Ok(views.html.events(events, eventType))
                 }
             }
+
         } else {
             Future.successful(Redirect(routes.Application.index))
+
         }
     }
 

@@ -22,6 +22,7 @@ import play.modules.reactivemongo.json.BSONFormats._
 
 object Application extends Controller with MongoController{
 
+
     def index = Action {
         Ok(views.html.index())
     }
@@ -33,7 +34,7 @@ object Application extends Controller with MongoController{
     def signIn = Action {
         Ok(views.html.login())
     }
-    
+
     def newCalendarForm = Action{  implicit request =>
         Ok(views.html.createCalendar(Calendar.form, AuthStateDAO.getUserID().stringify))
     }
@@ -53,5 +54,4 @@ object Application extends Controller with MongoController{
           
         }
     }
-        
 }
