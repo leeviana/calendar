@@ -1,4 +1,4 @@
-@(events: List[models.Event])
+@(events: List[models.Event], eventType: String)
 
 @import scala.concurrent.ExecutionContext.Implicits.global
 @import apputils.CalendarDAO
@@ -13,11 +13,13 @@
 		<div class="col-md-3">
 			<br>
 			<a href="/events/new" class="btn btn-info" role="button">Add Event</a>
+			<a href="/addCalendar" class="btn btn-info" role="button">Add Calendar</a>
 		</div>
 	</div>
 </div>
 
 <div class="container">
+@if(eventType == "Fixed"){
 	<table class="table">
 		<thead>
 			<tr>
@@ -39,6 +41,7 @@
 					<td>Delete</td>
 				</tr>
 			} else {
+				
 				@for(e <- events){
 				<tr>
 					<td>@e.timeRange.startDate.get.toString("MMM-dd-yyyy")</td>
@@ -54,5 +57,7 @@
 		</tbody>
 	
 	</table>
+}
+
 </div>
 }

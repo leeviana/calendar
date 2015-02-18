@@ -5,12 +5,12 @@
 	</head>
   
   	<body>
-  	<div class="form-group @if(field.hasErrors) {has-error}">
+  	<div class="form-group @if(field.hasErrors) {has-error}"  id="@field.id">
 		<label for="form-control" class="col-sm-2 control-label">@label</label>	
 			<div class="col-sm-5">
 				<div class="input-append bootstrap-timepicker">
 			    	<input type="text"
-			    			id="@field.id"  
+			    			id='@(field.id + "s")'
 			    			name="@field.name"
 			    			class="input-small"
 			    			value="@field.value.getOrElse("")">
@@ -19,7 +19,7 @@
 			    </div>
 			 
 			        <script type="text/javascript">
-			            $('#@field.id').timepicker();
+			            $('#@(field.id + "s")').timepicker();
 			        </script>
 			</div>
 	</div>

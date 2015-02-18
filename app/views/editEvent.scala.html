@@ -1,5 +1,4 @@
 @(id: Option[String], form: Form[models.Event], recurrenceTypes: Iterator[models.enums.RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
-@import helper.twitterBootstrap._
 
 @main("Add Event"){
 
@@ -18,52 +17,89 @@
         </select>
         </div>
         
-        <script>
-        function test() {
-        	$('#@form("calendar").id').trigger("create");
-        }
-        </script>
-        <br>
+       <br>
        <br>
        
       	<!-- Event Name -->
-		@text(form("name"),
+		@viewComponents.html.text(form("name"),
     		label = "Name",
-        	placeholder = "Event Name",
-        	help = "Event Name")
- 
-        <!-- Event Type ("Fixed") -->
-        <input type="text"
-            id='@form("eventType").id' 
-            name='@form("eventType").name'
-            value='Fixed' 
-            placeholder='Fixed'
-            style="visibility: hidden" />
+        	placeholder = "Event Name")
         
  		<!--  Description -->
-		@textarea(form("description"),
+		@viewComponents.html.textarea(form("description"),
     	label = "Description",
-        placeholder = "Event Description",
-        help = "Event description")
+        placeholder = "Event Description")
         
+        <!-- Event Type ("Fixed") -->
+       
+        
+       
+        <label class="col-sm-2 control-label">Event Type</label>
+    	<div class="col-sm-5">
+    		<select name='@form("eventType").name' id='@form("eventType").id' class="form-control" style="width:150px">
+    				<option value="Fixed"> Fixed </option>
+    				<option value="PUD"> PUD </option>
+    		</select>
+    	</div>
+   
+   		<br>
+        <br>
+        
+		<script type="text/javascript">
+	    $(document).ready(function(){
+		    $('#@form("eventType").id').on('change', function() {
+		      if ( this.value == "Fixed")
+		      {
+		        $('#@form("timeRange.startDate").id').show();
+		        $('#@form("timeRange.endDate").id').show();
+		        $('#@form("timeRange.startTime").id').show();
+		        $('#@form("timeRange.endTime").id').show();
+		        
+		        $('#@form("temp").id').hide();
+		      }
+		      else
+		      {
+		        $('#@form("timeRange.startDate").id').hide();
+		        $('#@form("timeRange.endDate").id').hide();
+		        $('#@form("timeRange.startTime").id').hide();
+		        $('#@form("timeRange.endTime").id').hide();
+		        
+		        $('#@form("temp").id').show();
+		      }
+		    });
+		});
+		
+		$(document).ready(function(){
+			$('#@form("temp").id').hide();
+		});
+		
+		
+		</script>
+		<!--  PUD Fields -->
+		@viewComponents.html.number(form("timeRange.duration"),
+			label = "Time Allocated",
+			help = "minutes")
+		
+	
         <!--  Time Range -->
-        @datepicker(form("timeRange.startDate"),
+        @viewComponents.html.datepicker(form("timeRange.startDate"),
         	label = "Start Date")  
        
-        @timepicker(form("timeRange.startTime"),
+        @viewComponents.html.timepicker(form("timeRange.startTime"),
         	label = "Start Time")  
         	
-        @datepicker(form("timeRange.endDate"),
+        @viewComponents.html.datepicker(form("timeRange.endDate"),
         	label = "End Date")  
         
-        @timepicker(form("timeRange.endTime"),
+        @viewComponents.html.timepicker(form("timeRange.endTime"),
         	label = "End Time")  
         	
       	<!--  All day -->  
       	<!-- <div>
      	<label class="col-sm-2 control-label"> All Day </label>
     		<div class="col-sm-10">   	
-       			@helper.checkbox(form("timeRange.allday"))
+       			@viewComponents.html.checkbox(form("timeRange.allday"),
+       				label = "All Day")
        		</div>
        	</div> -->
        	
@@ -75,11 +111,11 @@
                 style="visibility: hidden" />
        	
        	<!--  Recurrence Details -->    	
-       	@dropdown(form("recurrenceMeta.recurrenceType"),
+       	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),
     		label = "Recurrence Type",
-        	it = recurrenceTypes)
+        	List("Daily", "Weekly", "Monthly", "Yearly"))
         			
-        @datepicker(form("recurrenceMeta.timeRange.endDate"),
+        @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
        		
 		<label class="col-sm-2"> </label>

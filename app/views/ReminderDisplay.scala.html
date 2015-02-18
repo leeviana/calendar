@@ -8,27 +8,26 @@
 	
 	@if(reminders.isEmpty){
     	<p>No reminders yet</p>
-	} else {
-		
-<table class="table">
-		<thead>
-			<tr>
-				<th>Date</th>
-				<th>Time</th>
-				<th>Event ID </th>
-			</tr>
-		</thead>
-			<tbody>		
-        		@reminders.map { reminder =>
-            		<tr>
-            			<td>@reminder.timestamp.startDate.get.toString("MMM-dd-yyyy")</td>
-                		<td>@reminder.timestamp.startTime.get.toString("hh:mm a")</td>
-                		<td><a href="/events/info/@reminder.eventID.stringify">@reminder.eventID.stringify</a></td>
-            		</tr>
-            }
-    	</tbody>
-	</table>
-</div>
+	} else {		
+		<table class="table">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Time</th>
+						<th>Event ID </th>
+					</tr>
+				</thead>
+					<tbody>		
+		        		@reminders.map { reminder =>
+		            		<tr>
+		            			<td>@reminder.timestamp.startDate.get.toString("MMM-dd-yyyy")</td>
+		                		<td>@reminder.timestamp.startTime.get.toString("hh:mm a")</td>
+		                		<td><a href="/events/@reminder.eventID.stringify">@reminder.eventID.stringify</a></td>
+		            		</tr>
+		            }
+		    	</tbody>
+			</table>
+		</div>
     
 	}
 }

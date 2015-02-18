@@ -1,4 +1,4 @@
-@(groups: List[models.Group], groupForm: Form[models.Group])
+@(groups: List[models.Group], groupForm: Form[models.Group], users: List[models.User])
 @import apputils.UserDAO
 
 @main("Settings") {
@@ -45,8 +45,14 @@
 						<td>
 							@helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-horizontal") {
                     			<input type="hidden" name="groupID" value='@g._id.stringify' >			        
-			        			User's email address: <input type="text" name="userEmail">                    
+			        			<div>
+			        			<select name="userEmail" class="form-control" style="width:250px"> 
+			        				@for(element <- users){
+			        					<option value='@element.email'> @element.email </option>
+			        				}  
+			        				</select></div>      
 			            			<input class="btn btn-primary" type="submit">
+			            			
 		       				 }
 						</td>
 					</tr>
