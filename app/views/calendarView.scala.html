@@ -11,11 +11,11 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/fullcalendar.js")"></script>
 <script>
-	var eventAray = Json.stringify(Json.toJson(eventList));
+	var eventAray = @Html(Json.stringify(Json.toJson(eventList)));
 	var getEvent = []; 
 	for(var i = 0; i < eventArray.length; i++)
 	{
-		console.log("events in list");
+
     	var event = eventArray[i];
     	var insertEvents = {};
         insertEvents =
@@ -25,7 +25,6 @@
         }
     	getEvent.push(insertEvents);
 	}
-	console.log("endloop");
 
 	$(document).ready(function() {
 		
@@ -39,15 +38,8 @@
 			
 			eventLimit: true, // allow "more" link when too many events
 			
-			events: eventArray,
+			events: getEvent
 			
-			eventDataTransform: function (rawEventData) {
-                        return {
-                            title: rawEventData.name,
-                            start: rawEventData.timeRange.startTime.get,
-                            
-                        };
-           }
 			
 		});
 		

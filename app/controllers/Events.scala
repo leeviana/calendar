@@ -50,6 +50,7 @@ object Events extends Controller with MongoController {
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
                         Json.obj("eventType" -> eventType),
+                        //TODO: date after a certain time
                         
                     Json.obj("$or" -> Json.arr(
                         Json.obj(
@@ -63,6 +64,8 @@ object Events extends Controller with MongoController {
 
                 val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
 
+                //call update PUD
+                
                 EventDAO.findAll(jsonquery, sort).map { events =>
                     // TODO: applyAccesses(events)
                     Ok(views.html.events(events))
