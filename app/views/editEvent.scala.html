@@ -10,7 +10,7 @@
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
-        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
+        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px">
         @for((eventID, eventName) <- calMap){
         	<option value='@eventID'>@eventName </option>
         }

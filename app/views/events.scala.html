@@ -71,10 +71,8 @@
 				<th>Calendar</th> 
 			</tr>
 		</thead>
-		@if(events.isEmpty){
+		@if(!events.isEmpty){
 		
-		}
-		else {
 			@for(e <- events){
 				<tr>
 				 	<td>@e.PUDPriority</td>
