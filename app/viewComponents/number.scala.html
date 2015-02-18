@@ -1,14 +1,14 @@
-@(field: Field, label: String = "CHANGEME", placeholder: String = "", help: String = "")
+@(field: Field, label: String = "CHANGEME", help: String = "")
 
-<div class="form-group @if(field.hasErrors) {has-error}">
+<div class="form-group @if(field.hasErrors) {has-error}" id="@field.id" >
 	<label class="col-sm-2 control-label">@label</label>
-    	<div class="col-sm-5" style="">
-      		<input type="text" 
+    	<div class="col-sm-5" style="width:190px">
+      		<input type="number" 
              	class="form-control" 
-             	id="@field.id" 
              	name="@field.name" 
              	value="@field.value.getOrElse("")"
-             	placeholder="@placeholder" />
+             	min="1" 
+             	max="1440"/>
       		<span class="help-block">@help</span>
       		<span class="help-block">@{field.error.map { error => error.message }}</span>
     	</div>

@@ -17,29 +17,74 @@
         </select>
         </div>
         
-        <br>
+       <br>
        <br>
        
       	<!-- Event Name -->
 		@viewComponents.html.text(form("name"),
     		label = "Name",
-        	placeholder = "Event Name",
-        	help = "Event Name")
- 
-        <!-- Event Type ("Fixed") -->
-        <input type="text"
-            id='@form("eventType").id' 
-            name='@form("eventType").name'
-            value='Fixed' 
-            placeholder='Fixed'
-            style="visibility: hidden" />
+        	placeholder = "Event Name")
         
  		<!--  Description -->
 		@viewComponents.html.textarea(form("description"),
     	label = "Description",
-        placeholder = "Event Description",
-        help = "Event description")
+        placeholder = "Event Description")
         
+        <!-- Event Type ("Fixed") -->
+       
+        
+       
+        <label class="col-sm-2 control-label">Event Type</label>
+    	<div class="col-sm-5">
+    		<select name='@form("eventType").name' id='@form("eventType").id' class="form-control" style="width:150px">
+    				<option value="Fixed"> Fixed </option>
+    				<option value="PUD"> PUD </option>
+    		</select>
+    	</div>
+   
+   		<br>
+        <br>
+        
+		<script type="text/javascript">
+	    $(document).ready(function(){
+		    $('#@form("eventType").id').on('change', function() {
+		      if ( this.value == "Fixed")
+		      {
+		        $('#@form("timeRange.startDate").id').show();
+		        $('#@form("timeRange.endDate").id').show();
+		        $('#@form("timeRange.startTime").id').show();
+		        $('#@form("timeRange.endTime").id').show();
+		        $('#@form("recurrenceMeta.recurrenceType").id').show();
+		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
+		        
+		        $('#@form("temp").id').hide();
+		      }
+		      else
+		      {
+		        $('#@form("timeRange.startDate").id').hide();
+		        $('#@form("timeRange.endDate").id').hide();
+		        $('#@form("timeRange.startTime").id').hide();
+		        $('#@form("timeRange.endTime").id').hide();
+		        $('#@form("recurrenceMeta.recurrenceType").id').hide();
+		        $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
+		        
+		        $('#@form("temp").id').show();
+		      }
+		    });
+		});
+		
+		$(document).ready(function(){
+			$('#@form("temp").id').hide();
+		});
+		
+		
+		</script>
+		<!--  PUD Fields -->
+		@viewComponents.html.number(form("temp"),
+			label = "Time Allocated",
+			help = "minutes")
+		
+	
         <!--  Time Range -->
         @viewComponents.html.datepicker(form("timeRange.startDate"),
         	label = "Start Date")  
