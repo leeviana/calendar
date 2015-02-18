@@ -16,6 +16,7 @@ import models.enums.EventType
 import org.joda.time.Duration
 import play.api.libs.json.JsNumber
 import models.JsonDuration.DurationFormat
+import org.joda.time.Period
 
 /**
  * @author Leevi
@@ -49,7 +50,7 @@ object TimeRange {
                     startTime,
                     endDate,
                     endTime,
-                    duration.map (duration => new Duration(duration)))
+                    duration.map (duration => new Duration(duration*Period.millis(1).getMillis)))
             } { timerange =>
                 Some(
                     (timerange.allday,
