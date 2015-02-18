@@ -10,6 +10,8 @@ import org.joda.time.DateTime
 import apputils._
 import models._
 import models.enums.RecurrenceType
+import models.enums.AccessType
+import models.enums.EntityType
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -68,15 +70,51 @@ object Events extends Controller with MongoController {
                 //call update PUD
                 
                 EventDAO.findAll(jsonquery, sort).map { events =>
-                    // TODO: applyAccesses(events)
-                    Ok(views.html.events(events, eventType))
+                    val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
+                    Ok(views.html.events(accessEvents, eventType))
                 }
             }
 
         } else {
             Future.successful(Redirect(routes.Application.index))
-
         }
+    }
+    
+    def applyAccesses(events: List[Event], user: User, groupIDs: List[BSONObjectID]): List[Event] = {
+        events.map { event =>
+            var newEvent = new Event()
+                
+            // user owns the event
+            if(user.subscriptions.contains(event.calendar))
+                newEvent = event.copy(accessType = Some(AccessType.Modify))
+                      
+            else {
+                val ruleIterator = event.rules.sortBy (rule => rule.orderNum).iterator
+                
+                var found = false
+                
+                while(!found) {
+                    if(ruleIterator.hasNext) {
+                        var rule = ruleIterator.next()
+                        
+                        if(rule.entityType == EntityType.User & rule.entityID == user._id) {
+                            newEvent = event.copy(accessType = Some(rule.accessType))
+                            found = true
+                        }
+                        else if(rule.entityType == EntityType.User & groupIDs.contains(rule.entityID)) {
+                            newEvent = event.copy(accessType = Some(rule.accessType))
+                            found = true
+                        }
+                    }
+                    else {
+                        // should never happen?
+                        newEvent = event.copy(accessType = Some(AccessType.Private))
+                        found = true
+                    }
+                }
+            }
+            newEvent
+        }.toList
     }
 
     /**
@@ -361,6 +399,7 @@ object Events extends Controller with MongoController {
 
                 rule => {
                     EventDAO.updateById(objectID, $push("rules", rule))
+                    EventDAO.updateById(objectID, $set("accessType" -> AccessType.Private.toString()))
                     Redirect(routes.Events.showEvent(eventID))
                 })
         }
@@ -381,6 +420,7 @@ object Events extends Controller with MongoController {
 
                     EventDAO.updateById(objectID, $pull("rules", rules(x)))
                     EventDAO.updateById(objectID, $push("rules", newRule1))
+                    EventDAO.updateById(objectID, $set("accessType" -> AccessType.Private.toString()))
                 }
             }
         }
@@ -430,6 +470,7 @@ object Events extends Controller with MongoController {
                 EventDAO.updateById(objectID, $pull("rules", rules(two)))
                 EventDAO.updateById(objectID, $push("rules", newRule1))
                 EventDAO.updateById(objectID, $push("rules", newRule2))
+                EventDAO.updateById(objectID, $set("accessType" -> AccessType.Private.toString()))
             }
             Redirect(routes.Events.showEvent(eventID))
         }
