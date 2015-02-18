@@ -59,5 +59,34 @@
 	</table>
 }
 
+@if(eventType == "PUD"){
+	<table class="table">
+		<thead>
+			<tr>
+			<th>Priority</th>
+				<th>Duration</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Calendar</th> 
+			</tr>
+		</thead>
+		@if(events.isEmpty){
+		
+		}
+		else {
+			@for(e <- events){
+				<tr>
+				 	<td>@e.PUDPriority</td>
+					<td>@e.timeRange.duration.get</td>
+					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
+					<td>@e.description</td>
+					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
+				</tr>
+			}
+		}
+	</table>
+
+}
+
 </div>
 }

@@ -63,14 +63,22 @@ object Events extends Controller with MongoController {
                             "rules.entityID" -> Json.obj(
                                 "$in" -> userGroupIDs))))))
 
-                val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
-
-                //call update PUD
-                
-                EventDAO.findAll(jsonquery, sort).map { events =>
-                    // TODO: applyAccesses(events)
+                if(eventType == EventType.PUD) {
+                    val sort = Json.obj("PUDPriority" -> 1)  
+                    EventDAO.findAll(jsonquery, sort).map { events =>
                     Ok(views.html.events(events, eventType))
                 }
+                }
+                else {              
+                    val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
+                    EventDAO.findAll(jsonquery, sort).map { events =>
+                    Ok(views.html.events(events, eventType))
+                }
+                }
+                
+                //call update PUD
+                
+
             }
 
         } else {
