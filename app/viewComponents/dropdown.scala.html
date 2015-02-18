@@ -1,0 +1,12 @@
+@(field: Field, label: String = "", optionList: List[String])
+
+<div class="form-group @if(field.hasErrors) {has-error}">
+	<label class="col-sm-2 control-label">@label</label>
+    	<div class="col-sm-5">
+    		<select name="@field.name" class="form-control" style="width:150px">
+    			@for(element <- optionList){
+    				<option value='@element'> @element </option>
+    			}
+    		</select>
+    	</div>
+</div>

@@ -1,6 +1,7 @@
 @(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String)
 @import helper.twitterBootstrap._
 
+
 @main("Event Information"){
 <div class="row">
 	<div class="span8">
@@ -18,10 +19,10 @@
 			style="visibility: hidden" />
 
 		<!-- Date -->
-		@datepicker(reminderForm("timestamp.startDate"), label = "Date")
+		@viewComponents.html.datepicker(reminderForm("timestamp.startDate"), label = "Date")
 
 		<!-- Start Time -->
-		@timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
+		@viewComponents.html.timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
 
 		<!--  User ID (Auto-filled) -->
 		<input type="text" 
@@ -75,7 +76,7 @@
     					<td>None</td>
     				</tr>
     			} else {
-    				@for(r <- event.rules.sortBy ( rule => rule.orderNum )){
+    				@for(r <- event.rules){
     					<tr>
     						<td>@r.orderNum</td>
     						<td>@r.entityType</td>
@@ -100,15 +101,17 @@
              style="visibility:hidden"
              />         
       
-        @ruleDropdown(ruleForm("entityType"), 
-        	label = "Rule Type")
+        @viewComponents.html.dropdown(ruleForm("entityType"), 
+        	label = "Rule Type",
+        	List("User", "Group"))
         
-        @text(ruleForm("entityID"), 
+        @viewComponents.html.text(ruleForm("entityID"), 
        		label = "Entity ID",
        		placeholder = "placeholder")
         
-        @accessDropdown(ruleForm("accessType"),
-        	label = "Access Type")
+        @viewComponents.html.dropdown(ruleForm("accessType"),
+        	label = "Access Type",
+        	List("BusyOnly", "SeeAll", "Modify"))
         
        	<label class="col-sm-2"></label>
 		<div class="col-sm-5">

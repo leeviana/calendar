@@ -7,7 +7,7 @@
     <h2>Add a group</h2>
 	    @helper.form(action = routes.Groups.addGroup, 'class -> "form-horizontal") {
 	    
-	    @text(groupForm("name"),
+	    @viewComponents.html.text(groupForm("name"),
             label = "Group Name",
             placeholder = "Group Name") 
         

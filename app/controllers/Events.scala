@@ -270,7 +270,7 @@ object Events extends Controller with MongoController {
      * Confirmation page before actually deleting an event
      */
     def confirmDelete(eventID: String) = Action {
-        Ok(views.html.confirmDelete(eventID, Event.form))
+        Ok(viewComponents.html.confirmDelete(eventID, Event.form))
     }
 
     /**
@@ -349,7 +349,7 @@ object Events extends Controller with MongoController {
      * Confirmation page before actually deleting a rule
      */
     def confirmDeleteRule(eventID: String, ruleID: String) = Action {
-        Ok(views.html.confirmDeleteRule(eventID, Event.form, ruleID))
+        Ok(viewComponents.html.confirmDeleteRule(eventID, Event.form, ruleID))
     }
 
     /**

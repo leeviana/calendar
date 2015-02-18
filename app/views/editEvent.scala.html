@@ -1,5 +1,4 @@
 @(id: Option[String], form: Form[models.Event], recurrenceTypes: Iterator[models.enums.RecurrenceType.Value], calMap: scala.collection.mutable.Map[String, String])
-@import helper.twitterBootstrap._
 
 @main("Add Event"){
 
@@ -7,79 +6,64 @@
     <div class="span8">
     <legend>Add an event</legend>
 
-	@helper.form(action = (if(!id.isDefined) routes.Events.create else routes.Events.editEvent(id.get)), 'class -> "form-horizontal") {
+	@helper.form(action = routes.Events.create, 'class -> "form-horizontal") {
+
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
         <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
+        	
         @for((eventID, eventName) <- calMap){
         	<option value='@eventID'>@eventName </option>
         }
         </select>
         </div>
-        
-        <script>
-        function test() {
-        	$('#@form("calendar").id').trigger("create");
-        }
-        </script>
-        <br>
+      
+       <br>
        <br>
        
       	<!-- Event Name -->
-		@text(form("name"),
+		@viewComponents.html.text(form("name"),
     		label = "Name",
         	placeholder = "Event Name",
         	help = "Event Name")
  
-        <!-- Event Type ("Fixed") -->
-        <input type="text"
-            id='@form("eventType").id' 
-            name='@form("eventType").name'
-            value='Fixed' 
-            placeholder='Fixed'
-            style="visibility: hidden" />
-        
  		<!--  Description -->
-		@textarea(form("description"),
+		@viewComponents.html.textarea(form("description"),
     	label = "Description",
         placeholder = "Event Description",
         help = "Event description")
         
         <!--  Time Range -->
-        @datepicker(form("timeRange.startDate"),
+        @viewComponents.html.datepicker(form("timeRange.startDate"),
         	label = "Start Date")  
        
-        @timepicker(form("timeRange.startTime"),
+        @viewComponents.html.timepicker(form("timeRange.startTime"),
         	label = "Start Time")  
         	
-        @datepicker(form("timeRange.endDate"),
+        @viewComponents.html.datepicker(form("timeRange.endDate"),
         	label = "End Date")  
         
-        @timepicker(form("timeRange.endTime"),
+        @viewComponents.html.timepicker(form("timeRange.endTime"),
         	label = "End Time")  
         	
       	<!--  All day -->  
-      	<!-- <div>
-     	<label class="col-sm-2 control-label"> All Day </label>
-    		<div class="col-sm-10">   	
-       			@helper.checkbox(form("timeRange.allday"))
-       		</div>
-       	</div> -->
+<!-- 		@viewComponents.html.checkbox(form("timeRange.allday"),
+			label = "All Day") -->
        	
-       	<input type="checkbox"
+        	<input type="checkbox"
                 id='@form("timeRange.allday").id' 
                 name='@form("timeRange.allday").name'
                 value='@false' 
                 placeholder='@false'
-                style="visibility: hidden" />
+                style="visibility: hidden" /> 
        	
        	<!--  Recurrence Details -->    	
-       	@dropdown(form("recurrenceMeta.recurrenceType"),
+       	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),
     		label = "Recurrence Type",
-        	it = recurrenceTypes)
+        	List("", "Daily", "Weekly", "Monthly", "Yearly"))
         			
-        @datepicker(form("recurrenceMeta.timeRange.endDate"),
+        @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
        		
 		<label class="col-sm-2"> </label>
