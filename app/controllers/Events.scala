@@ -34,6 +34,7 @@ object Events extends Controller with MongoController {
     /**
      * Shows the user's fixed events and events shared with the user via rules
      */
+    
     def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
@@ -50,6 +51,7 @@ object Events extends Controller with MongoController {
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
                         Json.obj("eventType" -> eventType),
+                        //TODO: date after a certain time
                         
                     Json.obj("$or" -> Json.arr(
                         Json.obj(
@@ -63,13 +65,17 @@ object Events extends Controller with MongoController {
 
                 val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
 
+                //call update PUD
+                
                 EventDAO.findAll(jsonquery, sort).map { events =>
                     // TODO: applyAccesses(events)
                     Ok(views.html.events(events, eventType))
                 }
             }
+
         } else {
             Future.successful(Redirect(routes.Application.index))
+
         }
     }
 
@@ -275,7 +281,13 @@ object Events extends Controller with MongoController {
      */
     def deleteEvent(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-
+    
+        // if events refer to this as their master, delete them
+        EventDAO.remove("master" $eq objectID)
+        
+        // Check for any associated reminders and delete those too
+        ReminderDAO.remove("eventID" $eq objectID)
+        
         EventDAO.findAndRemove("_id" $eq objectID).map { oldEvent => 
             // Check for any associated creation request and update those
             if(oldEvent.get.master.isDefined) {
@@ -291,12 +303,6 @@ object Events extends Controller with MongoController {
                     }
                 }
             }
-            
-            
-            // if events refer to this as their master, delete them
-            EventDAO.remove("master" $eq objectID)
-            // Check for any associated reminders and delete those too
-            ReminderDAO.remove("eventID" $eq objectID)
             
             Redirect(routes.Events.index(EventType.Fixed.toString()))
         }
@@ -433,12 +439,18 @@ object Events extends Controller with MongoController {
      * Creates a creation request for an event with user friendly parameters
      */
     def createUserCreationRequest(eventID: String, receiverEmail: String) = Action.async { implicit request =>
-        val objectID = BSONObjectID.apply(eventID)
+        //val objectID = BSONObjectID.apply(eventID)
+        
+        val requestMap = (request.body.asFormUrlEncoded)
+        val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
+        val userEmail = requestMap.get.get("userEmail").get.head
+
+        
         UserDAO.findOne("email" $eq receiverEmail).map { user =>
             if(user.isDefined) {
-                createCreationRequest(objectID, user.get.subscriptions.head)
+                createCreationRequest(eventID, user.get.subscriptions.head)
             }
-            Redirect(routes.Events.showEvent(eventID))    
+            Redirect(routes.Events.showEvent(eventID.stringify))    
         }
     }
     
