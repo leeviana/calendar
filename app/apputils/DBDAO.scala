@@ -5,11 +5,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 
-import models.Calendar
-import models.Event
-import models.Group
-import models.Reminder
-import models.User
+import models._
 import reactivemongo.api.DB
 import reactivemongo.api.MongoDriver
 import reactivemongo.bson.BSONObjectID
@@ -38,6 +34,7 @@ object CalendarDAO extends JsonDao[Calendar, BSONObjectID](MongoContext.db, "cal
     }
 }
 
+object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoContext.db, "creationRequests")
 object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events")
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups")
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")

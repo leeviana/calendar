@@ -61,6 +61,7 @@ object Groups extends Controller with MongoController {
 
     /*
      * Parses groupID and userID from request and adds the corresponding user to the corresponding group
+     * TODO: Do this with url encoded info instead for consistency
      */
     def addUsertoGroup = Action.async { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)

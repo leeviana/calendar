@@ -13,7 +13,7 @@ import models.enums.CreationRequestStatus
 case class CreationRequest(
     _id: BSONObjectID = BSONObjectID.generate,
     eventID: BSONObjectID, // foreign ref, associated event. AccessType = Modify
-    masterEvent: BSONObjectID, // master event that created the request (and can check status)
+    master: BSONObjectID, // master event that created the request (and can check status)
     requestStatus: CreationRequestStatus.CreationRequestStatus
     )
     
@@ -23,17 +23,17 @@ object CreationRequest {
     val form = Form(
         mapping(
             "eventID" -> nonEmptyText,
-            "masterEvent" -> nonEmptyText,
-            "requestStatus" -> nonEmptyText) { (eventID, masterEvent, requestStatus) =>
+            "master" -> nonEmptyText,
+            "requestStatus" -> nonEmptyText) { (eventID, master, requestStatus) =>
                 CreationRequest(
                     BSONObjectID.generate,
                     BSONObjectID.apply(eventID),
-                    BSONObjectID.apply(masterEvent),
+                    BSONObjectID.apply(master),
                     CreationRequestStatus.withName(requestStatus))
             } { request =>
                 Some((
                     request.eventID.stringify,
-                    request.masterEvent.stringify,
+                    request.master.stringify,
                     request.requestStatus.toString()))
             })
 }
