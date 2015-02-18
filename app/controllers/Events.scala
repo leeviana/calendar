@@ -65,7 +65,7 @@ object Events extends Controller with MongoController {
 
                 EventDAO.findAll(jsonquery, sort).map { events =>
                     // TODO: applyAccesses(events)
-                    Ok(views.html.events(events))
+                    Ok(views.html.events(events, eventType))
                 }
             }
         } else {

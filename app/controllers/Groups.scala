@@ -17,6 +17,9 @@ import reactivemongo.bson.Producer.nameValue2Producer
 //import reactivemongo.extensions.dsl.BsonDsl._
 import reactivemongo.extensions.json.dsl.JsonDsl._
 import play.modules.reactivemongo.json.BSONFormats._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.MILLISECONDS
 
 /**
  * @author Leevi
@@ -26,10 +29,21 @@ object Groups extends Controller with MongoController {
      * Gets a page that lists a user's groups
      */
     def showGroups = Action.async { implicit request =>
+        var temp:  List[models.User] = List()
+                       
+        val future = UserDAO.findAll().map { users =>
+            temp = users;
+        }
+        
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        
         if (AuthStateDAO.isAuthenticated()) {
+            
             GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>
-                Ok(views.html.groups(groups, Group.form))
+                
+                Ok(views.html.groups(groups, Group.form, temp))
             }
+           
         } else {
             Future.successful(Redirect(routes.Application.index))
         }
@@ -46,10 +60,18 @@ object Groups extends Controller with MongoController {
      * Adds a new group to the user's groups
      */
     def addGroup = Action.async { implicit request =>
+        var temp:  List[models.User] = List()
+                       
+        val future = UserDAO.findAll().map { users =>
+            temp = users;
+        }
+        
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        
         GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>
-
+            
             Group.form.bindFromRequest.fold(
-                errors => Ok(views.html.groups(groups, errors)),
+                errors => Ok(views.html.groups(groups, errors, temp)),
 
                 group => {
                     val updatedGroup = group.copy(owner = AuthStateDAO.getUserID())
