@@ -4,6 +4,7 @@ import scala.concurrent.Future
 
 import apputils.AuthStateDAO
 import apputils.GroupDAO
+import apputils.UserDAO
 import models.Group
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
@@ -60,13 +61,18 @@ object Groups extends Controller with MongoController {
 
     /*
      * Parses groupID and userID from request and adds the corresponding user to the corresponding group
+     * TODO: Do this with url encoded info instead for consistency
      */
-    def addUsertoGroup = Action { implicit request =>
+    def addUsertoGroup = Action.async { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)
         val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
-        val addUserID = BSONObjectID.apply(requestMap.get.get("userID").get.head)
+        val userEmail = requestMap.get.get("userEmail").get.head
 
-        GroupDAO.updateById(groupID, $push("userIDs", addUserID))
-        Redirect(routes.Groups.showGroups())
+        UserDAO.findOne("email" $eq userEmail).map { user => 
+            if(user.isDefined) {
+                GroupDAO.updateById(groupID, $push("userIDs", user.get._id))
+            }
+            Redirect(routes.Groups.showGroups())
+        }
     }
 }
