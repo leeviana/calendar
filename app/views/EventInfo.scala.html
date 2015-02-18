@@ -1,6 +1,6 @@
 @(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String)
 @import helper.twitterBootstrap._
-
+@import apputils.CreationRequestDAO
 
 @main("Event Information"){
 <div class="row">
@@ -51,6 +51,8 @@
 	}
     
     <br>
+    <legend>Sharing</legend>
+    @CreationRequestDAO.getCreationRequestsFromMaster(event._id)
     
     <legend>Rules</legend><br>
     <div class="container">
