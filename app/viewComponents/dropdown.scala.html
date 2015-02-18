@@ -4,6 +4,7 @@
 	<label class="col-sm-2 control-label">@label</label>
     	<div class="col-sm-5">
     		<select name="@field.name" class="form-control" style="width:150px">
+    				<option value=""> </option>
     			@for(element <- optionList){
     				<option value='@element'> @element </option>
     			}
