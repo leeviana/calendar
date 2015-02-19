@@ -508,7 +508,7 @@ object Events extends Controller with MongoController {
     /**
      * Creates a creation request for an event with user friendly parameters
      */
-    def createUserCreationRequest(eventID: String, receiverEmail: String) = Action.async { implicit request =>
+    def createUserCreationRequest = Action.async { implicit request =>
         //val objectID = BSONObjectID.apply(eventID)
         
         val requestMap = (request.body.asFormUrlEncoded)
@@ -516,7 +516,7 @@ object Events extends Controller with MongoController {
         val userEmail = requestMap.get.get("userEmail").get.head
 
         
-        UserDAO.findOne("email" $eq receiverEmail).map { user =>
+        UserDAO.findOne("email" $eq userEmail).map { user =>
             if(user.isDefined) {
                 createCreationRequest(eventID, user.get.subscriptions.head)
             }

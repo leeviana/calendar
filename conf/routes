@@ -40,7 +40,7 @@ GET		/events/:eventID/:ruleID/deleteRule		controllers.Events.confirmDeleteRule(e
 POST	/events/:eventID/:ruleID/deleteRule		controllers.Events.deleteRule(eventID, ruleID)
 GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ruleID, dir)
 GET     /events/:eventType              controllers.Events.index(eventType)
-POST	/events/addCreationRequest		controllers.Events.createCreationRequest
+POST	/events/createUserCreationRequest		controllers.Events.createUserCreationRequest
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)

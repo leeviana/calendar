@@ -53,8 +53,8 @@
     <br>
     <legend>Sharing</legend>
     
-    @helper.form(action = routes.Events.addCreationRequest, 'class -> "form-horizontal"){
-    <input type="hidden" name="eventID" value='@event._id'>
+    @helper.form(action = routes.Events.createUserCreationRequest, 'class -> "form-horizontal"){
+    <input type="hidden" name="eventID" value='@event._id.stringify'>
     <div class="form-group">
 		<label class="col-sm-2 control-label">User</label>
 			<div class="col-sm-5">
@@ -67,8 +67,11 @@
 	</div> 
 	
 	<br>
-	<br>		        				   
-	<input class="btn btn-primary" type="submit">
+	
+	<label class="col-sm-2 control-label"></label>
+			<div class="col-sm-5">		        				   
+				<input class="btn btn-primary" type="submit">
+			</div>
 	}	
 	
 	</div>	            			
