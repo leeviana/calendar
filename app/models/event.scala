@@ -11,6 +11,8 @@ import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
 import models.enums.EventType
+import models.enums.ViewType
+import apputils.UserDAO
 
 case class Event(
     _id: BSONObjectID = BSONObjectID.generate,
@@ -24,6 +26,7 @@ case class Event(
     nextRecurrence: Option[BSONObjectID] = None, // BSONID pointer, can be null if not recurring
     accessType: Option[AccessType.AccessType] = None,
     eventType: EventType.EventType = EventType.Fixed,
+    viewType: Option[ViewType.ViewType] = None,
     PUDPriority: Option[Int] = None)
 
 object Event {
@@ -53,6 +56,7 @@ object Event {
                     nextRecurrence.map(id => BSONObjectID.apply(id)),
                     Some(AccessType.Private),
                     EventType.withName(eventType),
+                    None,
                     PUDPriority)
             } { event =>
                 Some((
