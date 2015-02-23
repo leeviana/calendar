@@ -2,6 +2,7 @@
 
 @import scala.concurrent.ExecutionContext.Implicits.global
 @import apputils.CalendarDAO
+@import apputils.UserDAO
 
 @main("Events"){
         
@@ -50,9 +51,38 @@
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.accessType</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
-						@if(e.accessType.get.toString == models.enums.AccessType.Private.toString || e.accessType.get.toString == models.enums.AccessType.Modify.toString){
-							<td><a href="/events/@e._id.stringify/delete" class="btn btn-info" role="button">Delete</a></td>
-						    <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
+				    	@if(!e.viewType.isEmpty){
+				    		@if(e.viewType.get.toString == models.enums.ViewType.Request.toString){
+					    		@defining(e._id.stringify){ eventID =>
+					    			@defining("Confirmed"){ status =>					    		
+							    		@helper.form(routes.Events.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
+							    		<input type="hidden" name="eventID" value='@e._id.stringify'>				    		
+							    		<td><button type="submit" class="btn btn-success">Confirm</button></td>				
+							    		}
+					    			}
+					    			@defining("Declined"){ status =>					    		
+							    		@helper.form(routes.Events.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
+							    		<input type="hidden" name="eventID" value='@e._id.stringify'>				    		
+							    		<td><button type="submit" class="btn btn-danger">Decline</button></td>				
+							    		}
+					    			}
+					    			@defining("Removed"){ status =>					    		
+							    		@helper.form(routes.Events.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
+							    		<input type="hidden" name="eventID" value='@e._id.stringify'>				    		
+							    		<td><button type="submit" class="btn btn-warning">Remove</button></td>				
+							    		}
+					    			}
+					    	
+				    			}
+				    		
+				    		}
+				    	} else{
+				    		@if(!e.accessType.isEmpty){
+						    	@if((e.accessType.get.toString == models.enums.AccessType.Private.toString) || e.accessType.get.toString == models.enums.AccessType.Modify.toString){
+									<td><a href="/events/@e._id.stringify/delete" class="btn btn-danger" role="button">Delete</a></td>
+								    <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
+						    	}
+					    	}
 				    	}
 				    	
 				</tr>

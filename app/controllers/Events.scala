@@ -560,6 +560,7 @@ object Events extends Controller with MongoController {
      * Updates the status of a creation request
      */
     def updateCreationStatus(eventID: String, newStatus: String) = Action.async { implicit request =>
+      
         EventDAO.findById(BSONObjectID.apply(eventID)).map { event => 
             
             val query = $and("master" $eq event.get.master.get, "eventID" $eq event.get._id)

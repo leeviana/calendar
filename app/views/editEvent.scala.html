@@ -17,6 +17,10 @@
         </select>
         </div>
         
+        <script type="text/javascript">
+    		$('#@form("calendar").id').val('@form("calendar").value.getOrElse("").toString()')	
+    	</script> 
+        
         
        <br>
        <br>
@@ -28,27 +32,26 @@
         
  		<!--  Description -->
 		@viewComponents.html.textarea(form("description"),
-    	label = "Description",
-        placeholder = "Event Description")
+    		label = "Description",
+        	placeholder = "Event Description")
         
         <!-- Event Type ("Fixed") -->
        
-        
-       
-        <label class="col-sm-2 control-label">Event Type</label>
+       @viewComponents.html.dropdown(form("eventType"),
+    		label = "Event Type",
+        	List("Fixed", "PUD"))   
+        	
+        <!-- <label class="col-sm-2 control-label">Event Type</label>
     	<div class="col-sm-5">
     		<select name='@form("eventType").name' id='@form("eventType").id' class="form-control" style="width:150px">
     				<option value="Fixed"> Fixed </option>
     				<option value="PUD"> PUD </option>
     		</select>
-    	</div>
-   
-   		<br>
-        <br>
+    	</div> -->
         
 		<script type="text/javascript">
 	    $(document).ready(function(){
-		    $('#@form("eventType").id').on('change', function() {
+		    $('#@(form("eventType").id+"s")').on('change', function() {
 		      if (this.value == "Fixed"){
 		        $('#@form("timeRange.startDate").id').show();
 		        $('#@form("timeRange.endDate").id').show();
@@ -58,7 +61,7 @@
 		        $('#@form("timeRange.duration").id').hide();
 		        $('#@form("PUDPriority").id').hide();
 		      }
-		      else {
+		      if (this.value == "PUD"){
 		        $('#@form("timeRange.startDate").id').hide();
 		        $('#@form("timeRange.endDate").id').hide();
 		        $('#@form("timeRange.startTime").id').hide();
@@ -118,7 +121,7 @@
        	<!--  Recurrence Details -->    	
        	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),
     		label = "Recurrence Type",
-        	List("Daily", "Weekly", "Monthly", "Yearly"))
+        	List("", "Daily", "Weekly", "Monthly", "Yearly"))
         			
         @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
