@@ -53,7 +53,19 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
     def getUserFromID(id: BSONObjectID): User = {
         val futureUser = this.findById(id)
 
-        var user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        if (user.isDefined)
+            user.get
+        else
+            throw new Exception("Database incongruity: User ID not found")
+    }
+    
+    def getOwner(eventID: BSONObjectID): User = {
+        val futureEvent = EventDAO.findById(eventID)
+        val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
+        
+        val futureUser = findOne("subscriptions" $all (event.get.calendar))
+        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
         if (user.isDefined)
             user.get
         else

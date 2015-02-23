@@ -12,6 +12,7 @@ import models._
 import models.enums.RecurrenceType
 import models.enums.AccessType
 import models.enums.EntityType
+import models.enums.ViewType
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -78,7 +79,7 @@ object Events extends Controller with MongoController {
                     val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
-                        Ok(views.html.events(events, eventType))
+                        Ok(views.html.events(accessEvents, eventType))
                     }
                 }
                 
@@ -256,7 +257,7 @@ object Events extends Controller with MongoController {
     def editEvent(eventID: String) = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
 
-        UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
+        UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
             var calMap: Map[String, String] = Map()
 
             for (calID <- user.get.subscriptions) {
@@ -264,30 +265,33 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> cal.get.name)
                 }
             }
-
-            Event.form.bindFromRequest.fold(
+            EventDAO.findById(BSONObjectID(eventID)).map { oldEvent => 
+                Event.form.bindFromRequest.fold(
                 errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
 
                 event => {
-                    if(!event.master.isDefined) {
+                    if(!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
                         val newEvent = event.copy(_id = BSONObjectID(eventID))
                         EventDAO.save(newEvent)
                         
-                        // if you've shared this event
-                        CreationRequestDAO.findAndUpdate("master" $eq event._id, $set("requestStatus" -> CreationRequestStatus.Pending.toString())).map{ request =>
-                            EventDAO.findById(request.get.eventID).map { event =>
-                                val updatedEvent = newEvent.copy(_id = (event.get._id))
-                                EventDAO.save(updatedEvent)
-                            }
+                        CreationRequestDAO.update($and("master" $eq oldEvent.get._id, "requestStatus" $ne CreationRequestStatus.Removed.toString()), $set("requestStatus" -> CreationRequestStatus.Pending.toString()))
+                        
+                        // updates all slave events that are not on your own calendar (which are pending master requests)
+                        EventDAO.findAll($and("master" $eq oldEvent.get._id, "calendar" $ne oldEvent.get.calendar)).map{ slaveEvents =>
+                            slaveEvents.map { slaveEvent =>
+                                val updatedEvent = event.copy(_id = slaveEvent._id, calendar = slaveEvent.calendar, master = slaveEvent.master, rules = slaveEvent.rules, viewType = Some(ViewType.Request))
+                                EventDAO.save(updatedEvent)           
+                            }   
                         }
                         Redirect(routes.Events.index(newEvent.eventType.toString()))
                     }
                     else {
                         // if event master is not the master
-                        createMasterRequest(event, event.master.get)
+                        createMasterRequest(event, oldEvent.get.master.get)
                         Redirect(routes.Events.index(event.eventType.toString()))
                     }
-                })
+                })}
+            
         }
     }
     
@@ -340,16 +344,19 @@ object Events extends Controller with MongoController {
         
         EventDAO.findAndRemove("_id" $eq objectID).map { oldEvent => 
             // Check for any associated creation request and update those
+            println("removing an event")
             if(oldEvent.get.master.isDefined) {
+                println("should be a creation request, master " + oldEvent.get.master)
                 val query = $and("master" $eq oldEvent.get.master.get, "eventID" $eq oldEvent.get._id)
                 
                 EventDAO.findById(oldEvent.get.master.get).map { master =>
+                    println("Found master in calendar " + oldEvent.get.calendar)
                     // if you are the owner of the master event also
                     if(master.get.calendar == oldEvent.get.calendar)
                         CreationRequestDAO.remove(query)
                     else {
-                        val update = $set("requestStatus" -> CreationRequestStatus.Declined.toString())
-                        CreationRequestDAO.findAndUpdate(query, update)                    
+                        val update = $set("requestStatus" -> CreationRequestStatus.Removed.toString())
+                        CreationRequestDAO.update(query, update)                    
                     }
                 }
             }
@@ -509,7 +516,6 @@ object Events extends Controller with MongoController {
      * Creates a creation request for an event with user friendly parameters
      */
     def createUserCreationRequest = Action.async { implicit request =>
-        //val objectID = BSONObjectID.apply(eventID)
         
         val requestMap = (request.body.asFormUrlEncoded)
         val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
@@ -529,7 +535,7 @@ object Events extends Controller with MongoController {
      */
     def createCreationRequest(eventID: BSONObjectID, calendar: BSONObjectID) = {
         EventDAO.findById(eventID).map { event =>
-            val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Request)
+            val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
             val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
             EventDAO.insert(newEvent)
             CreationRequestDAO.insert(creationRequest)
@@ -541,10 +547,10 @@ object Events extends Controller with MongoController {
      */
     def createMasterRequest(newEvent: Event, masterID: BSONObjectID) {
         EventDAO.findById(masterID).map { master =>
-            UserDAO.findOne("subscriptions" $all (master.get._id)).map { user => 
-                val newEvent = master.get.copy(_id = BSONObjectID.generate, master = Some(master.get._id), calendar = user.get.subscriptions.head, eventType = EventType.Request)
+            UserDAO.findOne("subscriptions" $all (master.get.calendar)).map { user => 
+                val newMasterEvent = newEvent.copy(_id = BSONObjectID.generate, master = Some(master.get._id), calendar = user.get.subscriptions.head, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
                 val creationRequest = new CreationRequest(eventID = newEvent._id, master = master.get._id, requestStatus = CreationRequestStatus.Pending)
-                EventDAO.insert(newEvent)
+                EventDAO.insert(newMasterEvent)
                 CreationRequestDAO.insert(creationRequest)
              }
         }
@@ -562,6 +568,9 @@ object Events extends Controller with MongoController {
                     // if you are the owner of the master event
                     if(master.get.calendar == event.get.calendar) {
                         
+                        val future = CreationRequestDAO.remove("master" $eq event.get.master.get)
+                        Await.ready(future, Duration(5000, MILLISECONDS))
+                        
                         if (newStatus == CreationRequestStatus.Confirmed.toString) {
                             val newMaster = event.get.copy(_id = master.get._id, master = None)
                             val future = EventDAO.save(newMaster)
@@ -569,7 +578,7 @@ object Events extends Controller with MongoController {
                             Await.ready(future, Duration(5000, MILLISECONDS))
                             
                             // createCreationRequests for all events with master as this event
-                            EventDAO.findAll("master" $eq master.get._id).map { eventList =>
+                            EventDAO.findAll($and("master" $eq master.get._id, "_id" $ne event.get._id)).map { eventList =>
                                 eventList.map { event => 
                                 createCreationRequest(master.get._id, event.calendar) }
                             }
@@ -581,21 +590,18 @@ object Events extends Controller with MongoController {
                         else if (newStatus == CreationRequestStatus.Declined.toString()) {
                             EventDAO.removeById(event.get._id)
                         }
-            
-                        CreationRequestDAO.remove(query)
                     }
                     // if you are just a sharee
                     else {
                         val update = $set("requestStatus" -> newStatus)
-                        CreationRequestDAO.findAndUpdate(query, update)
-                            
-                        if (newStatus == CreationRequestStatus.Confirmed.toString) {
-                            EventDAO.updateById(event.get._id, $set("eventType" -> EventType.Fixed.toString()))
-                            EventDAO.remove($and("calendar" $eq event.get.calendar, "master" $eq master.get._id))
-                        }
-                        else if (newStatus == CreationRequestStatus.Declined.toString()) {
-                            EventDAO.updateById(event.get._id, $set("eventType" -> EventType.Declined.toString()))    
-                        }
+                        CreationRequestDAO.update(query, update)
+                        EventDAO.updateById(event.get._id, $set("viewType" -> newStatus))    
+//                        if (newStatus == CreationRequestStatus.Confirmed.toString) {
+//                            EventDAO.updateById(event.get._id, $set("viewType" -> None))
+//                        }
+//                        else if (newStatus == CreationRequestStatus.Declined.toString()) {
+//                            EventDAO.updateById(event.get._id, $set("viewType" -> ViewType.Declined.toString()))    
+//                        }
                     }
                 }
             
