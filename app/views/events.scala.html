@@ -50,8 +50,11 @@
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.accessType</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
-					<td><a href="/events/@e._id.stringify/delete" class="btn btn-info" role="button">Delete</a></td>
-				    <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
+						@if(e.accessType.get.toString == models.enums.AccessType.Private.toString || e.accessType.get.toString == models.enums.AccessType.Modify.toString){
+							<td><a href="/events/@e._id.stringify/delete" class="btn btn-info" role="button">Delete</a></td>
+						    <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
+				    	}
+				    	
 				</tr>
 				}
 			}
@@ -64,7 +67,7 @@
 	<table class="table">
 		<thead>
 			<tr>
-			<th>Priority</th>
+				<th>Priority</th>
 				<th>Duration</th>
 				<th>Name</th>
 				<th>Description</th>

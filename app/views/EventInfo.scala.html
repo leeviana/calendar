@@ -74,8 +74,27 @@
 			</div>
 	}	
 	
-	</div>	            			
-    @CreationRequestDAO.getCreationRequestsFromMaster(event._id)
+	</div>	 
+	<br>
+	<br>     			
+    @defining(CreationRequestDAO.getCreationRequestsFromMaster(event._id)){ requestList =>
+    	@if(!requestList.isEmpty){
+    	<table class="table">
+    		<thead>
+    			<tr>
+    				<th>Event</th>
+    				<th>Status</th>
+    			</tr>
+    		</thead>
+    		
+    		@for(element <- requestList){
+    			<tr>
+    				<td>@element.master</td>
+    				<td>@element.requestStatus</td>
+    		}
+    	</table>
+    	}
+    }
     
     <legend>Rules</legend><br>
     <div class="container">

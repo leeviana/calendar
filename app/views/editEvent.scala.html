@@ -17,6 +17,7 @@
         </select>
         </div>
         
+        
        <br>
        <br>
        
@@ -48,8 +49,7 @@
 		<script type="text/javascript">
 	    $(document).ready(function(){
 		    $('#@form("eventType").id').on('change', function() {
-		      if ( this.value == "Fixed")
-		      {
+		      if (this.value == "Fixed"){
 		        $('#@form("timeRange.startDate").id').show();
 		        $('#@form("timeRange.endDate").id').show();
 		        $('#@form("timeRange.startTime").id').show();
