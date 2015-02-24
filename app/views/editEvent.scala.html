@@ -10,7 +10,7 @@
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
-        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px" onclick="test()">
+        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px">
         @for((eventID, eventName) <- calMap){
         	<option value='@eventID'>@eventName </option>
         }
@@ -55,22 +55,24 @@
 		        $('#@form("timeRange.startTime").id').show();
 		        $('#@form("timeRange.endTime").id').show();
 		        
-		        $('#@form("temp").id').hide();
+		        $('#@form("timeRange.duration").id').hide();
+		        $('#@form("PUDPriority").id').hide();
 		      }
-		      else
-		      {
+		      else {
 		        $('#@form("timeRange.startDate").id').hide();
 		        $('#@form("timeRange.endDate").id').hide();
 		        $('#@form("timeRange.startTime").id').hide();
 		        $('#@form("timeRange.endTime").id').hide();
 		        
-		        $('#@form("temp").id').show();
+		        $('#@form("timeRange.duration").id').show();
+		        $('#@form("PUDPriority").id').show();
 		      }
 		    });
 		});
 		
 		$(document).ready(function(){
-			$('#@form("temp").id').hide();
+			$('#@form("timeRange.duration").id').hide();
+		    $('#@form("PUDPriority").id').hide();
 		});
 		
 		
@@ -79,6 +81,9 @@
 		@viewComponents.html.number(form("timeRange.duration"),
 			label = "Time Allocated",
 			help = "minutes")
+		
+		@viewComponents.html.number(form("PUDPriority"),
+			label = "Priority")
 		
 	
         <!--  Time Range -->

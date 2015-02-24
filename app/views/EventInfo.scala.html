@@ -1,6 +1,6 @@
-@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String)
+@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String, users: List[models.User])
 @import helper.twitterBootstrap._
-
+@import apputils.CreationRequestDAO
 
 @main("Event Information"){
 <div class="row">
@@ -46,11 +46,36 @@
 			</div>
 		</div>
 		
-	</div>
+	
 
 	}
     
     <br>
+    <legend>Sharing</legend>
+    
+    @helper.form(action = routes.Events.createUserCreationRequest, 'class -> "form-horizontal"){
+    <input type="hidden" name="eventID" value='@event._id.stringify'>
+    <div class="form-group">
+		<label class="col-sm-2 control-label">User</label>
+			<div class="col-sm-5">
+    			<select name="userEmail" class="form-control" style="width:250px"> 
+					@for(element <- users){
+			       		<option value='@element.email'> @element.email </option>
+			        }  
+			</select>
+		</div>  
+	</div> 
+	
+	<br>
+	
+	<label class="col-sm-2 control-label"></label>
+			<div class="col-sm-5">		        				   
+				<input class="btn btn-primary" type="submit">
+			</div>
+	}	
+	
+	</div>	            			
+    @CreationRequestDAO.getCreationRequestsFromMaster(event._id)
     
     <legend>Rules</legend><br>
     <div class="container">
@@ -76,7 +101,7 @@
     					<td>None</td>
     				</tr>
     			} else {
-    				@for(r <- event.rules){
+    				@for(r <- event.rules.sortBy ( rule => rule.orderNum )){
     					<tr>
     						<td>@r.orderNum</td>
     						<td>@r.entityType</td>

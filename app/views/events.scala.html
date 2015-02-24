@@ -26,7 +26,7 @@
 				<th>Date</th>
 				<th>Time</th>
 				<th>Name</th>
-				<th>Description</th>
+				<th>Access Type</th>
 				<th>Calendar</th>
 			</tr>
 		</thead>
@@ -39,6 +39,7 @@
 					<td>No Description</td>
 					<td>No Owner</td>
 					<td>Delete</td>
+					<td>Edit</td>
 				</tr>
 			} else {
 				
@@ -47,7 +48,7 @@
 					<td>@e.timeRange.startDate.get.toString("MMM-dd-yyyy")</td>
 					<td>@e.timeRange.startTime.get.toString("hh:mm a")-@e.timeRange.endTime.get.toString("hh:mm a")</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
-					<td>@e.description</td>
+					<td>@e.accessType</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
 					<td><a href="/events/@e._id.stringify/delete" class="btn btn-info" role="button">Delete</a></td>
 				    <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
@@ -57,6 +58,33 @@
 		</tbody>
 	
 	</table>
+}
+
+@if(eventType == "PUD"){
+	<table class="table">
+		<thead>
+			<tr>
+			<th>Priority</th>
+				<th>Duration</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Calendar</th> 
+			</tr>
+		</thead>
+		@if(!events.isEmpty){
+		
+			@for(e <- events){
+				<tr>
+				 	<td>@e.PUDPriority</td>
+					<td>@e.timeRange.duration.get</td>
+					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
+					<td>@e.description</td>
+					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
+				</tr>
+			}
+		}
+	</table>
+
 }
 
 </div>

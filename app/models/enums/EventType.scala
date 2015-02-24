@@ -8,7 +8,7 @@ import play.api.libs.json.JsValue
 object EventType extends Enumeration {
     type EventType = Value
 
-    val Fixed, PUD, PUDEvent, Request, Declined = Value
+    val Fixed, PUD = Value
 
     implicit val EventTypeFormat = new Format[EventType] {
         def reads(json: JsValue) = JsSuccess(EventType.withName(json.as[String]))

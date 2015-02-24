@@ -10,9 +10,7 @@ import reactivemongo.api.MongoDriver
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.extensions.json.dao.JsonDao
 import play.modules.reactivemongo.json.BSONFormats._
-import scala.collection.mutable.ListBuffer
-import models.enums.EventType
-import play.api.libs.json.Json
+import reactivemongo.extensions.json.dsl.JsonDsl._
 
 
 object MongoContext {
@@ -37,9 +35,14 @@ object CalendarDAO extends JsonDao[Calendar, BSONObjectID](MongoContext.db, "cal
     }
 }
 
-object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoContext.db, "creationRequests")
-object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") 
+object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoContext.db, "creationRequests") {
+    def getCreationRequestsFromMaster(masterID: BSONObjectID): List[CreationRequest] = {
+        val futureRequests = this.findAll("master" $eq masterID)
 
+        Await.result(futureRequests, Duration(5000, MILLISECONDS))
+    }
+}
+object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events")
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups")
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
@@ -50,7 +53,19 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
     def getUserFromID(id: BSONObjectID): User = {
         val futureUser = this.findById(id)
 
-        var user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        if (user.isDefined)
+            user.get
+        else
+            throw new Exception("Database incongruity: User ID not found")
+    }
+    
+    def getOwner(eventID: BSONObjectID): User = {
+        val futureEvent = EventDAO.findById(eventID)
+        val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
+        
+        val futureUser = findOne("subscriptions" $all (event.get.calendar))
+        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
         if (user.isDefined)
             user.get
         else
