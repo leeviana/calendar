@@ -5,12 +5,13 @@
     	<div class="col-sm-5">
       		<input type="checkbox"             
              	name="@field.name" 
+             	id='@(field.id + "s")'
              	/>  		
       		<span class="help-block">@{field.error.map { error => error.message }}</span>
     	</div>
     	
     		<script type="text/javascript">
-			$('#@field.id').change(function(){
+			$('#@(field.id + "s")').change(function(){
      			cb = $(this);
      			cb.val(cb.prop('checked'));
  			});

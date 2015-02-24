@@ -12,7 +12,7 @@ POST	/addCalendar					controllers.Application.addCalendar
 
 # Authentication
 POST     /signUp                         controllers.Users.create
-POST     /signIn                         controllers.Events.index(eventType = "Fixed")
+POST     /signIn                         controllers.Authentication.signIn
 GET      /signOut                        controllers.Authentication.signOut
 
 # Users
