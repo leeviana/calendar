@@ -1,11 +1,24 @@
 @(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String, users: List[models.User])
 @import apputils.CreationRequestDAO
 @import apputils.UserDAO
+@import apputils.CalendarDAO
 
 @main("Event Information"){
 <div class="row">
 	<div class="span8">
-		<h2>Event Information: @event.name</h2>
+		@if(event.eventType.toString == models.enums.EventType.Fixed.toString){
+			<h2>Event Information: @event.name</h2>
+			@if(event.timeRange.startDate.get == event.timeRange.endDate.get){
+				<h3> @event.timeRange.startDate.get.toString("MMM-dd-yyyy") @event.timeRange.startTime.get.toString("hh:mm a") to @event.timeRange.endTime.get.toString("hh:mm a")</h3>
+			}else{
+				<h3>@event.timeRange.startDate.get.toString("MMM-dd-yyyy") @event.timeRange.startTime.get.toString("hh:mm a") to @event.timeRange.endDate.get.toString("MMM-dd-yyyy") @event.timeRange.endTime.get.toString("hh:mm a")</h3>
+			}
+			<p>Description: @event.description</p>
+			<p>Calendar: @CalendarDAO.getCalendarFromID(event.calendar).name</p>
+		}else{
+			<h2>PUD Information: @event.name</h2>
+		}
+			
 		<legend>Add Reminder</legend>
 		@helper.form(action = routes.Events.addReminder(event._id.stringify),
 		'class -> "form-horizontal") { 

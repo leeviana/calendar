@@ -71,7 +71,7 @@ object Groups extends Controller with MongoController {
         GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>
             
             Group.form.bindFromRequest.fold(
-                errors => Ok(views.html.groups(groups, errors, temp)),
+                errors => Ok(views.html.createGroup(errors, AuthStateDAO.getUserID().stringify)),
 
                 group => {
                     val updatedGroup = group.copy(owner = AuthStateDAO.getUserID())
