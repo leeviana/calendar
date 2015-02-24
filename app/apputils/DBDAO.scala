@@ -4,13 +4,16 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
-
 import models._
 import reactivemongo.api.DB
 import reactivemongo.api.MongoDriver
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.extensions.json.dao.JsonDao
 import play.modules.reactivemongo.json.BSONFormats._
+import scala.collection.mutable.ListBuffer
+import models.enums.EventType
+import play.api.libs.json.Json
+
 
 object MongoContext {
     val driver = new MongoDriver
@@ -35,7 +38,8 @@ object CalendarDAO extends JsonDao[Calendar, BSONObjectID](MongoContext.db, "cal
 }
 
 object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoContext.db, "creationRequests")
-object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events")
+object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") 
+
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups")
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {

@@ -22,6 +22,8 @@ import reactivemongo.bson._
 import reactivemongo.extensions.json.dsl.JsonDsl._
 import models.enums.EventType
 import models.enums.CreationRequestStatus
+import org.joda.time.Period
+
 
 /**
  * The controllers encapsulate the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -69,6 +71,7 @@ object Events extends Controller with MongoController {
                 
                 EventDAO.findAll(jsonquery, sort).map { events =>
                     // TODO: applyAccesses(events)
+                    //call update 
                     Ok(views.html.events(events, eventType))
                 }
             }
@@ -78,6 +81,26 @@ object Events extends Controller with MongoController {
 
         }
     }
+
+  def updatePUD(events: List[Event]) {
+    events.map { event =>
+      if (event.eventType == "PUDEvent") {
+        //val dur = Period.hours(2)
+        val dur = event.timeRange.duration.get
+        //need real duration
+        val query = Json.obj(
+            "$and" -> Json.arr(
+                Json.obj("eventType" -> "PUD"),
+                Json.obj("duration" -> Json.obj(
+                    "$lte" -> dur.getMillis))))
+        val sort = Json.obj("PUDPriority" -> 1)
+        EventDAO.findAll(query, sort).map { PUDlist => 
+          val PUD = PUDlist.head
+          val newEvent = event.copy(name = PUD.name, description = PUD.description)
+          }
+      }
+    }
+  }
 
     /**
      * Shows reminders that the user has set
