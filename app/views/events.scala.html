@@ -45,7 +45,10 @@
 			} else {
 				
 				@for(e <- events){
-				<tr>
+				@if(!e.viewType.isEmpty){
+					@if(e.viewType.get.toString == models.enums.ViewType.Declined.toString){
+					<tr class="danger">}
+				} else { <tr> }
 					<td>@e.timeRange.startDate.get.toString("MMM-dd-yyyy")</td>
 					<td>@e.timeRange.startTime.get.toString("hh:mm a")-@e.timeRange.endTime.get.toString("hh:mm a")</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
@@ -63,7 +66,7 @@
 					    			@defining("Declined"){ status =>					    		
 							    		@helper.form(routes.Events.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
 							    		<input type="hidden" name="eventID" value='@e._id.stringify'>				    		
-							    		<td><button type="submit" class="btn btn-danger">Decline</button></td>				
+							    		<td><button type="submit" class="btn btn-warning">Decline</button></td>				
 							    		}
 					    			}
 					    	
@@ -71,10 +74,8 @@
 				    		
 				    		}
 				    	} 
-									<td><a href="/events/@e._id.stringify/delete" class="btn btn-danger" role="button">Delete</a></td>
-								    <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
-						  
-				    	
+						<td><a href="/events/@e._id.stringify/delete" class="btn btn-danger" role="button">Delete</a></td>
+						<td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>				    	
 				</tr>
 				}
 			}
@@ -103,6 +104,8 @@
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
+					<td><a href="/events/@e._id.stringify/delete" class="btn btn-danger" role="button">Delete</a></td>
+					<td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
 				</tr>
 			}
 		}

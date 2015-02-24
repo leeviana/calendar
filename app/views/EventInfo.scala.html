@@ -1,6 +1,6 @@
 @(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String, users: List[models.User])
-@import helper.twitterBootstrap._
 @import apputils.CreationRequestDAO
+@import apputils.UserDAO
 
 @main("Event Information"){
 <div class="row">
@@ -79,21 +79,25 @@
 	<br>     			
     @defining(CreationRequestDAO.getCreationRequestsFromMaster(event._id)){ requestList =>
     	@if(!requestList.isEmpty){
+    <div class="container">
     	<table class="table">
     		<thead>
     			<tr>
-    				<th>Event</th>
+    				<th>Person</th>
+    				<th>Email</th>
     				<th>Status</th>
     			</tr>
     		</thead>
     		
     		@for(element <- requestList){
     			<tr>
-    				<td>@element.master</td>
+    				<td>@UserDAO.getOwner(element.eventID).username</td>
+    				<td>@UserDAO.getOwner(element.eventID).email</td>
     				<td>@element.requestStatus</td>
     		}
     	</table>
     	}
+    </div>
     }
     
     <legend>Rules</legend><br>
@@ -101,12 +105,12 @@
     	<table class="table">
     		<thead>
     			<tr>
-    				<td>Rule Number</td>
-    				<td>Rule Type</td>
-    				<td>Entity ID</td>
-    				<td>Access Type</td>
-    				<td>Reorder</td>
-    				<td>Delete</td>
+    				<th>Rule Number</th>
+    				<th>Rule Type</th>
+    				<th>Entity ID</th>
+    				<th>Access Type</th>
+    				<th>Reorder</th>
+    				<th>Delete</th>
     			</tr>	
     		</thead>
     		<tbody>
