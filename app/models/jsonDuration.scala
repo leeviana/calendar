@@ -13,7 +13,8 @@ import play.api.libs.json.JsValue
 
 object JsonDuration {
     implicit val DurationFormat = new Format[Duration] {
-        def reads(json: JsValue) = JsSuccess(new Duration(Integer.getInteger(json.toString())))
+      // TODO: Make this better
+        def reads(json: JsValue) = JsSuccess(new Duration(json.toString().substring(0, json.toString().length-2).toInt))
         def writes(duration: Duration) = JsNumber(duration.getMillis)
     }
 }

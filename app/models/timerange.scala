@@ -50,7 +50,7 @@ object TimeRange {
                     startTime,
                     endDate,
                     endTime,
-                    duration.map (duration => new Duration(duration*Period.millis(1).getMillis)))
+                    duration.map (duration => new Duration(duration*Duration.standardMinutes(1).getMillis)))
             } { timerange =>
                 Some(
                     (timerange.allday,
@@ -58,6 +58,6 @@ object TimeRange {
                         timerange.startTime,
                         timerange.endDate,
                         timerange.endTime,
-                        timerange.duration.map(duration => duration.getMillis)))
+                        timerange.duration.map(duration => duration.getStandardMinutes)))
             })
 }
