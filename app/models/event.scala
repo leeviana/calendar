@@ -7,6 +7,7 @@ import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
 import play.api.data.Forms.number
+import play.api.data.Forms.boolean
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
@@ -42,8 +43,9 @@ object Event {
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
             "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
             "eventType" -> nonEmptyText,
-            "PUDPriority" -> optional(number)
-            ) { (calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority) =>
+            "PUDPriority" -> optional(number),
+            "isPUDEvent" -> boolean
+            ) { (calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
@@ -56,7 +58,7 @@ object Event {
                     nextRecurrence.map(id => BSONObjectID.apply(id)),
                     Some(AccessType.Private),
                     EventType.withName(eventType),
-                    None,
+                    if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
                     PUDPriority)
             } { event =>
                 Some((
@@ -68,6 +70,7 @@ object Event {
                     event.recurrenceMeta,
                     event.nextRecurrence.map(id => id.stringify),
                     event.eventType.toString(),
-                    event.PUDPriority))
+                    event.PUDPriority,
+                    if(event.viewType.isDefined) {event.viewType.get.toString() == ViewType.PUDEvent} else {false}))
             })
 }
