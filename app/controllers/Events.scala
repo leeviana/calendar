@@ -128,7 +128,7 @@ object Events extends Controller with MongoController {
 
     def updatePUD(events: List[Event]) {
         events.map { event =>
-            if (event.eventType == "PUDEvent") {
+            if (event.viewType == "PUDEvent") {
                 //val dur = Period.hours(2)
                 val dur = event.timeRange.duration.get
                 //need real duration

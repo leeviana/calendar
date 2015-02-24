@@ -8,6 +8,7 @@
 	<div class="span8">
 		@if(event.eventType.toString == models.enums.EventType.Fixed.toString){
 			<h2>Event Information: @event.name</h2>
+			//check duration instead 
 			@if(event.timeRange.startDate.get == event.timeRange.endDate.get){
 				<h3> @event.timeRange.startDate.get.toString("MMM-dd-yyyy") @event.timeRange.startTime.get.toString("hh:mm a") to @event.timeRange.endTime.get.toString("hh:mm a")</h3>
 			}else{
