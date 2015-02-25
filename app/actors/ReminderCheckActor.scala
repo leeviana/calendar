@@ -5,6 +5,7 @@ import akka.actor.Props
 import akka.actor.PoisonPill
 import apputils._
 import reactivemongo.bson._
+import play.api.libs.json.Json
 import models.Reminder
 import org.joda.time.DateTime
 import scala.concurrent.Await
@@ -23,13 +24,18 @@ class ReminderCheckActor extends Actor {
 			val today = rightNow.withMillisOfDay(0) // current ms as of last midnight
 			val time = new DateTime((rightNow.getMillis() - today.getMillis()) + noTime.getMillis()) // time as if today started with noTime (factors in timezone offset)
 			
-			
-			val query = BSONDocument(
+			val query = Json.obj(
+        "timestamp.startDate" -> Json.obj("$lte" -> new DateTime(today.getMillis())), // reminder occurs today or earlier
+        "timestamp.startTime" -> Json.obj("$lte" -> new DateTime(time.getMillis())), // reminder occurs at this time or earlier
+				"timestamp.startTime" -> Json.obj("$gte" -> new DateTime(time.minusMinutes(1).getMillis())) // reminder occurs no earlier than in the last 10 minutes
+      )
+      
+//			val query2 = BSONDocument(
 //				"hasSent" -> false ,
-				"timestamp.startDate" -> BSONDocument("$lte" -> BSONDateTime(today.getMillis())), // reminder occurs today or earlier
-				"timestamp.startTime" -> BSONDocument("$lte" -> BSONDateTime(time.getMillis())), // reminder occurs at this time or earlier
-				"timestamp.startTime" -> BSONDocument("$gte" -> BSONDateTime(time.minusMinutes(1).getMillis())) // reminder occurs no earlier than in the last 10 minutes
-			)
+//				"timestamp.startDate" -> BSONDocument("$lte" -> BSONDateTime(today.getMillis())), // reminder occurs today or earlier
+//				"timestamp.startTime" -> BSONDocument("$lte" -> BSONDateTime(time.getMillis())), // reminder occurs at this time or earlier
+//				"timestamp.startTime" -> BSONDocument("$gte" -> BSONDateTime(time.minusMinutes(1).getMillis())) // reminder occurs no earlier than in the last 10 minutes
+//			)
 			
 			val tempFuture = ReminderDAO.findAll(query).map { reminders =>
 				for (reminder <- reminders) {
