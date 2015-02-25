@@ -107,25 +107,27 @@ object Events extends Controller with MongoController {
                 if(event.viewType == ViewType.PUDEvent.toString()){
                     newEvent = event.copy(accessType = Some(AccessType.SeePUD))
                 }
-                val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
-
-                var found = false
-
-                while (!found) {
-                    if (ruleIterator.hasNext) {
-                        var rule = ruleIterator.next()
-
-                        if (rule.entityType == EntityType.User & rule.entityID == user._id) {
-                            newEvent = event.copy(accessType = Some(rule.accessType))
-                            found = true
-                        } else if (rule.entityType == EntityType.User & groupIDs.contains(rule.entityID)) {
-                            newEvent = event.copy(accessType = Some(rule.accessType))
+                else {
+                    val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
+    
+                    var found = false
+    
+                    while (!found) {
+                        if (ruleIterator.hasNext) {
+                            var rule = ruleIterator.next()
+    
+                            if (rule.entityType == EntityType.User & rule.entityID == user._id) {
+                                newEvent = event.copy(accessType = Some(rule.accessType))
+                                found = true
+                            } else if (rule.entityType == EntityType.User & groupIDs.contains(rule.entityID)) {
+                                newEvent = event.copy(accessType = Some(rule.accessType))
+                                found = true
+                            }
+                        } else {
+                            // should never happen?
+                            newEvent = event.copy(accessType = Some(AccessType.Private))
                             found = true
                         }
-                    } else {
-                        // should never happen?
-                        newEvent = event.copy(accessType = Some(AccessType.Private))
-                        found = true
                     }
                 }
             }
@@ -647,10 +649,19 @@ object Events extends Controller with MongoController {
      */
     def createCreationRequest(eventID: BSONObjectID, calendar: BSONObjectID) = {
         EventDAO.findById(eventID).map { event =>
-            val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
-            val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
-            EventDAO.insert(newEvent)
-            CreationRequestDAO.insert(creationRequest)
+            
+            // else you're the master, don't do anything
+            if(event.get.calendar != calendar) {    
+                // remove old events and creation requests
+                EventDAO.findAndRemove(($and("master" $eq Some(eventID), "calendar" $eq calendar))).map { event => 
+                    CreationRequestDAO.remove("eventID" $eq event.get._id)
+                }
+                
+                val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
+                val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
+                EventDAO.insert(newEvent)
+                CreationRequestDAO.insert(creationRequest)
+            }
         }
     }
 
