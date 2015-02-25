@@ -45,18 +45,20 @@ class ReminderCheckActor extends Actor {
 	}
 	
 	def isValid(reminder: Reminder): Boolean = {
-		val futureEvent = EventDAO.findById(reminder.eventID)
-		val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
+     var output = false;
+   val futureEvent = EventDAO.findById(reminder.eventID).map {event =>
+	    val rightNow = new DateTime()
+		  val start = event.get.timeRange.start
 		
-		val rightNow = new DateTime()
-		val start = event.get.timeRange.start
-		
-		if ( rightNow.minusMinutes(1).getMillis < start.getMillis) { 
-			// Event has already started as of 1 minute ago
-			return false
-		} else {
-			return true
-		}
+		  if ( rightNow.minusMinutes(1).getMillis < start.getMillis) { 
+			  // Event has already started as of 1 minute ago
+			  output = false
+	  	} else {
+			  output = true
+		  }
+    }
+		val event = Await.ready(futureEvent, Duration(5000, MILLISECONDS))
+   return output
 	}
  
  def handleRecurrence(reminder: Reminder) = {
