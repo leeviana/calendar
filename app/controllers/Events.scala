@@ -324,7 +324,6 @@ object Events extends Controller with MongoController {
      */
     def editEvent(eventID: String) = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
-        println("Edit event is called")
         UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
             var calMap: Map[String, String] = Map()
 
@@ -333,15 +332,12 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> cal.get.name)
                 }
             }
-            println("User found, map made")
-        
+          
             EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
                 Event.form.bindFromRequest.fold(
                     errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
 
                     event => {
-                        println("No errors")
-        
                         if (!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
                             val newEvent = event.copy(_id = BSONObjectID(eventID))
                             EventDAO.save(newEvent)
