@@ -45,7 +45,6 @@ object Authentication extends Controller with MongoController {
         val irrelevant2 = UserDAO.findOne("email" $eq email).map { users =>
 
             users.map { user =>
-                println("found user " + user._id)
                 userID = user._id.stringify
 
                 val future = AuthInfoDAO.findOne("userID" $eq user._id).map { authinfos =>
@@ -59,8 +58,8 @@ object Authentication extends Controller with MongoController {
         Await.ready(irrelevant2, Duration(5000, MILLISECONDS))
         if (BCrypt.checkpw(password, pwHash)) {
             val random = new Random().nextString(15)
-            val updatedAuthData = AuthInfo(_id = BSONObjectID.generate, userID = BSONObjectID.apply(userID), lastAuthToken = random, passwordHash = pwHash)
-            AuthInfoDAO.insert(updatedAuthData)
+            //val updatedAuthData = AuthInfo(_id = BSONObjectID.generate, userID = BSONObjectID.apply(userID), lastAuthToken = random, passwordHash = pwHash)
+            AuthInfoDAO.update("userID" $eq BSONObjectID.apply(userID), $set("lastAuthToken" -> random))
             Ok(views.html.index()).withSession(
                 request.session + ("authToken" -> random) + ("userID" -> userID))
         } else {
