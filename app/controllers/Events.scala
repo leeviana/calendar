@@ -449,18 +449,10 @@ object Events extends Controller with MongoController {
         }
 
         Await.ready(future, Duration(5000, MILLISECONDS))
-        
-        var groupList:  List[models.Group] = List()
-                       
-        val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
-            groupList = groups
-        }
-        
-        Await.ready(future2, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             if (event.isDefined)
-                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, userList, groupList))
+                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, userList))
             else
                 throw new Exception("Database incongruity: Event ID not found")
         }
@@ -478,18 +470,10 @@ object Events extends Controller with MongoController {
         }
         
         Await.ready(future, Duration(5000, MILLISECONDS))
-        
-        var groupList:  List[models.Group] = List()
-                       
-        val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
-            groupList = groups
-        }
-        
-        Await.ready(future2, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Reminder.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList, groupList)),
+                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList)),
 
                 reminder => {
                     ReminderDAO.insert(reminder)
@@ -512,18 +496,10 @@ object Events extends Controller with MongoController {
         }
         
         Await.ready(future, Duration(5000, MILLISECONDS))
-        
-        var groupList:  List[models.Group] = List()
-                       
-        val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
-            groupList = groups
-        }
-        
-        Await.ready(future2, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, userList, groupList)),
+                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, userList)),
 
                 rule => {
                     EventDAO.updateById(objectID, $push("rules", rule))
