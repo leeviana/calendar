@@ -41,7 +41,7 @@ POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(
 
 # Authentication
 POST     /signUp                         controllers.Users.create
-POST     /signIn                         controllers.Events.index(eventType = "Fixed")
+POST     /signIn                         controlllers.Authentication.signIn
 GET      /signOut                        controllers.Authentication.signOut
 
 # Map static resources from the /public folder to the /assets URL path
