@@ -22,11 +22,7 @@ import org.joda.time.Period
  * @author Leevi
  */
 case class TimeRange(
-    allday: Boolean = false, // True if all day event
-    //startDate: Option[DateTime] = None,
-    //startTime: Option[DateTime] = None,
-    //endDate: Option[DateTime] = None,
-    //endTime: Option[DateTime] = None,
+    allday: Boolean = false, // TODO: not necessary any more since if there's an allday event end is just not defined
     start: DateTime,
     end: Option[DateTime] = None,
     duration: Duration = Duration.ZERO) {

@@ -52,7 +52,10 @@
 					<tr class="danger">}
 				} else { <tr> }
 					<td>@e.timeRange.start.toString("MMM-dd-yyyy")</td>
-					<td>@e.timeRange.start.toString("hh:mm a")-@e.timeRange.end.get.toString("hh:mm a")</td>
+					<td>@e.timeRange.start.toString("hh:mm a") 
+					@if(e.timeRange.end.isDefined){
+					   -@e.timeRange.end.get.toString("hh:mm a")</td>
+					}
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.accessType</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>

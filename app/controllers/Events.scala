@@ -26,6 +26,8 @@ import reactivemongo.extensions.json.dsl.JsonDsl._
 import models.enums.EventType
 import models.enums.CreationRequestStatus
 import org.joda.time.Period
+import org.joda.time.DateTime
+//import org.joda.time.Duration
 
 /**
  * The controllers encapsulate the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -78,12 +80,10 @@ object Events extends Controller with MongoController {
                     val sort = Json.obj("timeRange.start" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
-                        Ok(views.html.events(accessEvents, eventType))
+                        val PUDupdatedEvents = updatePUD(accessEvents)
+                        Ok(views.html.events(PUDupdatedEvents, eventType))
                     }
                 }
-
-                //call update PUD
-
             }
 
         } else {
@@ -126,25 +126,68 @@ object Events extends Controller with MongoController {
         }.toList
     }
 
-//    def updatePUD(events: List[Event]) {
-//        events.map { event =>
-//            if (event.eventType == "PUDEvent") {
-//                //val dur = Period.hours(2)
-//                val dur = event.timeRange.duration.get
-//                //need real duration
-//                val query = Json.obj(
-//                    "$and" -> Json.arr(
-//                        Json.obj("eventType" -> "PUD"),
-//                        Json.obj("duration" -> Json.obj(
-//                            "$lte" -> dur.getMillis))))
-//                val sort = Json.obj("PUDPriority" -> 1)
-//                EventDAO.findAll(query, sort).map { PUDlist =>
-//                    val PUD = PUDlist.head
-//                    val newEvent = event.copy(name = PUD.name, description = PUD.description)
-//                }
-//            }
-//        }
-//    }
+  def updatePUD(events: List[Event]): List[Event] =  {
+    events.map { event =>
+        var newEvent = event
+      if (!event.viewType.isEmpty) {
+        if (event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString) {
+          //val dur = Period.hours(2)
+          //val dur = event.timeRange.duration.get
+          //val dur = org.joda.time.Duration(event.timeRange.startTime, event.timeRange.endTime).toDuration
+          Console.println("PUDEvent")
+          ////val start = event.timeRange.start.getMillis
+          ////val end = event.timeRange.end.getOrElse(new DateTime).getMillis
+          //val startHours = event.timeRange.startTime.get
+          ////Console.println("start time = " + start + "; end time = " + end)
+          ////val dur = end - start
+          val dur = event.timeRange.duration.getMillis
+          Console.println("duration of PUD Event = " + dur)
+          //- event.timeRange.endTime.get
+          //need real duration
+          val query = Json.obj(
+            "$and" -> Json.arr(
+              Json.obj("eventType" -> "PUD"),
+              Json.obj("timeRange.duration" -> Json.obj(
+                "$lte" -> dur))))
+          //val query = Json.obj("eventType" -> "PUD")
+          //val query = Json.obj("timeRange.duration" -> Json.obj("$lte" -> dur))
+          val sort = Json.obj("PUDPriority" -> 1)
+          Console.println("made query")
+          var temp: List[models.Event] = List()
+
+          val future = EventDAO.findAll(query, sort).map { PUDlist =>
+            temp = PUDlist;
+          }
+
+          Await.ready(future, Duration(5000, MILLISECONDS))
+          //EventDAO.findAll(query, sort).map { PUDlist =>
+            
+            if (!temp.isEmpty) {
+              val PUD = temp.head
+              Console.println("PUD name = " + PUD.name)
+              val newName = "PUD: " + PUD.name
+              Console.println(newName)
+              newEvent = event.copy(name = newName, description = PUD.description)
+              //val future = EventDAO.save(newEvent)
+              //Await.ready(future, Duration(100000, MILLISECONDS))
+          
+              //EventDAO.remove(event)
+              //EventDAO.insert(newEvent)
+              //EventDAO.updateById(BSONObjectID.apply(event._id))
+              //EventDAO.updateById(event._id, "name" = PUD.name, description = PUD.description)
+            } else {
+              newEvent = event.copy(name = "No PUD fits in this PUDEvent")
+              //val future = EventDAO.save(newEvent)
+              //Await.ready(future, Duration(5000, MILLISECONDS))
+          
+              Console.println("no PUD fits")
+            }
+          //}
+        }
+      }
+      newEvent
+    }.toList
+  }
 
     /**
      * Shows reminders that the user has set

@@ -25,6 +25,7 @@ GET     /events/reminders               controllers.Events.showReminders
 GET     /events/new                     controllers.Events.showCreationForm
 POST    /events/new                     controllers.Events.create
 GET     /events/info/:eventID           controllers.Events.showEvent(eventID)
+GET		/events/events/info/:eventID			controllers.Events.showEvent(eventID)
 POST    /events/addreminder/:eventID    controllers.Events.addReminder(eventID)
 POST    /events/addrule/:eventID        controllers.Events.addRule(eventID)
 GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eventID)
