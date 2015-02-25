@@ -1,4 +1,4 @@
-@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String, users: List[models.User])
+@(event: models.Event, reminderForm: Form[models.Reminder], ruleForm: Form[models.Rule], userID: String, users: List[models.User], groups: List[models.Group])
 @import apputils.CreationRequestDAO
 @import apputils.UserDAO
 @import apputils.CalendarDAO
@@ -89,6 +89,27 @@
 			</div>
 	}	
 	
+	@helper.form(action = routes.Events.createGroupCreationRequest, 'class -> "form-horizontal"){
+	<input type="hidden" name="eventID" value='@event._id.stringify'>
+    <div class="form-group">
+		<label class="col-sm-2 control-label">User</label>
+			<div class="col-sm-5">
+    			<select name="groupID" class="form-control" style="width:250px"> 
+					@for(element <- groups){
+			       		<option value='@element._id'> @element.name </option>
+			        }  
+			</select>
+		</div>  
+	</div> 
+	
+	<br>
+	
+	<label class="col-sm-2 control-label"></label>
+			<div class="col-sm-5">		        				   
+				<input class="btn btn-primary" type="submit">
+			</div>
+	
+	}
 	</div>	 
 	<br>
 	<br>     			

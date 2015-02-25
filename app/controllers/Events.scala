@@ -439,17 +439,25 @@ object Events extends Controller with MongoController {
      */
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var temp: List[models.User] = List()
+        var userList: List[models.User] = List()
 
         val future = UserDAO.findAll().map { users =>
-            temp = users;
+            userList = users;
         }
 
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        
+        var groupList:  List[models.Group] = List()
+                       
+        val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
+            groupList = groups
+        }
+        
         Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             if (event.isDefined)
-                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, temp))
+                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, userList, groupList))
             else
                 throw new Exception("Database incongruity: Event ID not found")
         }
@@ -460,15 +468,21 @@ object Events extends Controller with MongoController {
      */
     def addReminder(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var temp: List[models.User] = List()
+         var userList: List[models.User] = List()
 
         val future = UserDAO.findAll().map { users =>
-            temp = users;
+            userList = users;
+        }
+        
+        var groupList:  List[models.Group] = List()
+                       
+        val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
+            groupList = groups
         }
 
         EventDAO.findById(objectID).map { event =>
             Reminder.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, temp)),
+                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList, groupList)),
 
                 reminder => {
                     ReminderDAO.insert(reminder)
@@ -484,15 +498,23 @@ object Events extends Controller with MongoController {
      */
     def addRule(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var temp: List[models.User] = List()
+        var userList: List[models.User] = List()
 
         val future = UserDAO.findAll().map { users =>
-            temp = users;
+            userList = users;
         }
+        
+        var groupList:  List[models.Group] = List()
+                       
+        val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
+            groupList = groups
+        }
+        
+        Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, temp)),
+                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, userList, groupList)),
 
                 rule => {
                     EventDAO.updateById(objectID, $push("rules", rule))
