@@ -39,5 +39,7 @@ object YearMeta {
         timestamps.toList
     }
     
-    val timeDifference = Period.years(1).getMillis
+    def generateNext(start: DateTime): DateTime = {
+        start.plusYears(1)
+    }
 }

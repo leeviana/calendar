@@ -38,9 +38,7 @@ object Groups extends Controller with MongoController {
         Await.ready(future, Duration(5000, MILLISECONDS))
         
         if (AuthStateDAO.isAuthenticated()) {
-            
-            GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>
-                
+            GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>  
                 Ok(views.html.groups(groups, Group.form, temp))
             }
            

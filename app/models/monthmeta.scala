@@ -41,5 +41,7 @@ object MonthMeta {
         timestamps.toList
     }
     
-    val timeDifference = Period.months(1).getMillis
+    def generateNext(start: DateTime): DateTime = {
+        start.plusMonths(1)
+    }
 }

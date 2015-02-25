@@ -43,7 +43,17 @@ object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoCo
     }
 }
 object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events")
-object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups")
+object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") {
+    def getUsersGroups(userID: BSONObjectID): List[Group] = {
+        val futureUser = UserDAO.findById(userID)
+        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))    
+        
+        val futureGroups = GroupDAO.findAll("userIDs" $eq user.get._id)
+        val groups = Await.result(futureGroups, Duration(5000, MILLISECONDS))
+        
+        groups
+    }
+}
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
     /*

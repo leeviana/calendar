@@ -63,6 +63,8 @@
 		        
 		        $('#@form("timeRange.duration").id').hide();
 		        $('#@form("PUDPriority").id').hide();
+		        
+		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
 		      }
 		      if (this.value == "PUD"){
 		        $('#@form("timeRange.startDate").id').hide();
@@ -73,6 +75,8 @@
 		        
 		        $('#@form("timeRange.duration").id').show();
 		        $('#@form("PUDPriority").id').show();
+		        
+                $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
 		      }
 		    });
 		});
