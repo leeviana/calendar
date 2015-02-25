@@ -75,7 +75,7 @@ object Events extends Controller with MongoController {
                         Ok(views.html.events(accessEvents, eventType))
                     }
                 } else {
-                    val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
+                    val sort = Json.obj("timeRange.start" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
                         Ok(views.html.events(accessEvents, eventType))
@@ -126,25 +126,25 @@ object Events extends Controller with MongoController {
         }.toList
     }
 
-    def updatePUD(events: List[Event]) {
-        events.map { event =>
-            if (event.eventType == "PUDEvent") {
-                //val dur = Period.hours(2)
-                val dur = event.timeRange.duration.get
-                //need real duration
-                val query = Json.obj(
-                    "$and" -> Json.arr(
-                        Json.obj("eventType" -> "PUD"),
-                        Json.obj("duration" -> Json.obj(
-                            "$lte" -> dur.getMillis))))
-                val sort = Json.obj("PUDPriority" -> 1)
-                EventDAO.findAll(query, sort).map { PUDlist =>
-                    val PUD = PUDlist.head
-                    val newEvent = event.copy(name = PUD.name, description = PUD.description)
-                }
-            }
-        }
-    }
+//    def updatePUD(events: List[Event]) {
+//        events.map { event =>
+//            if (event.eventType == "PUDEvent") {
+//                //val dur = Period.hours(2)
+//                val dur = event.timeRange.duration.get
+//                //need real duration
+//                val query = Json.obj(
+//                    "$and" -> Json.arr(
+//                        Json.obj("eventType" -> "PUD"),
+//                        Json.obj("duration" -> Json.obj(
+//                            "$lte" -> dur.getMillis))))
+//                val sort = Json.obj("PUDPriority" -> 1)
+//                EventDAO.findAll(query, sort).map { PUDlist =>
+//                    val PUD = PUDlist.head
+//                    val newEvent = event.copy(name = PUD.name, description = PUD.description)
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Shows reminders that the user has set
@@ -203,10 +203,10 @@ object Events extends Controller with MongoController {
                     if ((event.recurrenceMeta.isDefined) && (event.eventType == EventType.Fixed)) {
                         val recurrenceDates = new ListBuffer[Long]()
                         val recType = event.recurrenceMeta.get.recurrenceType
-                        if (event.timeRange.startDate.isDefined) {
-                            if (event.recurrenceMeta.get.timeRange.endDate.isDefined) {
-                                val start = event.timeRange.startDate.get
-                                val end = event.recurrenceMeta.get.timeRange.endDate.get
+                        //if (event.timeRange.startDate.isDefined) {
+                            if (event.recurrenceMeta.get.timeRange.end.isDefined) {
+                                val start = event.timeRange.start
+                                val end = event.recurrenceMeta.get.timeRange.end.get
 
                                 if (recType.compare(RecurrenceType.Daily) == 0) {
                                     recurrenceDates ++= DayMeta.generateRecurrence(start, end)
@@ -223,17 +223,17 @@ object Events extends Controller with MongoController {
                             } else {
                                 // for future expansion, infinite recurrence
                             }
-                        }
+                        //}
 
                         for (difference <- recurrenceDates) {
-                            val newStartDate = new DateTime(event.timeRange.startDate.get.getMillis + difference)
+                            val newStartDate = new DateTime(event.timeRange.start.getMillis + difference)
                             var newTimeRange = new TimeRange
 
-                            if (event.timeRange.endDate.isDefined) {
-                                val newEndDate = new DateTime(event.timeRange.endDate.get.getMillis + difference)
-                                newTimeRange = event.timeRange.copy(startDate = Some(newStartDate), endDate = Some(newEndDate))
+                            if (event.timeRange.end.isDefined) {
+                                val newEndDate = new DateTime(event.timeRange.end.get.getMillis + difference)
+                                newTimeRange = event.timeRange.copy(start = newStartDate, end = Some(newEndDate))
                             } else {
-                                newTimeRange = event.timeRange.copy(startDate = Some(newStartDate))
+                                newTimeRange = event.timeRange.copy(start = newStartDate)
                             }
 
                             val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange)
@@ -272,7 +272,7 @@ object Events extends Controller with MongoController {
      */
     def editEvent(eventID: String) = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
-
+        println("Edit event is called")
         UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
             var calMap: Map[String, String] = Map()
 
@@ -281,11 +281,15 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> cal.get.name)
                 }
             }
+            println("User found, map made")
+        
             EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
                 Event.form.bindFromRequest.fold(
                     errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
 
                     event => {
+                        println("No errors")
+        
                         if (!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
                             val newEvent = event.copy(_id = BSONObjectID(eventID))
                             EventDAO.save(newEvent)
@@ -322,19 +326,19 @@ object Events extends Controller with MongoController {
                 if (event.get.recurrenceMeta.isDefined) {
                     val recType = event.get.recurrenceMeta.get.recurrenceType
                     if (recType.compare(RecurrenceType.Daily) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(DayMeta.timeDifference)))))
+                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(DayMeta.timeDifference))))
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Weekly) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(WeekMeta.timeDifference)))))
+                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(WeekMeta.timeDifference))))
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Monthly) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(MonthMeta.timeDifference)))))
+                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(MonthMeta.timeDifference))))
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Yearly) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(startTime = Some(new DateTime(DateTime.now().plus(YearMeta.timeDifference)))))
+                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(YearMeta.timeDifference))))
                         EventDAO.insert(newEvent)
                     }
                 }

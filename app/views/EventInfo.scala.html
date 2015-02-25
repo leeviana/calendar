@@ -2,17 +2,19 @@
 @import apputils.CreationRequestDAO
 @import apputils.UserDAO
 @import apputils.CalendarDAO
-
+@import org.joda.time.Duration
 @main("Event Information"){
 <div class="row">
 	<div class="span8">
 		@if(event.eventType.toString == models.enums.EventType.Fixed.toString){
 			<h2>Event Information: @event.name</h2>
-			@if(event.timeRange.startDate.get == event.timeRange.endDate.get){
-				<h3> @event.timeRange.startDate.get.toString("MMM-dd-yyyy") @event.timeRange.startTime.get.toString("hh:mm a") to @event.timeRange.endTime.get.toString("hh:mm a")</h3>
-			}else{
-				<h3>@event.timeRange.startDate.get.toString("MMM-dd-yyyy") @event.timeRange.startTime.get.toString("hh:mm a") to @event.timeRange.endDate.get.toString("MMM-dd-yyyy") @event.timeRange.endTime.get.toString("hh:mm a")</h3>
-			}
+			<h3> @event.timeRange.start.toString("MMM-dd-yyyy") @event.timeRange.start.toString("hh:mm a") to @event.timeRange.end.get.toString("hh:mm a")</h3>
+            <h3>@event.timeRange.start.toString("MMM-dd-yyyy") @event.timeRange.start.toString("hh:mm a") to
+            @if(event.timeRange.duration.getMillis < Duration.standardDays(1).getMillis & event.timeRange.end.isDefined){
+                @event.timeRange.end.get.toString("MMM-dd-yyyy") @event.timeRange.end.get.toString("hh:mm a")
+            } </h3>
+            
+
 			<p>Description: @event.description</p>
 			<p>Calendar: @CalendarDAO.getCalendarFromID(event.calendar).name</p>
 		}else{

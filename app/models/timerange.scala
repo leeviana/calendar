@@ -23,13 +23,15 @@ import org.joda.time.Period
  */
 case class TimeRange(
     allday: Boolean = false, // True if all day event
-    startDate: Option[DateTime] = None,
-    startTime: Option[DateTime] = None,
-    endDate: Option[DateTime] = None,
-    endTime: Option[DateTime] = None,
-    duration: Option[Duration] = None) {
+    //startDate: Option[DateTime] = None,
+    //startTime: Option[DateTime] = None,
+    //endDate: Option[DateTime] = None,
+    //endTime: Option[DateTime] = None,
+    start: DateTime,
+    end: Option[DateTime] = None,
+    duration: Duration = Duration.ZERO) {
     def this() {
-        this(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime()), Some(new DateTime()), Some(Duration.ZERO));
+        this(false, new DateTime(), Some(new DateTime()), Duration.ZERO);
     }
 }
 
@@ -46,18 +48,16 @@ object TimeRange {
             "duration" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, duration) =>
                 TimeRange(
                     allday,
-                    startDate,
-                    startTime,
-                    endDate,
-                    endTime,
-                    duration.map (duration => new Duration(duration*Period.millis(1).getMillis)))
-            } { timerange =>
+                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime()).getMillis)} else {DateTime.now()},
+                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime()).getMillis))} else {None},
+                    if (duration.isDefined) {new Duration(duration.get*Duration.standardMinutes(1).getMillis) } else if (startDate.isDefined) {Duration.standardDays(1)} else {Duration.ZERO}
+            )} { timerange =>
                 Some(
                     (timerange.allday,
-                        timerange.startDate,
-                        timerange.startTime,
-                        timerange.endDate,
-                        timerange.endTime,
-                        timerange.duration.map(duration => duration.getMillis)))
+                        Some(timerange.start),
+                        Some(timerange.start),
+                        timerange.end,
+                        timerange.end,
+                        Some(timerange.duration.getStandardMinutes)))
             })
 }

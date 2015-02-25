@@ -49,8 +49,8 @@
 					@if(e.viewType.get.toString == models.enums.ViewType.Declined.toString){
 					<tr class="danger">}
 				} else { <tr> }
-					<td>@e.timeRange.startDate.get.toString("MMM-dd-yyyy")</td>
-					<td>@e.timeRange.startTime.get.toString("hh:mm a")-@e.timeRange.endTime.get.toString("hh:mm a")</td>
+					<td>@e.timeRange.start.toString("MMM-dd-yyyy")</td>
+					<td>@e.timeRange.start.toString("hh:mm a")-@e.timeRange.end.get.toString("hh:mm a")</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.accessType</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
@@ -100,7 +100,7 @@
 			@for(e <- events){
 				<tr>
 				 	<td>@e.PUDPriority</td>
-					<td>@e.timeRange.duration.get</td>
+					<td>@e.timeRange.duration</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
