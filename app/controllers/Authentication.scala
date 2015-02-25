@@ -18,6 +18,8 @@ import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
 import reactivemongo.extensions.json.dsl.JsonDsl.ElementBuilderLike
 import reactivemongo.extensions.json.dsl.JsonDsl.toJsObject
+import reactivemongo.extensions.json.dsl.JsonDsl._
+import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 
 object Authentication extends Controller with MongoController {
 
@@ -41,16 +43,12 @@ object Authentication extends Controller with MongoController {
         var userID = ""
         var pwHash = ""
         val irrelevant2 = UserDAO.findOne("email" $eq email).map { users =>
-            users.map { user =>
-//                userID = user._id.stringify
-//
-//                val query = BSONDocument(
-//                    "$query" -> BSONDocument(
-//                        "userID" -> BSONObjectID.apply(userID)))
 
-                
-                //val cursor = collection.find(query).cursor[AuthInfo]
-                val future = AuthInfoDAO.findById(user._id).map { authinfos =>
+            users.map { user =>
+                println("found user " + user._id)
+                userID = user._id.stringify
+
+                val future = AuthInfoDAO.findOne("userID" $eq user._id).map { authinfos =>
                     authinfos.map { authinfo =>
                         pwHash = authinfo.passwordHash
                     }
