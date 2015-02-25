@@ -376,6 +376,7 @@ object Events extends Controller with MongoController {
            
                     if (recType.compare(RecurrenceType.Daily) == 0) {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        // TODO: create new reminder if reminders are set
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Weekly) == 0) {
@@ -476,7 +477,15 @@ object Events extends Controller with MongoController {
                 errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList)),
 
                 reminder => {
-                    ReminderDAO.insert(reminder)
+                    if(reminder.recurrenceMeta.isDefined) {
+                        // TODO: check this. Make sure it's reading duration and generating a reminder properly
+                        val duration = reminder.recurrenceMeta.get.timeRange.duration
+                        val newReminder = reminder.copy(timestamp = new TimeRange(start = event.get.timeRange.start.plus(duration)))
+                        ReminderDAO.insert(newReminder)
+                    }
+                    else{
+                        ReminderDAO.insert(reminder)
+                    }
                     Redirect(routes.Events.showEvent(eventID))
                 })
         }
