@@ -1,7 +1,8 @@
 package models
 
+import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
-import reactivemongo.bson.Macros
+import play.modules.reactivemongo.json.BSONFormats._
 
 /**
  * @author Leevi
@@ -13,5 +14,5 @@ case class AuthInfo(
     passwordHash: String)
 
 object AuthInfo {
-    implicit val AuthInfoHandler = Macros.handler[AuthInfo]
+    implicit val CalendarFormat = Json.format[AuthInfo]
 }

@@ -12,6 +12,7 @@ import reactivemongo.bson.BSONObjectID
 import org.mindrot.jbcrypt.BCrypt
 import apputils.CalendarDAO
 import apputils.UserDAO
+import apputils.AuthInfoDAO
 
 /**
  * @author Leevi
@@ -42,12 +43,11 @@ object Users extends Controller with MongoController {
                 val updatedUser = user.copy(subscriptions = List[BSONObjectID](personalCalendar._id))
                 UserDAO.insert(updatedUser)
 
-                val authCollection = db[BSONCollection]("authstate")
                 val requestMap = (request.body.asFormUrlEncoded)
                 val password = requestMap.get.get("password").get.head
                 val hash = BCrypt.hashpw(password, BCrypt.gensalt());
                 val newAuthData = AuthInfo(_id = BSONObjectID.generate, userID = updatedUser._id, lastAuthToken = "", passwordHash = hash)
-                authCollection.insert(newAuthData)
+                AuthInfoDAO.insert(newAuthData)
                 Redirect(routes.Application.signIn())
             })
     }
