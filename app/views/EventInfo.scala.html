@@ -39,12 +39,14 @@
 			value='@event._id.stringify' 
 			placeholder='@event._id.stringify'
 			style="visibility: hidden" />
-
+			
+		@if(!(event.eventType.toString == models.enums.EventType.PUD.toString)){
 		<!-- Date -->
 		@viewComponents.html.datepicker(reminderForm("timestamp.startDate"), label = "Date")
 
 		<!-- Start Time -->
 		@viewComponents.html.timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
+		}
 
 		<!--  User ID (Auto-filled) -->
 		<input type="text" 
@@ -62,7 +64,9 @@
 			style="visibility: hidden" /> 
 			
 		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
-		
+			@viewComponents.html.number(reminderForm("recurrenceMeta.timeRange.duration"),
+				label = "Duration")
+			
 			@viewComponents.html.dropdown(reminderForm("recurrenceMeta.recurrenceType"),
 	    		label = "Recurrence Type",
 	        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
