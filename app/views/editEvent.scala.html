@@ -39,7 +39,7 @@
        
        @viewComponents.html.dropdown(form("eventType"),
     		label = "Event Type",
-        	List("Fixed", "PUD", "PUDEvent"))   
+        	List("Fixed", "PUD"))   
         	
         <!-- <label class="col-sm-2 control-label">Event Type</label>
     	<div class="col-sm-5">
@@ -51,7 +51,7 @@
     	
     	@viewComponents.html.checkbox(form("isPUDEvent"), label = "Use time for PUD Events")
         
-		<script type="text/javascript">		
+		<script type="text/javascript">	
 	    $(document).ready(function(){
 		    $('#@(form("eventType").id+"s")').on('change', function() {
 		      if (this.value == "Fixed"){
@@ -76,14 +76,6 @@
 		      }
 		    });
 		});
-		
-			$(document).ready(function(){
-			$('#@form("timeRange.duration").id').hide();
-		    $('#@form("PUDPriority").id').hide();
-		});
-		
-	
-		
 		
 		</script>
 		<!--  PUD Fields -->
