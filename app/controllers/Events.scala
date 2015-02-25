@@ -455,7 +455,7 @@ object Events extends Controller with MongoController {
             groupList = groups
         }
         
-        Await.ready(future, Duration(5000, MILLISECONDS))
+        Await.ready(future2, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             if (event.isDefined)
@@ -476,11 +476,15 @@ object Events extends Controller with MongoController {
             userList = users;
         }
         
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        
         var groupList:  List[models.Group] = List()
                        
         val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
             groupList = groups
         }
+        
+        Await.ready(future2, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Reminder.form.bindFromRequest.fold(
@@ -506,13 +510,15 @@ object Events extends Controller with MongoController {
             userList = users;
         }
         
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        
         var groupList:  List[models.Group] = List()
                        
         val future2 = GroupDAO.findAll("owner" $eq AuthStateDAO.getUserID()).map { groups =>         
             groupList = groups
         }
         
-        Await.ready(future, Duration(5000, MILLISECONDS))
+        Await.ready(future2, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Rule.form.bindFromRequest.fold(

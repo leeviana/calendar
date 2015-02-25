@@ -70,7 +70,7 @@
     @helper.form(action = routes.Events.createUserCreationRequest, 'class -> "form-horizontal"){
     <input type="hidden" name="eventID" value='@event._id.stringify'>
     <div class="form-group">
-		<label class="col-sm-2 control-label">User</label>
+		<label class="col-sm-2 control-label">Invite a User</label>
 			<div class="col-sm-5">
     			<select name="userEmail" class="form-control" style="width:250px"> 
 					@for(element <- users){
@@ -78,20 +78,22 @@
 			        }  
 			</select>
 		</div>  
-	</div> 
-	
-	<br>
-	
+	</div> 	
+	<br>	
 	<label class="col-sm-2 control-label"></label>
 			<div class="col-sm-5">		        				   
 				<input class="btn btn-primary" type="submit">
 			</div>
 	}	
 	
+	<br>
+	<br>
+	<br>
+		
 	@helper.form(action = routes.Events.createGroupCreationRequest, 'class -> "form-horizontal"){
 	<input type="hidden" name="eventID" value='@event._id.stringify'>
     <div class="form-group">
-		<label class="col-sm-2 control-label">User</label>
+		<label class="col-sm-2 control-label">Invite a Group</label>
 			<div class="col-sm-5">
     			<select name="groupID" class="form-control" style="width:250px"> 
 					@for(element <- groups){
@@ -188,9 +190,16 @@
         	label = "Rule Type",
         	List("User", "Group"))
         
-        @viewComponents.html.text(ruleForm("entityID"), 
-       		label = "Entity ID",
-       		placeholder = "placeholder")
+	   <div class="form-group">
+			<label class="col-sm-2 control-label">Invite a User</label>
+				<div class="col-sm-5">
+	    			<select name='@ruleForm("entityID").id' class="form-control" style="width:250px"> 
+						@for(element <- users){
+				       		<option value='@element._id.stringify'> @element._id.stringify </option>
+				        }  
+				</select>
+			</div>  
+		</div> 	
         
         @viewComponents.html.dropdown(ruleForm("accessType"),
         	label = "Access Type",
