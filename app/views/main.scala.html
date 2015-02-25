@@ -1,5 +1,7 @@
 @(title: String)(content: Html)
 
+@import apputils.AuthStateDAO
+@import apputils.UserDAO
 <!DOCTYPE html>
 
 <html>
@@ -35,7 +37,8 @@
                     <li><a href="/users">Users</a></li>
 					<li><a href="/signOut">Logout</a></li>
 				</ul>
-				<p class="navbar-text navbar-right"></p>
+				<p class="navbar-text navbar-right">
+				</p>
 			</div>
 			<!--/.nav-collapse -->
 		</div>

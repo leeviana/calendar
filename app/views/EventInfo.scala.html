@@ -79,7 +79,7 @@
 	       		label = "Days",
 	       		help = "Reminder will recur for how many months")
 	       
-	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.numberofYears"), 
+	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.numberOfYears"), 
 	       		label = "Month",
 	       		help = "Reminder will recur for how many years")
 	       	
@@ -89,7 +89,7 @@
 				$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
 				$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
 				$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').hide();
-				$('#@reminderForm("recurrenceMeta.yearly.numberofYears").id').hide();				
+				$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();				
 			});
 			
 	    	$(document).ready(function(){
@@ -98,27 +98,27 @@
 							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').show();
 							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
 							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.numberofYears").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();
 				      }
 				      if (this.value == "Weekly"){
 							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
 							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').show();
 							$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.numberofYears").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();
 				      }
 				      
-				      if (this.value == "Montly"){
+				      if (this.value == "Monthly"){
 							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
 							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
 							$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').show();
-							$('#@reminderForm("recurrenceMeta.yearly.numberofYears").id').hide();			      
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();			      
 				      }
 				      
 				      if (this.value == "Yearly"){
 							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
 							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
 							$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.numberofYears").id').show();			      
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').show();			      
 				      }     
 		    });
 		});
