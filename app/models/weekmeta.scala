@@ -1,61 +1,49 @@
 package models
 
-import play.api.data.Forms._
-import reactivemongo.bson._
-import play.api.data.Form
-import java.util.Date
 import scala.collection.mutable.ListBuffer
 import org.joda.time.DateTime
+import models.enums.RecurrenceType
+import play.api.data.Form
+import play.api.data.Forms.mapping
+import play.api.data.Forms.number
+import play.api.data.Forms.optional
+import play.api.libs.json.Json
+import reactivemongo.bson.Macros
+import org.joda.time.Period
 
 /**
  * @author Leevi
  */
-case class WeekMeta (
-    dayNumber: Int // Array of Integers representing days of the week. 0 is Sunday. Alternative: use Java's calendar object?
-)
-{
+case class WeekMeta(
+    dayNumber: Option[Int], // integer representing days of the week. 0 is Sunday. Alternative: use another object?
+    numberOfWeeks: Option[Int]
+    ) {
     var recurrenceType = RecurrenceType.Weekly
 }
 
 object WeekMeta {
-    
-    implicit object WeekMetaReader extends BSONDocumentReader[WeekMeta] {
-        def read(doc: BSONDocument): WeekMeta = {
-            WeekMeta(
-                doc.getAs[Int]("dayNumber").get
-            )
-        }
-    }
-    
-    implicit object WeekMetaWriter extends BSONDocumentWriter[WeekMeta] {
-        def write(weekmeta: WeekMeta): BSONDocument = BSONDocument(
-            "dayNumber" -> weekmeta.dayNumber
-        )
-    }
-      
+
+    implicit val WeekMetaHandler = Macros.handler[WeekMeta]
+    implicit val WeekMetaFormat = Json.format[WeekMeta]
+
     val form = Form(
         mapping(
-            "dayNumber" -> number
-        ) { (dayNumber) =>
-            WeekMeta (
-                dayNumber
-            )
-        } { weekmeta =>
-            Some(
-                (weekmeta.dayNumber)
-            )
-          }
-    )
-    
+            "dayNumber" -> optional(number),
+            "numberOfWeeks" -> optional(number))(WeekMeta.apply)(WeekMeta.unapply))
+
     def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
         var current = start.plusWeeks(1)
         var timestamps = ListBuffer[Long]()
-        
-        while(current.compareTo(end) <= 0) {
+
+        while (current.compareTo(end) <= 0) {
             timestamps += current.getMillis - start.getMillis
             current = current.plusWeeks(1)
         }
-        
+
         timestamps.toList
+    }
+    
+    def generateNext(start: DateTime): DateTime = {
+        start.plusWeeks(1)
     }
 }

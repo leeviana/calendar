@@ -1,0 +1,9 @@
+@(users: List[models.User])
+
+<label class="col-sm-2 control-label"></label>
+			<div class="col-sm-5">		
+	<select name="userEmail" class="form-control" style="width: 250px">
+		@for(element <- users){
+		<option value='@element.email'>@element.email</option> }
+	</select>
+</div>

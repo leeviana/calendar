@@ -1,63 +1,43 @@
 package models
 
 import play.api.data.Form
-import play.api.data.Forms._
+import play.api.data.Forms.ignored
+import play.api.data.Forms.mapping
+import play.api.data.Forms.nonEmptyText
+import play.api.libs.json.Json
 import reactivemongo.bson._
+import play.modules.reactivemongo.json.BSONFormats._
 
 /**
  * @author Leevi
  */
-case class Group (
-    id: BSONObjectID,    
+case class Group(
+    _id: BSONObjectID = BSONObjectID.generate,
     name: String,
     owner: BSONObjectID, // foreign ref
-    userIDs: BSONArray // List[BSONObjectID]
-)
+    userIDs: List[BSONObjectID] // List[BSONObjectID]
+    )
 
 object Group {
-    
-    implicit object GroupReader extends BSONDocumentReader[Group] {
-        def read(doc: BSONDocument): Group = {
-            Group(
-                doc.getAs[BSONObjectID]("_id").get,
-                doc.getAs[String]("name").get,
-                doc.getAs[BSONObjectID]("owner").get,
-                doc.getAs[BSONArray]("userIDs").get
-            )
-        }
-    }
-    
-    implicit object GroupWriter extends BSONDocumentWriter[Group] {
-        def write(group: Group): BSONDocument = BSONDocument(
-            "_id" -> group.id, // is this necessary?
-            "name" -> group.name,
-            "owner" -> group.owner,
-            "userIDs" -> group.userIDs
-        )
-    }
-      
+    implicit val GroupFormat = Json.format[Group]
+
     val form = Form(
-            
         mapping(
-            "id" -> ignored(BSONObjectID.generate),
+            "_id" -> ignored(BSONObjectID.generate),
             "name" -> nonEmptyText,
-            "owner" -> nonEmptyText,
-            "userIDs" -> ignored(BSONArray.empty)
-        )  { (id, name, owner, userIDs) =>
-            val ownID = BSONObjectID.apply(owner)
-            Group (
-                id,
-                name,
-                ownID,
-                userIDs.add(ownID)
-            )
-        } { group =>
-            Some(
-                (group.id,
-                group.name,
-                group.owner.toString(),
-                group.userIDs)
-            )
-          }
-    )
+            "owner" -> nonEmptyText
+            ) { (id, name, owner) =>
+                val ownID = BSONObjectID.apply(owner)
+                
+                Group(
+                    id,
+                    name,
+                    ownID,
+                    List[BSONObjectID](ownID))
+            } { group =>
+                Some((
+                    group._id,
+                    group.name,
+                    group.owner.toString()))
+            })
 }

@@ -1,6 +1,8 @@
-@(groups: List[models.Group], groupForm: Form[models.Group])
+@(groups: List[models.Group], groupForm: Form[models.Group], users: List[models.User])
+@import apputils.UserDAO
 
 @main("Settings") {
+
 <div class="container">
 	<div class="row">
 		<div class="col-md-9">
@@ -30,21 +32,23 @@
 				} else { 
 					@for(g <- groups){
 					<tr>
-						<td>@g.name <br>(@g.id.stringify)</td>
+						<td>@g.name <br>(@g._id.stringify)</td>
 						@if(g.userIDs.isEmpty){
 							<td>No Members</td>
 						}else{
 							<td><ul>
-							@for(uid <- g.userIDs.values){
-								<li>@uid</li>
+							@for(uid <- g.userIDs){
+								<li>@UserDAO.getUserFromID(uid).username</li>
 							}
 							</ul></td>
 						}
 						<td>
-							@helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-horizontal") {
-                    			<input type="hidden" name="groupID" value='@g.id.stringify' >			        
-			        			userID: <input type="text" name="userID" value="userID" >                    
+							@helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-horizontal") {
+                    			<input type="hidden" name="groupID" value='@g._id.stringify' >			        
+								@viewComponents.html.userDropdown(users)
+			        				   
 			            			<input class="btn btn-primary" type="submit">
+			            			
 		       				 }
 						</td>
 					</tr>
@@ -74,11 +78,11 @@
                 Also probably need to call some sort of frontend helper function that returns the username given an ID<br>
                 And vice versa<br>
                 
-                Call to addUsertoGroup with parameters (@group.id.stringify, username or ID)
+                Call to addUsertoGroup with parameters (@group._id.stringify, username or ID)
                 <br><br>
                 Add user to <b>@group.name</b><br>
-                @helper.form(action = routes.Users.addUsertoGroup, 'class -> "form-inline") {
-                    <input type="hidden" name="groupID" value='@group.id.stringify' >			        
+                @helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-inline") {
+                    <input type="hidden" name="groupID" value='@group._id.stringify' >			        
 			        userID: <input type="text" name="userID" value='userID' >                    
 			        <div class="form-actions">
 			            <input class="btn btn-primary" type="submit">

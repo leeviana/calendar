@@ -1,76 +1,60 @@
 package models
 
-import play.api.data.Form
-import play.api.data.Forms._
-import reactivemongo.bson._
 import org.joda.time.DateTime
-import java.util.Date
+import play.api.data.Form
+import play.api.data.Forms.boolean
+import play.api.data.Forms.jodaDate
+import play.api.data.Forms.mapping
+import play.api.data.Forms.optional
+import play.api.data.Forms.longNumber
+import play.api.libs.json.Json
+import play.api.libs.json.JsSuccess
+import play.api.libs.json.JsString
+import play.api.libs.json.JsValue
+import play.api.libs.json.Format
+import models.enums.EventType
+import org.joda.time.Duration
+import play.api.libs.json.JsNumber
+import models.JsonDuration.DurationFormat
+import org.joda.time.Period
 
 /**
  * @author Leevi
  */
-case class TimeRange ( // refactoring idea, split up into DayTimeRange and SpecificTimeRange based on allday boolean
-    allday: Boolean, // True if all day event
-    startDate: Option[DateTime],
-    startTime: Option[DateTime],
-    endDate: Option[DateTime],
-    endTime: Option[DateTime]
-)
-{
+case class TimeRange(
+    allday: Boolean = false, // TODO: not necessary any more since if there's an allday event end is just not defined
+    start: DateTime,
+    end: Option[DateTime] = None,
+    duration: Duration = Duration.ZERO) {
     def this() {
-    this(false, Some(new DateTime()), Some(new DateTime()), Some(new DateTime()), Some(new DateTime()));
-  }
+        this(false, new DateTime(), Some(new DateTime()), Duration.ZERO);
+    }
 }
 
 object TimeRange {
-    implicit object TimeRangeReader extends BSONDocumentReader[TimeRange] {
-        def read(doc: BSONDocument): TimeRange = {
-            TimeRange(
-                doc.getAs[Boolean]("allday").get, 
-                doc.getAs[BSONDateTime]("startDate").map (dt => new DateTime(dt.value)),
-                doc.getAs[BSONDateTime]("startTime").map (dt => new DateTime(dt.value)),
-                doc.getAs[BSONDateTime]("endDate").map (dt => new DateTime(dt.value)),
-                doc.getAs[BSONDateTime]("endTime").map (dt => new DateTime(dt.value))
-            )
-        }
-    }
-    
-    implicit object TimeRangeWriter extends BSONDocumentWriter[TimeRange] {
-        def write(timerange: TimeRange): BSONDocument = {
-            val bson = BSONDocument(
-                "allday" -> timerange.allday,
-                "startDate" -> BSONDateTime(timerange.startDate.getOrElse(new DateTime()).getMillis),
-                "startTime" -> BSONDateTime(timerange.startTime.getOrElse(new DateTime()).getMillis),
-                "endDate" -> BSONDateTime(timerange.endDate.getOrElse(timerange.startDate.getOrElse(new DateTime())).getMillis), // if no endDate, assume same as startDate
-                "endTime" -> BSONDateTime(timerange.endTime.getOrElse(new DateTime()).getMillis)
-            )
-            
-        bson
-    }
-}
-      
+    implicit val TimeRangeFormat = Json.format[TimeRange]
+
+    // TODO: temp workaround for time zone
     val form = Form(
         mapping(
             "allday" -> boolean,
             "startDate" -> optional(jodaDate),
             "startTime" -> optional(jodaDate("h:mm a")),
             "endDate" -> optional(jodaDate),
-            "endTime" -> optional(jodaDate("h:mm a"))
-        )  { (allday, startDate, startTime, endDate, endTime) =>
-            TimeRange (
-              allday,
-              startDate,
-              startTime,
-              endDate,
-              endTime
-            )
-        } { timerange =>
-            Some(
-              (timerange.allday,
-              timerange.startDate,
-              timerange.startTime,
-              timerange.endDate,
-              timerange.endTime))
-          }
-    )
+            "endTime" -> optional(jodaDate("h:mm a")),
+            "duration" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, duration) =>
+                TimeRange(
+                    allday,
+                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime()).getMillis).minusHours(5)} else {DateTime.now()},
+                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime()).getMillis).minusHours(5))} else {None},
+                    if (duration.isDefined) {new Duration(duration.get*Duration.standardMinutes(1).getMillis) } else if (startDate.isDefined) {Duration.standardDays(1)} else {Duration.ZERO}
+            )} { timerange =>
+                Some(
+                    (timerange.allday,
+                        Some(timerange.start),
+                        Some(timerange.start),
+                        timerange.end,
+                        timerange.end,
+                        Some(timerange.duration.getStandardMinutes)))
+            })
 }

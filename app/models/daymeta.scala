@@ -1,60 +1,43 @@
 package models
 
-import play.api.data.Forms._
-import reactivemongo.bson._
-import play.api.data.Form
 import scala.collection.mutable.ListBuffer
 import org.joda.time.DateTime
+import models.enums.RecurrenceType
+import play.api.data.Form
+import play.api.data.Forms.mapping
+import play.api.data.Forms.number
+import play.api.libs.json.Json
+import org.joda.time.Period
+import org.joda.time.Duration
 
 /**
  * @author Leevi
  */
-case class DayMeta (
-    numberOfDays: Int
-)
-{
+case class DayMeta(
+    numberOfDays: Int) {
     var recurrenceType = RecurrenceType.Daily
 }
 
 object DayMeta {
-    
-    implicit object DayMetaReader extends BSONDocumentReader[DayMeta] {
-        def read(doc: BSONDocument): DayMeta = {
-            DayMeta(
-                doc.getAs[Int]("numberOfDays").get
-            )
-        }
-    }
-    
-    implicit object DayMetaWriter extends BSONDocumentWriter[DayMeta] {
-        def write(daymeta: DayMeta): BSONDocument = BSONDocument(
-            "numberOfDays" -> daymeta.numberOfDays
-        )
-    }
-      
+    implicit val DayMetaFormat = Json.format[DayMeta]
+
     val form = Form(
         mapping(
-            "numberOfDays" -> number
-        ) { (numberOfDays) =>
-            DayMeta (
-                numberOfDays
-            )
-        } { daymeta =>
-            Some(
-                (daymeta.numberOfDays)
-            )
-          }
-    )
-    
+            "numberOfDays" -> number)(DayMeta.apply)(DayMeta.unapply))
+
     def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
         var current = start.plusDays(1)
         var timestamps = ListBuffer[Long]()
-        
-        while(current.compareTo(end) <= 0) {
+
+        while (current.compareTo(end) <= 0) {
             timestamps += current.getMillis - start.getMillis
             current = current.plusDays(1)
         }
-        
+
         timestamps.toList
+    }
+    
+    def generateNext(start: DateTime): DateTime = {
+        start.plusDays(1)
     }
 }

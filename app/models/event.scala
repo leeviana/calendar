@@ -1,89 +1,76 @@
 package models
 
+import models.enums.AccessType
 import play.api.data.Form
-import play.api.data.Forms._
-import reactivemongo.bson._
-import play.api.data.format.Formats._
-import org.joda.time.DateTime
-import java.util.Date
+import play.api.data.Forms.list
+import play.api.data.Forms.mapping
+import play.api.data.Forms.nonEmptyText
+import play.api.data.Forms.optional
+import play.api.data.Forms.number
+import play.api.data.Forms.boolean
+import play.api.libs.json.Json
+import reactivemongo.bson.BSONObjectID
+import play.modules.reactivemongo.json.BSONFormats._
+import models.enums.EventType
+import models.enums.ViewType
+import apputils.UserDAO
 
 case class Event(
-    id: BSONObjectID,
-    calendar: BSONObjectID, // pointer/foreign reference to Calendar
-    timeRange: TimeRange,
-    name: String,
-    description: String,
-    rules: List[Rule], // list of rule objects
-    recurrenceMeta: Option[RecurrenceMeta], //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
-    nextRecurrence: Option[BSONObjectID], // BSONID pointer, can be null if not recurring
-    accessType: AccessType.AccessType
-)
+    _id: BSONObjectID = BSONObjectID.generate,
+    calendar: BSONObjectID = BSONObjectID.generate, // pointer/foreign reference to Calendar
+    timeRange: TimeRange = new TimeRange(),
+    name: String = "My Event",
+    description: Option[String] = None,
+    master: Option[BSONObjectID] = None, // foreign reference to a "master" event, if shared
+    rules: List[Rule] = List[Rule](), // list of rule objects
+    recurrenceMeta: Option[RecurrenceMeta] = None, //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
+    nextRecurrence: Option[BSONObjectID] = None, // BSONID pointer, can be null if not recurring
+    accessType: Option[AccessType.AccessType] = None,
+    eventType: EventType.EventType = EventType.Fixed,
+    viewType: Option[ViewType.ViewType] = None,
+    PUDPriority: Option[Int] = None)
 
 object Event {
-    implicit object EventReader extends BSONDocumentReader[Event] {
-        def read(doc: BSONDocument): Event = {
-            Event(
-                doc.getAs[BSONObjectID]("_id").get,
-                doc.getAs[BSONObjectID]("calendar").get,
-                doc.getAs[TimeRange]("timeRange").get,
-                doc.getAs[String]("name").get,
-                doc.getAs[String]("description").get,
-                doc.getAs[List[Rule]]("rules").get,
-                doc.getAs[RecurrenceMeta]("recurrenceMeta"),
-                doc.getAs[BSONObjectID]("nextRecurrence"),
-                AccessType.Private
-            )
-        }
-    }
-    
-    implicit object EventWriter extends BSONDocumentWriter[Event] {
-        def write(event: Event) = {
-            
-            val bson = BSONDocument(
-                "_id" -> event.id,
-                "calendar" -> event.calendar,
-                "timeRange" -> event.timeRange,
-                "name" -> event.name,
-                "description" -> event.description,
-                "rules" -> event.rules,
-                "recurrenceMeta" -> event.recurrenceMeta,
-                "nextRecurrence" -> event.nextRecurrence)
-                
-            bson
-        } 
-    }
-    
+    implicit val EventFormat = Json.format[Event]
+
     val form = Form(
         mapping(
-            "id" -> ignored(BSONObjectID.generate),
             "calendar" -> nonEmptyText, // BSONObjectID
             "timeRange" -> TimeRange.form.mapping,
             "name" -> nonEmptyText,
-            "description" -> nonEmptyText,
+            "description" -> optional(nonEmptyText),
             "rules" -> optional(list(Rule.form.mapping)),
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
-            "nextRecurrence" -> optional(nonEmptyText) // BSONObjectID
-        ) { (id, calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence) =>
-            Event(
-              id,
-              BSONObjectID.apply(calendar),
-              timeRange,
-              name,
-              description,
-              rules.getOrElse(List[Rule]()),
-              recurrenceMeta,
-              nextRecurrence.map(id => BSONObjectID.apply(id)),
-              AccessType.Private)
-        } { event =>
-            Some(
-              (event.id,
-              event.calendar.stringify,
-              event.timeRange,
-              event.name,
-              event.description,
-              Some(event.rules),
-              event.recurrenceMeta,
-              event.nextRecurrence.map (id => id.stringify)))
-          }
-        )
+            "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
+            "eventType" -> nonEmptyText,
+            "PUDPriority" -> optional(number),
+            "isPUDEvent" -> boolean
+            ) { (calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
+                Event(
+                    BSONObjectID.generate,
+                    BSONObjectID.apply(calendar),
+                    timeRange,
+                    name,
+                    description,
+                    None,
+                    rules.getOrElse(List[Rule]()),
+                    recurrenceMeta,
+                    nextRecurrence.map(id => BSONObjectID.apply(id)),
+                    Some(AccessType.Private),
+                    EventType.withName(eventType),
+                    if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
+                    PUDPriority)
+            } { event =>
+                Some((
+                    event.calendar.stringify,
+                    event.timeRange,
+                    event.name,
+                    event.description,
+                    Some(event.rules),
+                    event.recurrenceMeta,
+                    event.nextRecurrence.map(id => id.stringify),
+                    event.eventType.toString(),
+                    event.PUDPriority,
+                    if(event.viewType.isDefined) {event.viewType.get.toString() == ViewType.PUDEvent} else {false}))
+            })
 }
