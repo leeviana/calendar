@@ -10,11 +10,6 @@ GET     /login                          controllers.Application.signIn
 GET		/addCalendar					controllers.Application.newCalendarForm
 POST	/addCalendar					controllers.Application.addCalendar
 
-# Authentication
-POST     /signUp                         controllers.Users.create
-POST     /signIn                         controllers.Authentication.signIn
-GET      /signOut                        controllers.Authentication.signOut
-
 # Users
 GET     /users                          controllers.Users.index
 
@@ -37,6 +32,7 @@ GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eve
 POST    /events/:eventID/edit           controllers.Events.editEvent(eventID)
 GET		/events/:eventID/delete			controllers.Events.confirmDelete(eventID)
 POST	/events/:eventID/delete			controllers.Events.deleteEvent(eventID)
+GET     /events/:eventID/completePUD    controllers.Events.completePUD(eventID)
 GET		/events/:eventID/:ruleID/deleteRule		controllers.Events.confirmDeleteRule(eventID, ruleID)
 POST	/events/:eventID/:ruleID/deleteRule		controllers.Events.deleteRule(eventID, ruleID)
 GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ruleID, dir)
@@ -46,7 +42,7 @@ POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(
 
 # Authentication
 POST     /signUp                         controllers.Users.create
-POST     /signIn                         controllers.Events.index(eventType = "Fixed")
+POST     /signIn                         controllers.Authentication.signIn
 GET      /signOut                        controllers.Authentication.signOut
 
 # Map static resources from the /public folder to the /assets URL path

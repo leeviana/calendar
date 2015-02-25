@@ -39,5 +39,8 @@ object WeekMeta {
 
         timestamps.toList
     }
-    val timeDifference = Period.weeks(1).getMillis
+    
+    def generateNext(start: DateTime): DateTime = {
+        start.plusWeeks(1)
+    }
 }

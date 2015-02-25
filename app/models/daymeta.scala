@@ -8,6 +8,7 @@ import play.api.data.Forms.mapping
 import play.api.data.Forms.number
 import play.api.libs.json.Json
 import org.joda.time.Period
+import org.joda.time.Duration
 
 /**
  * @author Leevi
@@ -36,5 +37,7 @@ object DayMeta {
         timestamps.toList
     }
     
-    val timeDifference = Period.days(1).getMillis
+    def generateNext(start: DateTime): DateTime = {
+        start.plusDays(1)
+    }
 }
