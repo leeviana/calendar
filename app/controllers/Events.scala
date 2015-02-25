@@ -577,7 +577,6 @@ object Events extends Controller with MongoController {
      * Creates a creation request for an event with user friendly parameters
      */
     def createUserCreationRequest = Action.async { implicit request =>
-
         val requestMap = (request.body.asFormUrlEncoded)
         val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
         val userEmail = requestMap.get.get("userEmail").get.head
@@ -588,6 +587,22 @@ object Events extends Controller with MongoController {
             }
             Redirect(routes.Events.showEvent(eventID.stringify))
         }
+    }
+    
+    /**
+     * Creates a creation request for an event with user friendly parameters for an entire group
+     */
+    def createGroupCreationRequest = Action.async { implicit request =>
+        val requestMap = (request.body.asFormUrlEncoded)
+        val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
+        val groupID = requestMap.get.get("groupID").get.head
+
+//        UserDAO.findOne("email" $eq userEmail).map { user =>
+//            if (user.isDefined) {
+//                createCreationRequest(eventID, user.get.subscriptions.head)
+//            }
+//            Redirect(routes.Events.showEvent(eventID.stringify))
+//        }
     }
 
     /**
