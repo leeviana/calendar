@@ -104,6 +104,9 @@ object Events extends Controller with MongoController {
                 newEvent = event.copy(accessType = Some(AccessType.Modify))
 
             else {
+                if(event.viewType == ViewType.PUDEvent.toString()){
+                    newEvent = event.copy(accessType = Some(AccessType.SeePUD))
+                }
                 val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
 
                 var found = false
@@ -625,9 +628,9 @@ object Events extends Controller with MongoController {
     def createGroupCreationRequest = Action.async { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)
         val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
-        val groupID = requestMap.get.get("groupID").get.head
+        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
 
-        GroupDAO.findById(BSONObjectID(groupID)).map { group =>
+        GroupDAO.findById(groupID).map { group =>
             if (group.isDefined) {
                 group.get.userIDs.foreach { userID =>
                     UserDAO.findById(userID).map { user => 

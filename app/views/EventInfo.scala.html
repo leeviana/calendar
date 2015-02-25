@@ -97,7 +97,7 @@
 			<div class="col-sm-5">
     			<select name="groupID" class="form-control" style="width:250px"> 
 					@for(element <- groups){
-			       		<option value='@element._id'> @element.name </option>
+			       		<option value='@element._id.stringify'> @element.name </option>
 			        }  
 			</select>
 		</div>  
