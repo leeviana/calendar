@@ -78,12 +78,10 @@ object Events extends Controller with MongoController {
                     val sort = Json.obj("timeRange.startDate" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
+                        updatePUD(accessEvents)
                         Ok(views.html.events(accessEvents, eventType))
                     }
                 }
-
-                //call update PUD
-
             }
 
         } else {
@@ -141,8 +139,13 @@ object Events extends Controller with MongoController {
                 EventDAO.findAll(query, sort).map { PUDlist =>
                     val PUD = PUDlist.head
                     val newEvent = event.copy(name = PUD.name, description = PUD.description)
+                    EventDAO.save(event)
+                    //EventDAO.remove(event)
+                    //EventDAO.insert(newEvent)
+                    //EventDAO.updateById(BSONObjectID.apply(event._id))
+                    //EventDAO.updateById(event._id, "name" = PUD.name, description = PUD.description)
                 }
-            }
+            } 
         }
     }
 
