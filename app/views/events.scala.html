@@ -8,11 +8,13 @@
         
 <div class="container">
 	<div class="row">
-		<div class="col-md-9">
+		<div class="col-md-6">
 			<h1>Events</h1>
 		</div>
-		<div class="col-md-3">
+		<div class="col-md-6" align="right">
 			<br>
+			<a href="/events/Fixed" class="btn btn-info" role="button">Event View</a>
+			<a href="/events/PUD" class="btn btn-info" role="button">PUD View</a>
 			<a href="/events/new" class="btn btn-info" role="button">Add Event</a>
 			<a href="/addCalendar" class="btn btn-info" role="button">Add Calendar</a>
 		</div>
@@ -97,10 +99,10 @@
 		</thead>
 		@if(!events.isEmpty){
 		
-			@for(e <- events){
+			@for(e <- events.sortBy (event => event.PUDPriority)){
 				<tr>
 				 	<td>@e.PUDPriority</td>
-					<td>@e.timeRange.duration</td>
+					<td>@e.timeRange.duration.getStandardMinutes minutes</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
