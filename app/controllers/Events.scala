@@ -100,9 +100,13 @@ object Events extends Controller with MongoController {
             var newEvent = new Event()
 
             // user owns the event
-            if (user.subscriptions.contains(event.calendar))
+            if (user.subscriptions.contains(event.calendar)){
                 newEvent = event.copy(accessType = Some(AccessType.Modify))
-
+            }
+            //pudEvents should not by modifiable if you don't own it
+            else if(event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString){
+                newEvent = event.copy(accessType = Some(AccessType.BusyOnly))  
+            }
             else {
                 val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
 
@@ -135,28 +139,15 @@ object Events extends Controller with MongoController {
         var newEvent = event
       if (!event.viewType.isEmpty) {
         if (event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString) {
-          //val dur = Period.hours(2)
-          //val dur = event.timeRange.duration.get
-          //val dur = org.joda.time.Duration(event.timeRange.startTime, event.timeRange.endTime).toDuration
-          Console.println("PUDEvent")
-          ////val start = event.timeRange.start.getMillis
-          ////val end = event.timeRange.end.getOrElse(new DateTime).getMillis
-          //val startHours = event.timeRange.startTime.get
-          ////Console.println("start time = " + start + "; end time = " + end)
-          ////val dur = end - start
           val dur = event.timeRange.duration.getMillis
-          Console.println("duration of PUD Event = " + dur)
-          //- event.timeRange.endTime.get
-          //need real duration
           val query = Json.obj(
             "$and" -> Json.arr(
               Json.obj("eventType" -> "PUD"),
+              Json.obj("timeRange.start" -> Json.obj(
+                  "$lte" -> DateTime.now())),
               Json.obj("timeRange.duration" -> Json.obj(
                 "$lte" -> dur))))
-          //val query = Json.obj("eventType" -> "PUD")
-          //val query = Json.obj("timeRange.duration" -> Json.obj("$lte" -> dur))
           val sort = Json.obj("PUDPriority" -> 1)
-          Console.println("made query")
           var temp: List[models.Event] = List()
 
           val future = EventDAO.findAll(query, sort).map { PUDlist =>
@@ -164,29 +155,20 @@ object Events extends Controller with MongoController {
           }
 
           Await.ready(future, Duration(5000, MILLISECONDS))
-          //EventDAO.findAll(query, sort).map { PUDlist =>
             
             if (!temp.isEmpty) {
               val PUD = temp.head
-              Console.println("PUD name = " + PUD.name)
               val newName = "PUD: " + PUD.name
-              Console.println(newName)
               newEvent = event.copy(name = newName, description = PUD.description)
-              //val future = EventDAO.save(newEvent)
-              //Await.ready(future, Duration(100000, MILLISECONDS))
+              val future = EventDAO.save(newEvent)
+              Await.ready(future, Duration(100000, MILLISECONDS))
           
-              //EventDAO.remove(event)
-              //EventDAO.insert(newEvent)
-              //EventDAO.updateById(BSONObjectID.apply(event._id))
-              //EventDAO.updateById(event._id, "name" = PUD.name, description = PUD.description)
             } else {
-              newEvent = event.copy(name = "No PUD fits in this PUDEvent")
-              //val future = EventDAO.save(newEvent)
-              //Await.ready(future, Duration(5000, MILLISECONDS))
-          
-              Console.println("no PUD fits")
+              newEvent = event.copy(name = "No PUD is available")
+              val future = EventDAO.save(newEvent)
+              Await.ready(future, Duration(5000, MILLISECONDS))
+
             }
-          //}
         }
       }
       newEvent
