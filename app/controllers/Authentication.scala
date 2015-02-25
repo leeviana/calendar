@@ -9,6 +9,7 @@ import scala.util.Random
 import org.mindrot.jbcrypt.BCrypt
 
 import apputils.UserDAO
+import apputils.AuthInfoDAO
 import models.AuthInfo
 import play.api.mvc.Action
 import play.api.mvc.Controller
@@ -41,26 +42,27 @@ object Authentication extends Controller with MongoController {
         var pwHash = ""
         val irrelevant2 = UserDAO.findOne("email" $eq email).map { users =>
             users.map { user =>
-                userID = user._id.stringify
+//                userID = user._id.stringify
+//
+//                val query = BSONDocument(
+//                    "$query" -> BSONDocument(
+//                        "userID" -> BSONObjectID.apply(userID)))
 
-                val query = BSONDocument(
-                    "$query" -> BSONDocument(
-                        "userID" -> BSONObjectID.apply(userID)))
-
-                val cursor = collection.find(query).cursor[AuthInfo]
-                val irrelevant = cursor.collect[List]().map { authinfos =>
+                
+                //val cursor = collection.find(query).cursor[AuthInfo]
+                val future = AuthInfoDAO.findById(user._id).map { authinfos =>
                     authinfos.map { authinfo =>
                         pwHash = authinfo.passwordHash
                     }
                 }
-                Await.ready(irrelevant, Duration(5000, MILLISECONDS))
+                Await.ready(future, Duration(5000, MILLISECONDS))
             }
         }
         Await.ready(irrelevant2, Duration(5000, MILLISECONDS))
         if (BCrypt.checkpw(password, pwHash)) {
             val random = new Random().nextString(15)
             val updatedAuthData = AuthInfo(_id = BSONObjectID.generate, userID = BSONObjectID.apply(userID), lastAuthToken = random, passwordHash = pwHash)
-            collection.insert(updatedAuthData)
+            AuthInfoDAO.insert(updatedAuthData)
             Ok(views.html.index()).withSession(
                 request.session + ("authToken" -> random) + ("userID" -> userID))
         } else {

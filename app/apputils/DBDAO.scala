@@ -72,3 +72,5 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
             throw new Exception("Database incongruity: User ID not found")
     }
 }
+
+object AuthInfoDAO extends JsonDao[AuthInfo, BSONObjectID](MongoContext.db, "authstate")

@@ -10,6 +10,8 @@ import play.api.mvc.RequestHeader
 import reactivemongo.api.MongoDriver
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson._
+import reactivemongo.extensions.json.dsl.JsonDsl._
+import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 
 case class AuthStateDAO()
 
@@ -30,21 +32,17 @@ object AuthStateDAO {
             return output
         }
 
-        val driver = new MongoDriver
-        val connection = driver.connection(List(Constants.DBLocation))
-        val db = connection("caldb")
-        val collection = db[BSONCollection]("authstate")
-
         val objectID = BSONObjectID.apply(sessionUserID)
 
-        val cursor = collection.find(BSONDocument("userID" -> objectID)).cursor[AuthInfo]
+        
         var temp = false
-        val irrelevant = cursor.collect[List]().map { authinfos =>
+        
+        val future = AuthInfoDAO.findOne("userID" $eq objectID).map { authinfos =>
             authinfos.map { authinfo =>
                 temp = (authinfo.lastAuthToken == sessionAuthToken)
             }
         }
-        Await.ready(irrelevant, Duration(5000, MILLISECONDS))
+        Await.ready(future, Duration(5000, MILLISECONDS))
         return temp
     }
 
