@@ -34,6 +34,7 @@ case class TimeRange(
 object TimeRange {
     implicit val TimeRangeFormat = Json.format[TimeRange]
 
+    // TODO: temp workaround for time zone
     val form = Form(
         mapping(
             "allday" -> boolean,
@@ -44,8 +45,8 @@ object TimeRange {
             "duration" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, duration) =>
                 TimeRange(
                     allday,
-                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime()).getMillis)} else {DateTime.now()},
-                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime()).getMillis))} else {None},
+                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime()).getMillis).minusHours(5)} else {DateTime.now()},
+                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime()).getMillis).minusHours(5))} else {None},
                     if (duration.isDefined) {new Duration(duration.get*Duration.standardMinutes(1).getMillis) } else if (startDate.isDefined) {Duration.standardDays(1)} else {Duration.ZERO}
             )} { timerange =>
                 Some(

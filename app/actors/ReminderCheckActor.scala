@@ -26,12 +26,13 @@ class ReminderCheckActor extends Actor {
 			
 			val query = Json.obj(
         "timestamp.start" -> Json.obj("$lte" -> new DateTime(rightNow.getMillis())), // reminder occurs before now
-				"timestamp.startTime" -> Json.obj("$gte" -> new DateTime(rightNow.minusMinutes(1).getMillis())) // reminder occurs no earlier than in the last 10 minutes
+				"timestamp.startTime" -> Json.obj("$gte" -> new DateTime(rightNow.minusMinutes(1).getMillis())) // reminder occurs no earlier than 1 minute ago
       )
 			
 			val tempFuture = ReminderDAO.findAll(query).map { reminders =>
 				for (reminder <- reminders) {
 					if (isValid(reminder)) {
+             handleRecurrence(reminder)
 //						ReminderDAO.findAndUpdate(BSONDocument("_id" -> BSONObjectID.apply(reminder._id.stringify)),BSONDocument("$set" -> BSONDocument("hasSent" -> true )))
 						emailActor ! reminder
 					}
@@ -50,11 +51,15 @@ class ReminderCheckActor extends Actor {
 		val rightNow = new DateTime()
 		val start = event.get.timeRange.start
 		
-		if ( rightNow.getMillis > start.getMillis) { 
+		if ( rightNow.minusMinutes(1).getMillis < start.getMillis) { 
 			// Event has already started as of 1 minute ago
 			return false
 		} else {
 			return true
 		}
 	}
+ 
+ def handleRecurrence(reminder: Reminder) = {
+   
+ }
 }

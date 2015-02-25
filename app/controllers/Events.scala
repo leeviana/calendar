@@ -54,11 +54,15 @@ object Events extends Controller with MongoController {
                 }
                 Await.ready(futureGroups, Duration(5000, MILLISECONDS))
 
+                // filter based on start time
+                var timeQuery = Json.obj("timeRange.start" $gte DateTime.now())
+                if(eventType == EventType.PUD.toString())
+                    timeQuery = Json.obj("timeRange.start" $lte DateTime.now())
+                    
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
                         Json.obj("eventType" -> eventType),
-                        //TODO: date after a certain time
-
+                        timeQuery,
                         Json.obj("$or" -> Json.arr(
                             Json.obj(
                                 "calendar" -> Json.obj(
@@ -71,7 +75,7 @@ object Events extends Controller with MongoController {
 
                 if (eventType == EventType.PUD) {
                     val sort = Json.obj("PUDPriority" -> 1)
-
+                    
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
                         Ok(views.html.events(accessEvents, eventType))
@@ -360,28 +364,29 @@ object Events extends Controller with MongoController {
 
     /**
      * Deletes a PUD and possibly creates another recurring PUD
-     * TODO: Untested
      */
     def completePUD(PUDID: String) = Action { implicit request =>
         val objectID = BSONObjectID.apply(PUDID)
         EventDAO.findById(objectID).map(event =>
             if (event.isDefined) {
                 if (event.get.recurrenceMeta.isDefined) {
+                    
                     val recType = event.get.recurrenceMeta.get.recurrenceType
+           
                     if (recType.compare(RecurrenceType.Daily) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(DayMeta.timeDifference))))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Weekly) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(WeekMeta.timeDifference))))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = WeekMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Monthly) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(MonthMeta.timeDifference))))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = MonthMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Yearly) == 0) {
-                        val newEvent = event.get.copy(timeRange = new TimeRange(start = new DateTime(DateTime.now().plus(YearMeta.timeDifference))))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
                         EventDAO.insert(newEvent)
                     }
                 }
@@ -405,13 +410,10 @@ object Events extends Controller with MongoController {
 
         EventDAO.findAndRemove("_id" $eq objectID).map { oldEvent =>
             // Check for any associated creation request and update those
-            println("removing an event")
             if (oldEvent.get.master.isDefined) {
-                println("should be a creation request, master " + oldEvent.get.master)
                 val query = $and("master" $eq oldEvent.get.master.get, "eventID" $eq oldEvent.get._id)
 
                 EventDAO.findById(oldEvent.get.master.get).map { master =>
-                    println("Found master in calendar " + oldEvent.get.calendar)
                     // if you are the owner of the master event also
                     if (master.get.calendar == oldEvent.get.calendar)
                         CreationRequestDAO.remove(query)
@@ -620,12 +622,15 @@ object Events extends Controller with MongoController {
         val groupID = requestMap.get.get("groupID").get.head
 
         GroupDAO.findById(BSONObjectID(groupID)).map { group =>
-//            if (user.isDefined) {
-//                createCreationRequest(eventID, user.get.subscriptions.head)
-//            }
+            if (group.isDefined) {
+                group.get.userIDs.foreach { userID =>
+                    UserDAO.findById(userID).map { user => 
+                        createCreationRequest(eventID, user.get.subscriptions.head)
+                    }
+                }
+            }
             Redirect(routes.Events.showEvent(eventID.stringify))
         }
-        
     }
 
     /**
@@ -671,7 +676,7 @@ object Events extends Controller with MongoController {
                     Await.ready(future, Duration(5000, MILLISECONDS))
 
                     if (newStatus == CreationRequestStatus.Confirmed.toString) {
-                        val newMaster = event.get.copy(_id = master.get._id, master = None)
+                        val newMaster = event.get.copy(_id = master.get._id, master = None, viewType = Some(ViewType.Confirmed))
                         val future = EventDAO.save(newMaster)
 
                         Await.ready(future, Duration(5000, MILLISECONDS))
