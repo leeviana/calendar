@@ -597,12 +597,13 @@ object Events extends Controller with MongoController {
         val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
         val groupID = requestMap.get.get("groupID").get.head
 
-//        UserDAO.findOne("email" $eq userEmail).map { user =>
+        GroupDAO.findById(BSONObjectID(groupID)).map { group =>
 //            if (user.isDefined) {
 //                createCreationRequest(eventID, user.get.subscriptions.head)
 //            }
-//            Redirect(routes.Events.showEvent(eventID.stringify))
-//        }
+            Redirect(routes.Events.showEvent(eventID.stringify))
+        }
+        
     }
 
     /**
