@@ -10,11 +10,6 @@ GET     /login                          controllers.Application.signIn
 GET		/addCalendar					controllers.Application.newCalendarForm
 POST	/addCalendar					controllers.Application.addCalendar
 
-# Authentication
-POST     /signUp                         controllers.Users.create
-POST     /signIn                         controllers.Authentication.signIn
-GET      /signOut                        controllers.Authentication.signOut
-
 # Users
 GET     /users                          controllers.Users.index
 
@@ -30,6 +25,7 @@ GET     /events/reminders               controllers.Events.showReminders
 GET     /events/new                     controllers.Events.showCreationForm
 POST    /events/new                     controllers.Events.create
 GET     /events/info/:eventID           controllers.Events.showEvent(eventID)
+GET		/events/events/info/:eventID			controllers.Events.showEvent(eventID)
 POST    /events/addreminder/:eventID    controllers.Events.addReminder(eventID)
 POST    /events/addrule/:eventID        controllers.Events.addRule(eventID)
 GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eventID)
@@ -42,6 +38,11 @@ GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ru
 GET     /events/:eventType              controllers.Events.index(eventType)
 POST	/events/createUserCreationRequest		controllers.Events.createUserCreationRequest
 POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(eventID, status)
+
+# Authentication
+POST     /signUp                         controllers.Users.create
+POST     /signIn                         controllers.Events.index(eventType = "Fixed")
+GET      /signOut                        controllers.Authentication.signOut
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.at(path="/public", file)

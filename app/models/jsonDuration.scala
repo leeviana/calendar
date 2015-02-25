@@ -6,6 +6,8 @@ import play.api.libs.json.Format
 import play.api.libs.json.JsNumber
 import play.api.libs.json.JsSuccess
 import play.api.libs.json.JsValue
+import scala.math.BigDecimal
+import scala.math.BigInt
 
 /**
  * @author Leevi
@@ -14,7 +16,7 @@ import play.api.libs.json.JsValue
 object JsonDuration {
     implicit val DurationFormat = new Format[Duration] {
       // TODO: Make this better
-        def reads(json: JsValue) = JsSuccess(new Duration(json.toString().substring(0, json.toString().length-2).toInt))
+        def reads(json: JsValue) = JsSuccess(new Duration((json).as[Long]))
         def writes(duration: Duration) = JsNumber(duration.getMillis)
     }
 }
