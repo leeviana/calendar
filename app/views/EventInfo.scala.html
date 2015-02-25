@@ -30,8 +30,7 @@
 		}
 			
 		<legend>Add Reminder</legend>
-		@helper.form(action = routes.Events.addReminder(event._id.stringify),
-		'class -> "form-horizontal") { 
+		@helper.form(action = routes.Events.addReminder(event._id.stringify),'class -> "form-horizontal") { 
 		
 		<!-- Event ID (Auto-filled) -->
 		<input type="text"
@@ -275,11 +274,11 @@
         	List("User", "Group"))
         
 	   <div class="form-group">
-			<label class="col-sm-2 control-label">Invite a User</label>
+			<label class="col-sm-2 control-label">Add a User</label>
 				<div class="col-sm-5">
 	    			<select name='@ruleForm("entityID").id' class="form-control" style="width:250px"> 
 						@for(element <- users){
-				       		<option value='@element._id.stringify'> @element.email.stringify </option>
+				       		<option value='@element._id.stringify'> @element.email </option>
 				        }  
 				</select>
 			</div>  
