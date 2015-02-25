@@ -17,6 +17,9 @@
 	<div class="span8">
 		@if(event.eventType.toString == models.enums.EventType.Fixed.toString){
 			<h2>Event Information: @event.name</h2>
+			@if(event.viewType.isDefined && event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString){
+				<h3>*This event is populated with a PUD*</h3>
+			}
 
 			<h3>@event.timeRange.start.toString("MMM-dd-yyyy") @event.timeRange.start.toString("hh:mm a")
             @if(event.timeRange.duration.getMillis < Duration.standardDays(1).getMillis & event.timeRange.end.isDefined){
@@ -25,8 +28,11 @@
             
 			<p>Description: @event.description</p>
 			<p>Calendar: @CalendarDAO.getCalendarFromID(event.calendar).name</p>
+			
 		}else{
 			<h2>PUD Information: @event.name</h2>
+			<p> Duration: @event.timeRange.duration.getStandardMinutes minutes</p>
+			<p> Priority: @event.PUDPriority</p>
 		}
 			
 		<legend>Add Reminder</legend>
@@ -39,12 +45,14 @@
 			value='@event._id.stringify' 
 			placeholder='@event._id.stringify'
 			style="visibility: hidden" />
-
+			
+		@if(!(event.eventType.toString == models.enums.EventType.PUD.toString)){
 		<!-- Date -->
 		@viewComponents.html.datepicker(reminderForm("timestamp.startDate"), label = "Date")
 
 		<!-- Start Time -->
 		@viewComponents.html.timepicker(reminderForm("timestamp.startTime"), label = "Start Time")
+		}
 
 		<!--  User ID (Auto-filled) -->
 		<input type="text" 
@@ -62,72 +70,65 @@
 			style="visibility: hidden" /> 
 			
 		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
-		
+			@viewComponents.html.number(reminderForm("recurrenceMeta.timeRange.duration"),
+				label = "Duration")
+			
 			@viewComponents.html.dropdown(reminderForm("recurrenceMeta.recurrenceType"),
 	    		label = "Recurrence Type",
 	        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
 	       
-	       	@viewComponents.html.number(reminderForm("recurrenceMeta.daily"), 
+	       	@viewComponents.html.number(reminderForm("recurrenceMeta.daily.numberOfDays"), 
 	       		label = "Days",
-	       		help = "Reminder will recur after this many days")
+	       		help = "Reminder will recur for many days")
 	       		
-	       	@viewComponents.html.number(reminderForm("recurrenceMeta.weekly"), 
+	       	@viewComponents.html.number(reminderForm("recurrenceMeta.weekly.numberOfWeeks"), 
 	       		label = "Day",
-	       		help = "Day of the Week you want this PUD to recur on")
+	       		help = "Reminder will recur for how many weeks")
 	       	
-	       	@viewComponents.html.number(reminderForm("recurrenceMeta.monthly"), 
+	       	@viewComponents.html.number(reminderForm("recurrenceMeta.monthly.numberOfMonths"), 
 	       		label = "Days",
-	       		help = "Reminder will recur after this many months")
+	       		help = "Reminder will recur for how many months")
 	       
-	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.month"), 
+	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.numberOfYears"), 
 	       		label = "Month",
-	       		help = "Which month you want the reminder to recur on (1-12)")
-	       		
-	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.day"), 
-	       		label = "Day",
-	       		help = "Which day you want the reminder to recur on")
+	       		help = "Reminder will recur for how many years")
 	       	
 
 		<script type="text/javascript">
 			$(document).ready(function(){
-				$('#@reminderForm("recurrenceMeta.daily").id').hide();
-				$('#@reminderForm("recurrenceMeta.weekly").id').hide();
-				$('#@reminderForm("recurrenceMeta.monthly").id').hide();
-				$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();			
-				$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();			
+				$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
+				$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
+				$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').hide();
+				$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();				
 			});
 			
 	    	$(document).ready(function(){
 		    	$('#@(reminderForm("recurrenceMeta.recurrenceType").id+"s")').on('change', function() {   	     
 				      if (this.value == "Daily"){
-							$('#@reminderForm("recurrenceMeta.daily").id').show();
-							$('#@reminderForm("recurrenceMeta.weekly").id').hide();
+							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').show();
+							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
 							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();
 				      }
 				      if (this.value == "Weekly"){
-							$('#@reminderForm("recurrenceMeta.daily").id').hide();
-							$('#@reminderForm("recurrenceMeta.weekly").id').show();
-							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();	
+							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
+							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').show();
+							$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();
 				      }
 				      
-				      if (this.value == "Montly"){
-							$('#@reminderForm("recurrenceMeta.daily").id').hide();
-							$('#@reminderForm("recurrenceMeta.weekly").id').hide();
-							$('#@reminderForm("recurrenceMeta.monthly").id').show();
-							$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();				      
+				      if (this.value == "Monthly"){
+							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
+							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
+							$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').show();
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').hide();			      
 				      }
 				      
 				      if (this.value == "Yearly"){
-							$('#@reminderForm("recurrenceMeta.daily").id').hide();
-							$('#@reminderForm("recurrenceMeta.weekly").id').hide();
-							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
-							$('#@reminderForm("recurrenceMeta.yearly.month").id').show();
-							$('#@reminderForm("recurrenceMeta.yearly.day").id').show();				      
+							$('#@reminderForm("recurrenceMeta.daily.numberOfDays").id').hide();
+							$('#@reminderForm("recurrenceMeta.weekly.numberOfWeeks").id').hide();
+							$('#@reminderForm("recurrenceMeta.monthly.numberOfMonths").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.numberOfYears").id').show();			      
 				      }     
 		    });
 		});
@@ -144,7 +145,11 @@
 	}
     
     <br>
+
+     @if(!event.viewType.isDefined){
+   
     <legend>Invitations</legend>
+
     
     @helper.form(action = routes.Events.createUserCreationRequest, 'class -> "form-horizontal"){
     <input type="hidden" name="eventID" value='@event._id.stringify'>
@@ -169,6 +174,7 @@
 	<br>
 	<br>
 	
+
     @defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
     	@if(!groupList.isEmpty){
 			@helper.form(action = routes.Events.createGroupCreationRequest, 'class -> "form-horizontal"){
@@ -184,15 +190,19 @@
 				</div>  
 			</div> 
 
+
 	<br>
 	
 	<label class="col-sm-2 control-label"></label>
 			<div class="col-sm-5">		        				   
 				<input class="btn btn-primary" type="submit">
 			</div>
+}
+
 			}
 		}
 	}
+
 	</div>	 
 	<br>
 	<br>     			
