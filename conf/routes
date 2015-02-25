@@ -10,6 +10,11 @@ GET     /login                          controllers.Application.signIn
 GET		/addCalendar					controllers.Application.newCalendarForm
 POST	/addCalendar					controllers.Application.addCalendar
 
+# Authentication
+POST     /signUp                         controllers.Users.create
+POST     /signIn                         controllers.Authentication.signIn
+GET      /signOut                        controllers.Authentication.signOut
+
 # Users
 GET     /users                          controllers.Users.index
 
