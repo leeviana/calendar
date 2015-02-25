@@ -38,6 +38,7 @@ POST	/events/:eventID/:ruleID/deleteRule		controllers.Events.deleteRule(eventID,
 GET		/events/:eventID/:ruleID/move/:dir		controllers.Events.moveRule(eventID, ruleID, dir)
 GET     /events/:eventType              controllers.Events.index(eventType)
 POST	/events/createUserCreationRequest		controllers.Events.createUserCreationRequest
+POST	/events/createGroupCreationRequest		controllers.Events.createGroupCreationRequest
 POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(eventID, status)
 
 # Authentication

@@ -8,7 +8,7 @@ import play.api.libs.json.JsValue
 object AccessType extends Enumeration {
     type AccessType = Value
 
-    val Private, BusyOnly, SeeAll, Modify = Value
+    val Private, BusyOnly, SeeAll, Modify, SeePUD = Value
 
     implicit val AccessTypeFormat = new Format[AccessType] {
         def reads(json: JsValue) = JsSuccess(AccessType.withName(json.as[String]))

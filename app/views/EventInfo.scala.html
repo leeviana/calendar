@@ -2,7 +2,16 @@
 @import apputils.CreationRequestDAO
 @import apputils.UserDAO
 @import apputils.CalendarDAO
+@import apputils.GroupDAO
+@import apputils.AuthStateDAO
 @import org.joda.time.Duration
+
+
+@import reactivemongo.api.collections.default.BSONCollection
+@import reactivemongo.bson._
+@import reactivemongo.extensions.json.dsl.JsonDsl._
+@import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
+
 @main("Event Information"){
 <div class="row">
 	<div class="span8">
@@ -27,8 +36,7 @@
 		}
 			
 		<legend>Add Reminder</legend>
-		@helper.form(action = routes.Events.addReminder(event._id.stringify),
-		'class -> "form-horizontal") { 
+		@helper.form(action = routes.Events.addReminder(event._id.stringify),'class -> "form-horizontal") { 
 		
 		<!-- Event ID (Auto-filled) -->
 		<input type="text"
@@ -59,6 +67,79 @@
 			placeholder="Email" 
 			style="visibility: hidden" /> 
 			
+		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
+		
+			@viewComponents.html.dropdown(reminderForm("recurrenceMeta.recurrenceType"),
+	    		label = "Recurrence Type",
+	        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
+	       
+	       	@viewComponents.html.number(reminderForm("recurrenceMeta.daily"), 
+	       		label = "Days",
+	       		help = "Reminder will recur after this many days")
+	       		
+	       	@viewComponents.html.number(reminderForm("recurrenceMeta.weekly"), 
+	       		label = "Day",
+	       		help = "Day of the Week you want this PUD to recur on")
+	       	
+	       	@viewComponents.html.number(reminderForm("recurrenceMeta.monthly"), 
+	       		label = "Days",
+	       		help = "Reminder will recur after this many months")
+	       
+	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.month"), 
+	       		label = "Month",
+	       		help = "Which month you want the reminder to recur on (1-12)")
+	       		
+	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.day"), 
+	       		label = "Day",
+	       		help = "Which day you want the reminder to recur on")
+	       	
+
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$('#@reminderForm("recurrenceMeta.daily").id').hide();
+				$('#@reminderForm("recurrenceMeta.weekly").id').hide();
+				$('#@reminderForm("recurrenceMeta.monthly").id').hide();
+				$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();			
+				$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();			
+			});
+			
+	    	$(document).ready(function(){
+		    	$('#@(reminderForm("recurrenceMeta.recurrenceType").id+"s")').on('change', function() {   	     
+				      if (this.value == "Daily"){
+							$('#@reminderForm("recurrenceMeta.daily").id').show();
+							$('#@reminderForm("recurrenceMeta.weekly").id').hide();
+							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();
+				      }
+				      if (this.value == "Weekly"){
+							$('#@reminderForm("recurrenceMeta.daily").id').hide();
+							$('#@reminderForm("recurrenceMeta.weekly").id').show();
+							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();	
+				      }
+				      
+				      if (this.value == "Montly"){
+							$('#@reminderForm("recurrenceMeta.daily").id').hide();
+							$('#@reminderForm("recurrenceMeta.weekly").id').hide();
+							$('#@reminderForm("recurrenceMeta.monthly").id').show();
+							$('#@reminderForm("recurrenceMeta.yearly.month").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.day").id').hide();				      
+				      }
+				      
+				      if (this.value == "Yearly"){
+							$('#@reminderForm("recurrenceMeta.daily").id').hide();
+							$('#@reminderForm("recurrenceMeta.weekly").id').hide();
+							$('#@reminderForm("recurrenceMeta.monthly").id').hide();
+							$('#@reminderForm("recurrenceMeta.yearly.month").id').show();
+							$('#@reminderForm("recurrenceMeta.yearly.day").id').show();				      
+				      }     
+		    });
+		});
+	    </script>
+		} 
+		
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">
@@ -66,19 +147,19 @@
 			</div>
 		</div>
 		
-	
-
 	}
     
     <br>
+
      @if(!event.viewType.isDefined){
    
-    <legend>Sharing</legend>
+    <legend>Invitations</legend>
+
     
     @helper.form(action = routes.Events.createUserCreationRequest, 'class -> "form-horizontal"){
     <input type="hidden" name="eventID" value='@event._id.stringify'>
     <div class="form-group">
-		<label class="col-sm-2 control-label">User</label>
+		<label class="col-sm-2 control-label">Invite a User</label>
 			<div class="col-sm-5">
     			<select name="userEmail" class="form-control" style="width:250px"> 
 					@for(element <- users){
@@ -86,23 +167,53 @@
 			        }  
 			</select>
 		</div>  
-	</div> 
+	</div> 	
+	<br>	
+	<label class="col-sm-2 control-label"></label>
+			<div class="col-sm-5">		        				   
+				<input class="btn btn-primary" type="submit">
+			</div>
+	}	
 	
+	<br>
+	<br>
+	<br>
 	
+
+    @defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+    	@if(!groupList.isEmpty){
+			@helper.form(action = routes.Events.createGroupCreationRequest, 'class -> "form-horizontal"){
+			<input type="hidden" name="eventID" value='@event._id.stringify'>
+		    <div class="form-group">
+				<label class="col-sm-2 control-label">Invite a Group</label>
+					<div class="col-sm-5">
+		    			<select name="groupID" class="form-control" style="width:250px"> 
+							@for(element <- groupList){
+					       		<option value='@element._id.stringify'> @element.name </option>
+					        }  
+					</select>
+				</div>  
+			</div> 
+
+
 	<br>
 	
 	<label class="col-sm-2 control-label"></label>
 			<div class="col-sm-5">		        				   
 				<input class="btn btn-primary" type="submit">
 			</div>
-	}	
+}
+
+			}
+		}
 	}
-	
+
 	</div>	 
 	<br>
 	<br>     			
+    	
     @defining(CreationRequestDAO.getCreationRequestsFromMaster(event._id)){ requestList =>
-    	@if(!requestList.isEmpty){
+    @if(!requestList.isEmpty){
     <div class="container">
     	<table class="table">
     		<thead>
@@ -124,7 +235,7 @@
     </div>
     }
     
-    <legend>Rules</legend><br>
+    <legend>Sharing</legend><br>
     <div class="container">
     	<table class="table">
     		<thead>
@@ -177,13 +288,25 @@
         	label = "Rule Type",
         	List("User", "Group"))
         
-        @viewComponents.html.text(ruleForm("entityID"), 
-       		label = "Entity ID",
-       		placeholder = "placeholder")
-        
+	   <div class="form-group">
+			<label class="col-sm-2 control-label">Add a User</label>
+				<div class="col-sm-5">
+	    			<select name='@ruleForm("entityID").id' class="form-control" style="width:250px"> 
+						@for(element <- users){
+				       		<option value='@element._id.stringify'> @element.email </option>
+				        }  
+				</select>
+			</div>  
+		</div> 	
+		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
+			@viewComponents.html.dropdown(ruleForm("accessType"),
+        	label = "Access Type",
+        	List("BusyOnly"))
+		} else{    
         @viewComponents.html.dropdown(ruleForm("accessType"),
         	label = "Access Type",
         	List("BusyOnly", "SeeAll", "Modify"))
+        }
         
        	<label class="col-sm-2"></label>
 		<div class="col-sm-5">

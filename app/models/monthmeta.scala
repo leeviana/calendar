@@ -6,6 +6,7 @@ import models.enums.RecurrenceType
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.data.Forms.number
+import play.api.data.Forms.optional
 import play.api.libs.json.Json
 import org.joda.time.Duration
 import org.joda.time.Interval
@@ -15,7 +16,8 @@ import org.joda.time.Period
  * @author Leevi
  */
 case class MonthMeta(
-    monthDay: Int) {
+    monthDay: Option[Int],
+    numberOfMonths: Option[Int]) {
     var recurrenceType = RecurrenceType.Monthly
 }
 
@@ -24,7 +26,8 @@ object MonthMeta {
 
     val form = Form(
         mapping(
-            "monthDay" -> number)(MonthMeta.apply)(MonthMeta.unapply))
+            "monthDay" -> optional(number),
+            "numberOfMonths" -> optional(number))(MonthMeta.apply)(MonthMeta.unapply))
 
     /**
      * Returns list of Longs, which represent the amount of time between the start and end dates

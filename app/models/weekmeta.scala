@@ -6,6 +6,7 @@ import models.enums.RecurrenceType
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.data.Forms.number
+import play.api.data.Forms.optional
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 import org.joda.time.Period
@@ -14,7 +15,8 @@ import org.joda.time.Period
  * @author Leevi
  */
 case class WeekMeta(
-    dayNumber: Int // Array of Integers representing days of the week. 0 is Sunday. Alternative: use Java's calendar object?
+    dayNumber: Option[Int], // integer representing days of the week. 0 is Sunday. Alternative: use another object?
+    numberOfWeeks: Option[Int]
     ) {
     var recurrenceType = RecurrenceType.Weekly
 }
@@ -26,7 +28,8 @@ object WeekMeta {
 
     val form = Form(
         mapping(
-            "dayNumber" -> number)(WeekMeta.apply)(WeekMeta.unapply))
+            "dayNumber" -> optional(number),
+            "numberOfWeeks" -> optional(number))(WeekMeta.apply)(WeekMeta.unapply))
 
     def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
         var current = start.plusWeeks(1)

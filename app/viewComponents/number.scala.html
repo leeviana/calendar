@@ -8,7 +8,7 @@
              	name="@field.name" 
              	value="@field.value.getOrElse("")"
              	min="1" 
-             	max="1440"/>
+             	max="1440000"/>
       		<span class="help-block">@help</span>
       		<span class="help-block">@{field.error.map { error => error.message }}</span>
     	</div>

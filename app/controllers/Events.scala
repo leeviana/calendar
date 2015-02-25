@@ -108,25 +108,30 @@ object Events extends Controller with MongoController {
                 newEvent = event.copy(accessType = Some(AccessType.BusyOnly))  
             }
             else {
-                val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
-
-                var found = false
-
-                while (!found) {
-                    if (ruleIterator.hasNext) {
-                        var rule = ruleIterator.next()
-
-                        if (rule.entityType == EntityType.User & rule.entityID == user._id) {
-                            newEvent = event.copy(accessType = Some(rule.accessType))
-                            found = true
-                        } else if (rule.entityType == EntityType.User & groupIDs.contains(rule.entityID)) {
-                            newEvent = event.copy(accessType = Some(rule.accessType))
+                if(event.viewType == ViewType.PUDEvent.toString()){
+                    newEvent = event.copy(accessType = Some(AccessType.SeePUD))
+                }
+                else {
+                    val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
+    
+                    var found = false
+    
+                    while (!found) {
+                        if (ruleIterator.hasNext) {
+                            var rule = ruleIterator.next()
+    
+                            if (rule.entityType == EntityType.User & rule.entityID == user._id) {
+                                newEvent = event.copy(accessType = Some(rule.accessType))
+                                found = true
+                            } else if (rule.entityType == EntityType.User & groupIDs.contains(rule.entityID)) {
+                                newEvent = event.copy(accessType = Some(rule.accessType))
+                                found = true
+                            }
+                        } else {
+                            // should never happen?
+                            newEvent = event.copy(accessType = Some(AccessType.Private))
                             found = true
                         }
-                    } else {
-                        // should never happen?
-                        newEvent = event.copy(accessType = Some(AccessType.Private))
-                        found = true
                     }
                 }
             }
@@ -301,7 +306,6 @@ object Events extends Controller with MongoController {
      */
     def editEvent(eventID: String) = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
-        println("Edit event is called")
         UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
             var calMap: Map[String, String] = Map()
 
@@ -310,15 +314,12 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> cal.get.name)
                 }
             }
-            println("User found, map made")
-        
+          
             EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
                 Event.form.bindFromRequest.fold(
                     errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
 
                     event => {
-                        println("No errors")
-        
                         if (!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
                             val newEvent = event.copy(_id = BSONObjectID(eventID))
                             EventDAO.save(newEvent)
@@ -423,17 +424,17 @@ object Events extends Controller with MongoController {
      */
     def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var temp: List[models.User] = List()
+        var userList: List[models.User] = List()
 
         val future = UserDAO.findAll().map { users =>
-            temp = users;
+            userList = users;
         }
 
         Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             if (event.isDefined)
-                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, temp))
+                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, userList))
             else
                 throw new Exception("Database incongruity: Event ID not found")
         }
@@ -444,15 +445,17 @@ object Events extends Controller with MongoController {
      */
     def addReminder(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var temp: List[models.User] = List()
+         var userList: List[models.User] = List()
 
         val future = UserDAO.findAll().map { users =>
-            temp = users;
+            userList = users;
         }
+        
+        Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Reminder.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, temp)),
+                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList)),
 
                 reminder => {
                     ReminderDAO.insert(reminder)
@@ -468,15 +471,17 @@ object Events extends Controller with MongoController {
      */
     def addRule(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var temp: List[models.User] = List()
+        var userList: List[models.User] = List()
 
         val future = UserDAO.findAll().map { users =>
-            temp = users;
+            userList = users;
         }
+        
+        Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, temp)),
+                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, userList)),
 
                 rule => {
                     EventDAO.updateById(objectID, $push("rules", rule))
@@ -579,9 +584,9 @@ object Events extends Controller with MongoController {
     def createGroupCreationRequest = Action.async { implicit request =>
         val requestMap = (request.body.asFormUrlEncoded)
         val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
-        val groupID = requestMap.get.get("groupID").get.head
+        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
 
-        GroupDAO.findById(BSONObjectID(groupID)).map { group =>
+        GroupDAO.findById(groupID).map { group =>
             if (group.isDefined) {
                 group.get.userIDs.foreach { userID =>
                     UserDAO.findById(userID).map { user => 
@@ -598,10 +603,19 @@ object Events extends Controller with MongoController {
      */
     def createCreationRequest(eventID: BSONObjectID, calendar: BSONObjectID) = {
         EventDAO.findById(eventID).map { event =>
-            val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
-            val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
-            EventDAO.insert(newEvent)
-            CreationRequestDAO.insert(creationRequest)
+            
+            // else you're the master, don't do anything
+            if(event.get.calendar != calendar) {    
+                // remove old events and creation requests
+                EventDAO.findAndRemove(($and("master" $eq Some(eventID), "calendar" $eq calendar))).map { event => 
+                    CreationRequestDAO.remove("eventID" $eq event.get._id)
+                }
+                
+                val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
+                val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
+                EventDAO.insert(newEvent)
+                CreationRequestDAO.insert(creationRequest)
+            }
         }
     }
 

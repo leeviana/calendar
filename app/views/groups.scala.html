@@ -45,12 +45,8 @@
 						<td>
 							@helper.form(action = routes.Groups.addUsertoGroup, 'class -> "form-horizontal") {
                     			<input type="hidden" name="groupID" value='@g._id.stringify' >			        
-			        			<div>
-			        			<select name="userEmail" class="form-control" style="width:250px"> 
-			        				@for(element <- users){
-			        					<option value='@element.email'> @element.email </option>
-			        				}  
-			        				</select></div>      
+								@viewComponents.html.userDropdown(users)
+			        				   
 			            			<input class="btn btn-primary" type="submit">
 			            			
 		       				 }
