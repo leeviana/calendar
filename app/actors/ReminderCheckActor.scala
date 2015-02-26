@@ -68,7 +68,10 @@ class ReminderCheckActor extends Actor {
    return output
 	}
  
-    // TODO: refactor when recurrence is refactored
+    /**
+     * Takes a reminder that has been sent and creates the recurring reminder based on recurrence information
+     * TODO: refactor when recurrence is refactored
+     */
     def handleRecurrence(reminder: Reminder) = {
         if(reminder.recurrenceMeta.isDefined) {
             val recType = reminder.recurrenceMeta.get.recurrenceType
