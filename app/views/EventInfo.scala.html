@@ -316,12 +316,23 @@
         	List("User", "Group"))
         
 	   <div class="form-group">
-			<label class="col-sm-2 control-label">Add a User</label>
+			<label class="col-sm-2 control-label">Add an Entity</label>
 				<div class="col-sm-5">
 	    			<select name='@ruleForm("entityID").id' class="form-control" style="width:250px"> 
+	    			    <optgroup label="Users">
 						@for(element <- users){
 				       		<option value='@element._id.stringify'> @element.email </option>
-				        }  
+				        }
+				        </optgroup>
+				        @defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+    						@if(!groupList.isEmpty){  
+    						<optgroup label="Groups">
+    							@for(group <- groupList){
+    								<option value='@group._id.stringify'> @group.name </option>
+    							}
+    						</optgroup>
+    						}
+    					}
 				</select>
 			</div>  
 		</div> 	
