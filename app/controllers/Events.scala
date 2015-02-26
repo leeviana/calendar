@@ -352,18 +352,22 @@ object Events extends Controller with MongoController {
                     
                     if (recType.compare(RecurrenceType.Daily) == 0) {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Weekly) == 0) {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = WeekMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Monthly) == 0) {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = MonthMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Yearly) == 0) {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     
