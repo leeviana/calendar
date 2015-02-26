@@ -43,7 +43,7 @@ object WeekMeta {
         timestamps.toList
     }
     
-    def generateNext(start: DateTime): DateTime = {
-        start.plusWeeks(1)
+    def generateNext(start: DateTime, numberOfWeeks: Int = 1): DateTime = {
+        start.plusWeeks(numberOfWeeks)
     }
 }

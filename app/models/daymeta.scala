@@ -37,7 +37,7 @@ object DayMeta {
         timestamps.toList
     }
     
-    def generateNext(start: DateTime): DateTime = {
-        start.plusDays(1)
+    def generateNext(start: DateTime, numberOfDays: Int = 1): DateTime = {
+        start.plusDays(numberOfDays)
     }
 }
