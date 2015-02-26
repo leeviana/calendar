@@ -15,7 +15,7 @@ import play.modules.reactivemongo.json.BSONFormats._
  */
 case class Rule(
     orderNum: Int,
-    entityType: EntityType.EntityType,
+    entityType: EntityType.EntityType, // TODO: remove. unnecessary
     entityID: BSONObjectID, // foreign ref to entity
     accessType: AccessType.AccessType)
 

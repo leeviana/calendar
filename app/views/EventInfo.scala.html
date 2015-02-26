@@ -70,8 +70,12 @@
 			style="visibility: hidden" /> 
 			
 		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
-			@viewComponents.html.number(reminderForm("recurrenceMeta.timeRange.duration"),
-				label = "Duration")
+			@viewComponents.html.number(reminderForm("timestamp.durationDay"),
+                label = "Days after creation until Emails start")
+            @viewComponents.html.number(reminderForm("timestamp.durationHour"),
+                label = "Hours")    
+            @viewComponents.html.number(reminderForm("timestamp.durationMin"),
+				label = "Min")
 			
 			@viewComponents.html.dropdown(reminderForm("recurrenceMeta.recurrenceType"),
 	    		label = "Recurrence Type",
@@ -79,19 +83,19 @@
 	       
 	       	@viewComponents.html.number(reminderForm("recurrenceMeta.daily.numberOfDays"), 
 	       		label = "Days",
-	       		help = "Reminder will recur for many days")
+	       		help = "How many days between each reminder?")
 	       		
 	       	@viewComponents.html.number(reminderForm("recurrenceMeta.weekly.numberOfWeeks"), 
-	       		label = "Day",
-	       		help = "Reminder will recur for how many weeks")
+	       		label = "Weeks",
+	       		help = "How many weeks between each reminder?")
 	       	
 	       	@viewComponents.html.number(reminderForm("recurrenceMeta.monthly.numberOfMonths"), 
-	       		label = "Days",
-	       		help = "Reminder will recur for how many months")
+	       		label = "Months",
+	       		help = "How many months between each reminder?")
 	       
 	       @viewComponents.html.number(reminderForm("recurrenceMeta.yearly.numberOfYears"), 
-	       		label = "Month",
-	       		help = "Reminder will recur for how many years")
+	       		label = "Years",
+	       		help = "How many years between each reminder?")
 	       	
 
 		<script type="text/javascript">
@@ -143,7 +147,35 @@
 		</div>
 		
 	}
+	
+    <legend>Reminders</legend>
+    @if(event.reminders.isDefined) {
     
+	    @if(event.reminders.get.isEmpty){
+	        <p>No reminders yet</p>
+	    } else {        
+	        <table class="table">
+	                <thead>
+	                    <tr>
+	                        <th>Date</th>
+	                        <th>Time</th>
+	                        <th>Recurrence</th>
+	                    </tr>
+	                </thead>
+	                    <tbody>     
+	                        @event.reminders.get.map { reminder =>
+	                            <tr>
+	                                <td>@reminder.timestamp.start.toString("MMM-dd-yyyy")</td>
+	                                <td>@reminder.timestamp.start.toString("hh:mm a")</td>
+	                                <td>@if(reminder.recurrenceMeta.isDefined){
+	                                    @reminder.recurrenceMeta.get.recurrenceType
+	                                } else { No }</td>
+	                            </tr>
+	                    }
+	                </tbody>
+	            </table>
+	    }
+    }
     <br>
 
      @if(!event.viewType.isDefined){
@@ -293,16 +325,17 @@
 				</select>
 			</div>  
 		</div> 	
-		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
+		<!-- @if(event.eventType.toString == models.enums.EventType.PUD.toString){
 			@viewComponents.html.dropdown(ruleForm("accessType"),
         	label = "Access Type",
         	List("BusyOnly"))
-		} else{    
-        @viewComponents.html.dropdown(ruleForm("accessType"),
-        	label = "Access Type",
-        	List("BusyOnly", "SeeAll", "Modify"))
-        }
+		} else{  -->    
         
+        <!-- }  Doesn't matter. Also I think you were trying to restrict PUDEvents which is a ViewType, not PUDs -->
+        @viewComponents.html.dropdown(ruleForm("accessType"),
+            label = "Access Type",
+            List("BusyOnly", "SeeAll", "Modify"))
+            
        	<label class="col-sm-2"></label>
 		<div class="col-sm-5">
 			<div class="form-actions">

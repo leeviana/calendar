@@ -38,6 +38,6 @@ object DayMeta {
     }
     
     def generateNext(start: DateTime): DateTime = {
-        start.plusMinutes(1)
+        start.plusDays(1)
     }
 }

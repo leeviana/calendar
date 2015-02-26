@@ -27,7 +27,7 @@ import models.enums.EventType
 import models.enums.CreationRequestStatus
 import org.joda.time.Period
 import org.joda.time.DateTime
-//import org.joda.time.Duration
+import org.joda.time.{Duration => JodaDuration}
 
 /**
  * The controllers encapsulate the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -120,10 +120,7 @@ object Events extends Controller with MongoController {
                         if (ruleIterator.hasNext) {
                             var rule = ruleIterator.next()
     
-                            if (rule.entityType == EntityType.User & rule.entityID == user._id) {
-                                newEvent = event.copy(accessType = Some(rule.accessType))
-                                found = true
-                            } else if (rule.entityType == EntityType.User & groupIDs.contains(rule.entityID)) {
+                            if (rule.entityID == user._id | groupIDs.contains(rule.entityID)) {
                                 newEvent = event.copy(accessType = Some(rule.accessType))
                                 found = true
                             }
@@ -237,28 +234,26 @@ object Events extends Controller with MongoController {
                     if ((event.recurrenceMeta.isDefined) && (event.eventType == EventType.Fixed)) {
                         val recurrenceDates = new ListBuffer[Long]()
                         val recType = event.recurrenceMeta.get.recurrenceType
-                        //if (event.timeRange.startDate.isDefined) {
-                            if (event.recurrenceMeta.get.timeRange.end.isDefined) {
-                                val start = event.timeRange.start
-                                val end = event.recurrenceMeta.get.timeRange.end.get
-
-                                if (recType.compare(RecurrenceType.Daily) == 0) {
-                                    recurrenceDates ++= DayMeta.generateRecurrence(start, end)
-                                }
-                                if (recType.compare(RecurrenceType.Weekly) == 0) {
-                                    recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
-                                }
-                                if (recType.compare(RecurrenceType.Monthly) == 0) {
-                                    recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
-                                }
-                                if (recType.compare(RecurrenceType.Yearly) == 0) {
-                                    recurrenceDates ++= YearMeta.generateRecurrence(start, end)
-                                }
-                            } else {
-                                // for future expansion, infinite recurrence
+                        if (event.recurrenceMeta.get.timeRange.end.isDefined) {
+                            val start = event.timeRange.start
+                            val end = event.recurrenceMeta.get.timeRange.end.get
+                            println("start " + start + " end " + end)
+                            if (recType.compare(RecurrenceType.Daily) == 0) {
+                                recurrenceDates ++= DayMeta.generateRecurrence(start, end)
                             }
-                        //}
-
+                            if (recType.compare(RecurrenceType.Weekly) == 0) {
+                                recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
+                            }
+                            if (recType.compare(RecurrenceType.Monthly) == 0) {
+                                recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
+                            }
+                            if (recType.compare(RecurrenceType.Yearly) == 0) {
+                                recurrenceDates ++= YearMeta.generateRecurrence(start, end)
+                            }
+                        } else {
+                            // for future expansion, infinite recurrence
+                        }
+                        
                         for (difference <- recurrenceDates) {
                             val newStartDate = new DateTime(event.timeRange.start.getMillis + difference)
                             var newTimeRange = new TimeRange
@@ -271,7 +266,6 @@ object Events extends Controller with MongoController {
                             }
 
                             val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange)
-                            // val future = collection.insert(updatedEvent)
                             EventDAO.insert(updatedEvent)
                         }
                     }
@@ -355,10 +349,9 @@ object Events extends Controller with MongoController {
                 if (event.get.recurrenceMeta.isDefined) {
                     
                     val recType = event.get.recurrenceMeta.get.recurrenceType
-           
+                    
                     if (recType.compare(RecurrenceType.Daily) == 0) {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
-                        // TODO: create new reminder if reminders are set
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Weekly) == 0) {
@@ -373,6 +366,8 @@ object Events extends Controller with MongoController {
                         val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
                         EventDAO.insert(newEvent)
                     }
+                    
+                    
                 }
             })
 
@@ -380,6 +375,19 @@ object Events extends Controller with MongoController {
         Redirect(routes.Events.index(EventType.PUD.toString()))
     }
 
+    /**
+     * Regenerates first reminder of recurring reminders
+     */
+    def regenerateReminders(event: Event) {
+        if(event.reminders.isDefined) {
+            event.reminders.get.map { reminder => 
+                if(reminder.recurrenceMeta.isDefined) {
+                    val newReminder = reminder.copy(timestamp = new TimeRange(start = event.timeRange.start.plus(reminder.timestamp.duration)))
+                    ReminderDAO.insert(newReminder)
+                }
+            }
+        }
+    }
     /**
      * Deletes an event. Redirects to fixed view
      */
@@ -459,15 +467,16 @@ object Events extends Controller with MongoController {
                 errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList)),
 
                 reminder => {
-                    if(reminder.recurrenceMeta.isDefined) {
-                        // TODO: check this. Make sure it's reading duration and generating a reminder properly
-                        val duration = reminder.recurrenceMeta.get.timeRange.duration
-                        val newReminder = reminder.copy(timestamp = new TimeRange(start = event.get.timeRange.start.plus(duration)))
-                        ReminderDAO.insert(newReminder)
+                    var newReminder = reminder
+                    if(event.get.eventType == EventType.PUD) {
+                        newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = event.get.timeRange.start.plus(reminder.timestamp.duration)))
                     }
-                    else{
-                        ReminderDAO.insert(reminder)
+                    else if(event.get.eventType == EventType.Fixed) {
+                        newReminder = reminder.copy(timestamp = reminder.timestamp.copy(duration = new JodaDuration(event.get.timeRange.start, reminder.timestamp.start)))
                     }
+                    ReminderDAO.insert(newReminder)
+                    EventDAO.updateById(objectID, $push("reminders", newReminder))
+                        
                     Redirect(routes.Events.showEvent(eventID))
                 })
         }
