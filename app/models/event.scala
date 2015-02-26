@@ -23,6 +23,7 @@ case class Event(
     description: Option[String] = None,
     master: Option[BSONObjectID] = None, // foreign reference to a "master" event, if shared
     rules: List[Rule] = List[Rule](), // list of rule objects
+    reminders: Option[List[Reminder]] = Some(List[Reminder]()), // list of reminder objects
     recurrenceMeta: Option[RecurrenceMeta] = None, //TimeRange object, reminder time, one of the following: day, monthly, yearly, weekly
     nextRecurrence: Option[BSONObjectID] = None, // BSONID pointer, can be null if not recurring
     accessType: Option[AccessType.AccessType] = None,
@@ -53,7 +54,8 @@ object Event {
                     name,
                     description,
                     None,
-                    rules.getOrElse(List[Rule]()),
+                    List[Rule](),
+                    Some(List[Reminder]()),
                     recurrenceMeta,
                     nextRecurrence.map(id => BSONObjectID.apply(id)),
                     Some(AccessType.Private),
