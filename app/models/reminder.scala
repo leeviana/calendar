@@ -21,11 +21,11 @@ import play.modules.reactivemongo.json.BSONFormats._
 case class Reminder(
 	_id: BSONObjectID,
     eventID: BSONObjectID, // foreign ref
-    timestamp: TimeRange,
-    user: BSONObjectID, // foreign ref
+    timestamp: TimeRange, // TODO: rename to timerange
+    user: BSONObjectID, // foreign ref // TODO: don't need this, have a helper method for it
     reminderType: ReminderType.ReminderType,
     recurrenceMeta: Option[RecurrenceMeta],
-    hasSent: Boolean)
+    hasSent: Boolean) // TODO: delete
 
 object Reminder {
     implicit val ReminderFormat = Json.format[Reminder]

@@ -42,12 +42,20 @@ object TimeRange {
             "startTime" -> optional(jodaDate("h:mm a")),
             "endDate" -> optional(jodaDate),
             "endTime" -> optional(jodaDate("h:mm a")),
-            "duration" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, duration) =>
+            "durationMin" -> optional(longNumber),
+            "durationHour" -> optional(longNumber),
+            "durationDay" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, durationMin, durationHour, durationDay) =>
                 TimeRange(
                     allday,
-                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime()).getMillis).minusHours(5)} else {DateTime.now()},
-                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime()).getMillis).minusHours(5))} else {None},
-                    if (duration.isDefined) {new Duration(duration.get*Duration.standardMinutes(1).getMillis) } else if (startDate.isDefined) {Duration.standardDays(1)} else {Duration.ZERO}
+                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime(0)).getMillis).minusHours(5)} else {DateTime.now()},
+                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime(0)).getMillis).minusHours(5))} else {None},
+                    if (durationMin.isDefined | durationHour.isDefined | durationDay.isDefined) {
+                        new Duration(
+                            Duration.standardMinutes(durationMin.getOrElse(0)).getMillis +
+                            Duration.standardHours(durationHour.getOrElse(0)).getMillis +
+                            Duration.standardDays(durationDay.getOrElse(0)).getMillis   
+                        ) 
+                    } else if (startDate.isDefined) {Duration.standardDays(1)} else {Duration.ZERO}
             )} { timerange =>
                 Some(
                     (timerange.allday,
@@ -55,6 +63,8 @@ object TimeRange {
                         Some(timerange.start),
                         timerange.end,
                         timerange.end,
-                        Some(timerange.duration.getStandardMinutes)))
+                        Some(timerange.duration.getStandardMinutes), // does this work?
+                        Some(timerange.duration.getStandardHours),
+                        Some(timerange.duration.getStandardDays)))
             })
 }

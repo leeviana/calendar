@@ -41,7 +41,7 @@ object YearMeta {
         timestamps.toList
     }
     
-    def generateNext(start: DateTime): DateTime = {
-        start.plusYears(1)
+    def generateNext(start: DateTime, numberOfYears: Int = 1): DateTime = {
+        start.plusYears(numberOfYears)
     }
 }
