@@ -15,7 +15,6 @@ import scala.math.BigInt
 
 object JsonDuration {
     implicit val DurationFormat = new Format[Duration] {
-      // TODO: Make this better
         def reads(json: JsValue) = JsSuccess(new Duration((json).as[Long]))
         def writes(duration: Duration) = JsNumber(duration.getMillis)
     }

@@ -16,6 +16,7 @@ import models.enums.ViewType
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.libs.json.JsObject
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Action
 import play.api.mvc.Controller
@@ -59,11 +60,7 @@ object Events extends Controller with MongoController {
                 if(eventType == EventType.PUD.toString())
                     timeQuery = Json.obj("timeRange.start" $lte DateTime.now())
                     
-                val jsonquery = Json.obj(
-                    "$and" -> Json.arr(
-                        Json.obj("eventType" -> eventType),
-                        timeQuery,
-                        Json.obj("$or" -> Json.arr(
+                val myEventsQuery = Json.obj("$or" -> Json.arr(
                             Json.obj(
                                 "calendar" -> Json.obj(
                                     "$in" -> user.get.subscriptions)),
@@ -71,7 +68,13 @@ object Events extends Controller with MongoController {
                                 "rules.entityID" -> user.get._id),
                             Json.obj(
                                 "rules.entityID" -> Json.obj(
-                                    "$in" -> userGroupIDs))))))
+                                    "$in" -> userGroupIDs))))
+                
+                val jsonquery = Json.obj(
+                    "$and" -> Json.arr(
+                        Json.obj("eventType" -> eventType),
+                        timeQuery,
+                        myEventsQuery))
 
                 if (eventType == EventType.PUD) {
                     val sort = Json.obj("PUDPriority" -> 1)
@@ -84,7 +87,7 @@ object Events extends Controller with MongoController {
                     val sort = Json.obj("timeRange.start" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
-                        val PUDupdatedEvents = updatePUD(accessEvents)
+                        val PUDupdatedEvents = updatePUD(accessEvents, myEventsQuery)
                         Ok(views.html.events(PUDupdatedEvents, eventType))
                     }
                 }
@@ -136,7 +139,7 @@ object Events extends Controller with MongoController {
         }.toList
     }
 
-  def updatePUD(events: List[Event]): List[Event] =  {
+  def updatePUD(events: List[Event], eventsQuery: JsObject): List[Event] =  {
     events.map { event =>
         var newEvent = event
       if (!event.viewType.isEmpty) {
@@ -145,10 +148,10 @@ object Events extends Controller with MongoController {
           val query = Json.obj(
             "$and" -> Json.arr(
               Json.obj("eventType" -> "PUD"),
-              Json.obj("timeRange.start" -> Json.obj(
-                  "$lte" -> DateTime.now())),
               Json.obj("timeRange.duration" -> Json.obj(
-                "$lte" -> dur))))
+                "$lte" -> dur)),
+              eventsQuery))
+              
           val sort = Json.obj("PUDPriority" -> 1)
           var temp: List[models.Event] = List()
 
