@@ -55,7 +55,7 @@ class ReminderCheckActor extends Actor {
      var output = false;
    val futureEvent = EventDAO.findById(reminder.eventID).map {event =>
 	    val rightNow = new DateTime()
-		  val start = event.get.timeRange.start
+		  val start = event.get.getFirstTimeRange().start
 		// TODO: check how interacts with PUDs
 		  //if ( rightNow.minusMinutes(1).getMillis < start.getMillis) { 
 			  // Event has already started as of 1 minute ago
