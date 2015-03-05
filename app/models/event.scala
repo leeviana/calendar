@@ -29,10 +29,11 @@ case class Event(
     accessType: Option[AccessType.AccessType] = None,
     eventType: EventType.EventType = EventType.Fixed,
     viewType: Option[ViewType.ViewType] = None,
-    PUDPriority: Option[Int] = None){
+    PUDPriority: Option[Int] = None,
+    SignUpList: Option[List[SignUpSlot]] = None){
                    
     def getFirstTimeRange(): TimeRange = {
-        return this.timeRange.head
+        return this.timeRange.headOption.getOrElse(new TimeRange())
     }
 }
 object Event {
@@ -50,7 +51,7 @@ object Event {
             "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
             "eventType" -> nonEmptyText,
             "PUDPriority" -> optional(number),
-            "isPUDEvent" -> boolean
+            "isPUDEvent" -> boolean 
             ) { (calendar, timeRangeList, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
                 Event(
                     BSONObjectID.generate,
@@ -66,7 +67,8 @@ object Event {
                     Some(AccessType.Private),
                     EventType.withName(eventType),
                     if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
-                    PUDPriority)
+                    PUDPriority,
+                    None)
             } { event =>
                 Some((
                     event.calendar.stringify,
