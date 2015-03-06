@@ -16,6 +16,7 @@ import models.enums.ViewType
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.libs.json.JsObject
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Action
 import play.api.mvc.Controller
@@ -59,11 +60,7 @@ object Events extends Controller with MongoController {
                 if(eventType == EventType.PUD.toString())
                     timeQuery = Json.obj("timeRange.start" $lte DateTime.now())
                     
-                val jsonquery = Json.obj(
-                    "$and" -> Json.arr(
-                        Json.obj("eventType" -> eventType),
-                        timeQuery,
-                        Json.obj("$or" -> Json.arr(
+                val myEventsQuery = Json.obj("$or" -> Json.arr(
                             Json.obj(
                                 "calendar" -> Json.obj(
                                     "$in" -> user.get.subscriptions)),
@@ -71,7 +68,13 @@ object Events extends Controller with MongoController {
                                 "rules.entityID" -> user.get._id),
                             Json.obj(
                                 "rules.entityID" -> Json.obj(
-                                    "$in" -> userGroupIDs))))))
+                                    "$in" -> userGroupIDs))))
+                
+                val jsonquery = Json.obj(
+                    "$and" -> Json.arr(
+                        Json.obj("eventType" -> eventType),
+                        timeQuery,
+                        myEventsQuery))
 
                 if (eventType == EventType.PUD) {
                     val sort = Json.obj("PUDPriority" -> 1)
@@ -84,7 +87,7 @@ object Events extends Controller with MongoController {
                     val sort = Json.obj("timeRange.start" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
-                        val PUDupdatedEvents = updatePUD(accessEvents)
+                        val PUDupdatedEvents = updatePUD(accessEvents, myEventsQuery)
                         Ok(views.html.events(PUDupdatedEvents, eventType))
                     }
                 }
@@ -136,19 +139,19 @@ object Events extends Controller with MongoController {
         }.toList
     }
 
-  def updatePUD(events: List[Event]): List[Event] =  {
+  def updatePUD(events: List[Event], eventsQuery: JsObject): List[Event] =  {
     events.map { event =>
         var newEvent = event
       if (!event.viewType.isEmpty) {
         if (event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString) {
-          val dur = event.timeRange.duration.getMillis
+          val dur = event.getFirstTimeRange().duration.getMillis
           val query = Json.obj(
             "$and" -> Json.arr(
               Json.obj("eventType" -> "PUD"),
-              Json.obj("timeRange.start" -> Json.obj(
-                  "$lte" -> DateTime.now())),
               Json.obj("timeRange.duration" -> Json.obj(
-                "$lte" -> dur))))
+                "$lte" -> dur)),
+              eventsQuery))
+              
           val sort = Json.obj("PUDPriority" -> 1)
           var temp: List[models.Event] = List()
 
@@ -235,7 +238,7 @@ object Events extends Controller with MongoController {
                         val recurrenceDates = new ListBuffer[Long]()
                         val recType = event.recurrenceMeta.get.recurrenceType
                         if (event.recurrenceMeta.get.timeRange.end.isDefined) {
-                            val start = event.timeRange.start
+                            val start = event.getFirstTimeRange().start
                             val end = event.recurrenceMeta.get.timeRange.end.get
                             println("start " + start + " end " + end)
                             if (recType.compare(RecurrenceType.Daily) == 0) {
@@ -254,18 +257,20 @@ object Events extends Controller with MongoController {
                             // for future expansion, infinite recurrence
                         }
                         
+                        // TODO: effectively utilize new list of timeranges for recurring events?
+                        // would need to pass events to frontend differently. calendar app?
                         for (difference <- recurrenceDates) {
-                            val newStartDate = new DateTime(event.timeRange.start.getMillis + difference)
+                            val newStartDate = new DateTime(event.getFirstTimeRange().start.getMillis + difference)
                             var newTimeRange = new TimeRange
 
-                            if (event.timeRange.end.isDefined) {
-                                val newEndDate = new DateTime(event.timeRange.end.get.getMillis + difference)
-                                newTimeRange = event.timeRange.copy(start = newStartDate, end = Some(newEndDate))
+                            if (event.getFirstTimeRange().end.isDefined) {
+                                val newEndDate = new DateTime(event.getFirstTimeRange().end.get.getMillis + difference)
+                                newTimeRange = event.getFirstTimeRange().copy(start = newStartDate, end = Some(newEndDate))
                             } else {
-                                newTimeRange = event.timeRange.copy(start = newStartDate)
+                                newTimeRange = event.getFirstTimeRange().copy(start = newStartDate)
                             }
 
-                            val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = newTimeRange)
+                            val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
                             EventDAO.insert(updatedEvent)
                         }
                     }
@@ -351,19 +356,23 @@ object Events extends Controller with MongoController {
                     val recType = event.get.recurrenceMeta.get.recurrenceType
                     
                     if (recType.compare(RecurrenceType.Daily) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Weekly) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = WeekMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = WeekMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Monthly) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = MonthMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = MonthMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     if (recType.compare(RecurrenceType.Yearly) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.timeRange.duration))
+                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+                        regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
                     
@@ -382,7 +391,7 @@ object Events extends Controller with MongoController {
         if(event.reminders.isDefined) {
             event.reminders.get.map { reminder => 
                 if(reminder.recurrenceMeta.isDefined) {
-                    val newReminder = reminder.copy(timestamp = new TimeRange(start = event.timeRange.start.plus(reminder.timestamp.duration)))
+                    val newReminder = reminder.copy(timestamp = new TimeRange(start = event.getFirstTimeRange().start.plus(reminder.timestamp.duration)))
                     ReminderDAO.insert(newReminder)
                 }
             }
@@ -469,10 +478,10 @@ object Events extends Controller with MongoController {
                 reminder => {
                     var newReminder = reminder
                     if(event.get.eventType == EventType.PUD) {
-                        newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = event.get.timeRange.start.plus(reminder.timestamp.duration)))
+                        newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = event.get.getFirstTimeRange().start.plus(reminder.timestamp.duration)))
                     }
                     else if(event.get.eventType == EventType.Fixed) {
-                        newReminder = reminder.copy(timestamp = reminder.timestamp.copy(duration = new JodaDuration(event.get.timeRange.start, reminder.timestamp.start)))
+                        newReminder = reminder.copy(timestamp = reminder.timestamp.copy(duration = new JodaDuration(event.get.getFirstTimeRange().start, reminder.timestamp.start)))
                     }
                     ReminderDAO.insert(newReminder)
                     EventDAO.updateById(objectID, $push("reminders", newReminder))

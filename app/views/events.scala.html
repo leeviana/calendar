@@ -51,10 +51,10 @@
 					@if(e.viewType.get.toString == models.enums.ViewType.Declined.toString){
 					<tr class="danger">}
 				} else { <tr> }
-					<td>@e.timeRange.start.toString("MMM-dd-yyyy")</td>
-					<td>@e.timeRange.start.toString("hh:mm a") 
-					@if(e.timeRange.end.isDefined){
-					   -@e.timeRange.end.get.toString("hh:mm a")</td>
+					<td>@e.getFirstTimeRange.start.toString("MMM-dd-yyyy")</td>
+					<td>@e.getFirstTimeRange.start.toString("hh:mm a") 
+					@if(e.getFirstTimeRange.end.isDefined){
+					   -@e.getFirstTimeRange.end.get.toString("hh:mm a")</td>
 					}
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.accessType</td>
@@ -105,7 +105,7 @@
 			@for(e <- events.sortBy (event => event.PUDPriority)){
 				<tr>
 				 	<td>@e.PUDPriority</td>
-					<td>@e.timeRange.duration.getStandardMinutes minutes</td>
+					<td>@e.getFirstTimeRange.duration.getStandardMinutes minutes</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>

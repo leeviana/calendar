@@ -44,7 +44,7 @@ object MonthMeta {
         timestamps.toList
     }
     
-    def generateNext(start: DateTime): DateTime = {
-        start.plusMonths(1)
+    def generateNext(start: DateTime, numberOfMonths: Int = 1): DateTime = {
+        start.plusMonths(numberOfMonths)
     }
 }

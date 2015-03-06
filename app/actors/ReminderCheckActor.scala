@@ -12,6 +12,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import models.DayMeta
+import models.MonthMeta
+import models.WeekMeta
+import models.enums.RecurrenceType
 
 class ReminderCheckActor extends Actor {
 	def receive = {
@@ -51,7 +55,7 @@ class ReminderCheckActor extends Actor {
      var output = false;
    val futureEvent = EventDAO.findById(reminder.eventID).map {event =>
 	    val rightNow = new DateTime()
-		  val start = event.get.timeRange.start
+		  val start = event.get.getFirstTimeRange().start
 		// TODO: check how interacts with PUDs
 		  //if ( rightNow.minusMinutes(1).getMillis < start.getMillis) { 
 			  // Event has already started as of 1 minute ago
@@ -64,7 +68,30 @@ class ReminderCheckActor extends Actor {
    return output
 	}
  
- def handleRecurrence(reminder: Reminder) = {
-   
- }
+    /**
+     * Takes a reminder that has been sent and creates the recurring reminder based on recurrence information
+     * TODO: refactor when recurrence is refactored
+     */
+    def handleRecurrence(reminder: Reminder) = {
+        if(reminder.recurrenceMeta.isDefined) {
+            val recType = reminder.recurrenceMeta.get.recurrenceType
+            
+            if (recType.compare(RecurrenceType.Daily) == 0) {
+                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = DayMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.daily.get.numberOfDays)))
+                ReminderDAO.insert(newReminder)
+            }
+            if (recType.compare(RecurrenceType.Weekly) == 0) {
+                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = WeekMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.weekly.get.numberOfWeeks.getOrElse(1))))
+                ReminderDAO.insert(newReminder)
+            }
+            if (recType.compare(RecurrenceType.Monthly) == 0) {
+                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = DayMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.monthly.get.numberOfMonths.getOrElse(1))))
+                ReminderDAO.insert(newReminder)
+            }
+            if (recType.compare(RecurrenceType.Yearly) == 0) {
+                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = DayMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.yearly.get.numberOfYears.getOrElse(1))))
+                ReminderDAO.insert(newReminder)
+            }
+        }
+    }
 }

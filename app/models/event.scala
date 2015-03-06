@@ -18,7 +18,7 @@ import apputils.UserDAO
 case class Event(
     _id: BSONObjectID = BSONObjectID.generate,
     calendar: BSONObjectID = BSONObjectID.generate, // pointer/foreign reference to Calendar
-    timeRange: TimeRange = new TimeRange(),
+    timeRange: List[TimeRange] = List[TimeRange](new TimeRange()),
     name: String = "My Event",
     description: Option[String] = None,
     master: Option[BSONObjectID] = None, // foreign reference to a "master" event, if shared
@@ -29,15 +29,21 @@ case class Event(
     accessType: Option[AccessType.AccessType] = None,
     eventType: EventType.EventType = EventType.Fixed,
     viewType: Option[ViewType.ViewType] = None,
-    PUDPriority: Option[Int] = None)
-
+    PUDPriority: Option[Int] = None,
+    SignUpList: Option[List[SignUpSlot]] = None){
+                   
+    def getFirstTimeRange(): TimeRange = {
+        return this.timeRange.headOption.getOrElse(new TimeRange())
+    }
+}
 object Event {
     implicit val EventFormat = Json.format[Event]
 
     val form = Form(
         mapping(
             "calendar" -> nonEmptyText, // BSONObjectID
-            "timeRange" -> TimeRange.form.mapping,
+            "timeRangeList" -> optional(list(TimeRange.form.mapping)),
+            "timeRange" -> optional(TimeRange.form.mapping),
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "rules" -> optional(list(Rule.form.mapping)),
@@ -45,12 +51,12 @@ object Event {
             "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
             "eventType" -> nonEmptyText,
             "PUDPriority" -> optional(number),
-            "isPUDEvent" -> boolean
-            ) { (calendar, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
+            "isPUDEvent" -> boolean 
+            ) { (calendar, timeRangeList, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
-                    timeRange,
+                    if(timeRangeList.isDefined) {timeRangeList.get} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
                     name,
                     description,
                     None,
@@ -61,11 +67,13 @@ object Event {
                     Some(AccessType.Private),
                     EventType.withName(eventType),
                     if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
-                    PUDPriority)
+                    PUDPriority,
+                    None)
             } { event =>
                 Some((
                     event.calendar.stringify,
-                    event.timeRange,
+                    Some(event.timeRange),
+                    Some(event.getFirstTimeRange()),
                     event.name,
                     event.description,
                     Some(event.rules),

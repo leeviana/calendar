@@ -61,7 +61,7 @@
 		        $('#@form("timeRange.endTime").id').show();
 		        $('#@form("isPUDEvent").id').show();
 		        
-		        $('#@form("timeRange.duration").id').hide();
+		        $('#@form("timeRange.durationMin").id').hide();
 		        $('#@form("PUDPriority").id').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
@@ -73,7 +73,7 @@
 		        $('#@form("timeRange.endTime").id').hide();
 		        $('#@form("isPUDEvent").id').hide();
 		        
-		        $('#@form("timeRange.duration").id').show();
+		        $('#@form("timeRange.durationMin").id').show();
 		        $('#@form("PUDPriority").id').show();
 		        
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
@@ -83,7 +83,7 @@
 		
 		</script>
 		<!--  PUD Fields -->
-		@viewComponents.html.number(form("timeRange.duration"),
+		@viewComponents.html.number(form("timeRange.durationMin"),
 			label = "Time Allocated",
 			help = "minutes")
 		
@@ -92,8 +92,8 @@
     	<div class="col-sm-5" style="width:190px">
       		<input type="number" 
              	class="form-control" 
-             	name='@form("timeRange.duration").name'
-             	value='@form("timeRange.duration").value'
+             	name='@form("timeRange.durationMin").name'
+             	value='@form("timeRange.durationMin").value'
              	min="1" 
              	max="1440"/>
         </div>  -->
