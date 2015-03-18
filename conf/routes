@@ -41,6 +41,9 @@ POST	/events/createUserCreationRequest		controllers.Events.createUserCreationReq
 POST	/events/createGroupCreationRequest		controllers.Events.createGroupCreationRequest
 POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(eventID, status)
 
+# Scheduler
+GET     /scheduler                      controllers.Scheduling.schedulingForm
+
 # Authentication
 POST     /signUp                         controllers.Users.create
 POST     /signIn                         controllers.Authentication.signIn
