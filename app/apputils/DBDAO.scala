@@ -20,7 +20,7 @@ object MongoContext {
 }
 
 object CalendarDAO extends JsonDao[Calendar, BSONObjectID](MongoContext.db, "calendars") {
-    /*
+    /**
      * Blocking call for getting a calendar object from ID for calls that don't care about performance and/or
      * would have to immediately block on the call anyways
      */
@@ -56,7 +56,7 @@ object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") 
 }
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
-    /*
+    /**
      * Blocking call for getting user object from ID for calls that don't care about performance and/or
      * would have to immediately block on the call anyways
      */
@@ -68,6 +68,20 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
             user.get
         else
             throw new Exception("Database incongruity: User ID not found")
+    }
+    
+    /**
+     * Blocking call that returns ID of the first calendar that a user owns    
+     */
+    def getFirstCalendarFromUserID(id: BSONObjectID): BSONObjectID = {
+        val futureUser = this.findById(id)
+
+        var user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        if (user.isDefined)
+            user.get.subscriptions.head
+        else
+            throw new Exception("Database incongruity: User ID not found")
+        
     }
     
     def getOwner(eventID: BSONObjectID): User = {

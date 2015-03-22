@@ -230,49 +230,15 @@ object Events extends Controller with MongoController {
                 errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
 
                 event => {
-                    val calendar = event.calendar
+                    
+                    if((event.eventType == EventType.SignUp)) {
+                        createSignUpSlots(event)    
+                    }
+
                     EventDAO.insert(event)
 
-                    // Recurrence. TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
-                    if ((event.recurrenceMeta.isDefined) && (event.eventType == EventType.Fixed)) {
-                        val recurrenceDates = new ListBuffer[Long]()
-                        val recType = event.recurrenceMeta.get.recurrenceType
-                        if (event.recurrenceMeta.get.timeRange.end.isDefined) {
-                            val start = event.getFirstTimeRange().start
-                            val end = event.recurrenceMeta.get.timeRange.end.get
-                            println("start " + start + " end " + end)
-                            if (recType.compare(RecurrenceType.Daily) == 0) {
-                                recurrenceDates ++= DayMeta.generateRecurrence(start, end)
-                            }
-                            if (recType.compare(RecurrenceType.Weekly) == 0) {
-                                recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
-                            }
-                            if (recType.compare(RecurrenceType.Monthly) == 0) {
-                                recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
-                            }
-                            if (recType.compare(RecurrenceType.Yearly) == 0) {
-                                recurrenceDates ++= YearMeta.generateRecurrence(start, end)
-                            }
-                        } else {
-                            // for future expansion, infinite recurrence
-                        }
-                        
-                        // TODO: effectively utilize new list of timeranges for recurring events?
-                        // would need to pass events to frontend differently. calendar app?
-                        for (difference <- recurrenceDates) {
-                            val newStartDate = new DateTime(event.getFirstTimeRange().start.getMillis + difference)
-                            var newTimeRange = new TimeRange
-
-                            if (event.getFirstTimeRange().end.isDefined) {
-                                val newEndDate = new DateTime(event.getFirstTimeRange().end.get.getMillis + difference)
-                                newTimeRange = event.getFirstTimeRange().copy(start = newStartDate, end = Some(newEndDate))
-                            } else {
-                                newTimeRange = event.getFirstTimeRange().copy(start = newStartDate)
-                            }
-
-                            val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
-                            EventDAO.insert(updatedEvent)
-                        }
+                    if ((event.recurrenceMeta.isDefined) && (event.eventType != EventType.PUD)) {
+                        createRecurrences(event)
                     }
 
                     Redirect(routes.Events.index(event.eventType.toString()))
@@ -280,6 +246,81 @@ object Events extends Controller with MongoController {
         }
     }
 
+    /**
+     * Creates recurring events. TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
+     */
+    def createRecurrences(event: Event) = {
+        val calendar = event.calendar 
+        val recType = event.recurrenceMeta.get.recurrenceType
+        
+        if (event.recurrenceMeta.get.timeRange.end.isDefined) {
+            val end = event.recurrenceMeta.get.timeRange.end.get
+            
+            for(timeRange <- event.timeRange){
+                val recurrenceDates = new ListBuffer[Long]()
+                val start = timeRange.start
+                
+                if (recType.compare(RecurrenceType.Daily) == 0) {
+                    recurrenceDates ++= DayMeta.generateRecurrence(start, end)
+                }
+                else if (recType.compare(RecurrenceType.Weekly) == 0) {
+                    recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
+                }
+                else if (recType.compare(RecurrenceType.Monthly) == 0) {
+                    recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
+                }
+                else if (recType.compare(RecurrenceType.Yearly) == 0) {
+                    recurrenceDates ++= YearMeta.generateRecurrence(start, end)
+                }
+                
+                // TODO: effectively utilize new list of timeranges for recurring events?
+                // would just need to pass events to frontend differently. calendar app?
+                for (difference <- recurrenceDates) {
+                    val newStartDate = new DateTime(timeRange.start.getMillis + difference)
+                    var newTimeRange = new TimeRange
+                    
+                    if (timeRange.end.isDefined) {
+                        val newEndDate = new DateTime(timeRange.end.get.getMillis + difference)
+                        newTimeRange = timeRange.copy(start = newStartDate, end = Some(newEndDate))
+                    } else {
+                        newTimeRange = timeRange.copy(start = newStartDate)
+                    }
+        
+                    val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
+                    EventDAO.insert(updatedEvent)
+                }
+            } 
+        } else {
+            // for future expansion, infinite recurrence
+        }
+    }
+    
+    /**
+     * Creates sign up slots for a new event.
+     */
+    def createSignUpSlots(event: Event): Event = {
+        var signUpSlots = ListBuffer[SignUpSlot]()
+        
+        for(timeRange <- event.timeRange) {
+            var currentStart = timeRange.start
+            val duration = timeRange.duration
+            var currentEnd = new DateTime(currentStart.getMillis + duration.getMillis)
+            
+            while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0){
+                val newSlot = SignUpSlot(timeRange = new TimeRange(start = currentStart, end = Some(currentEnd), duration = duration))
+                signUpSlots.append(newSlot)
+                
+                currentStart = currentEnd
+                currentEnd = currentEnd.plus(duration)
+            }
+            // use duration and start and end times to generate signupSlots and add to list
+        }
+        
+        // see if we can replace instance of event with another?
+        val updatedEvent = event.copy(signUpSlots = Some(signUpSlots.toList))
+        updatedEvent
+    }
+    
     /**
      * Shows the form for editing an event
      */
@@ -397,6 +438,7 @@ object Events extends Controller with MongoController {
             }
         }
     }
+    
     /**
      * Deletes an event. Redirects to fixed view
      */
@@ -415,12 +457,19 @@ object Events extends Controller with MongoController {
                 val query = $and("master" $eq oldEvent.get.master.get, "eventID" $eq oldEvent.get._id)
 
                 EventDAO.findById(oldEvent.get.master.get).map { master =>
-                    // if you are the owner of the master event also
-                    if (master.get.calendar == oldEvent.get.calendar)
-                        CreationRequestDAO.remove(query)
-                    else {
-                        val update = $set("requestStatus" -> CreationRequestStatus.Removed.toString())
-                        CreationRequestDAO.update(query, update)
+                    
+                    // if masterEvent is SignUp event, clear slot
+                    if(master.get.eventType == EventType.SignUp) {
+                       // TODO: query to find slot where slot.timeRange.start == oldEvent.start in master.get.SignUpSlots, push userID = None
+                    }
+                    else { // normal shared event
+                        // if you are the owner of the master event also
+                        if (master.get.calendar == oldEvent.get.calendar)
+                            CreationRequestDAO.remove(query)
+                        else {
+                            val update = $set("requestStatus" -> CreationRequestStatus.Removed.toString())
+                            CreationRequestDAO.update(query, update)
+                        }
                     }
                 }
             }

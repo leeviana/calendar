@@ -8,8 +8,8 @@ import play.modules.reactivemongo.json.BSONFormats._
  * @author Leevi
  */
 case class SignUpSlot(
-	_id: BSONObjectID,
-    userID: BSONObjectID, // foreign ref
+	_id: BSONObjectID = BSONObjectID.generate,
+    userID: Option[BSONObjectID] = None, // foreign ref
     timeRange: TimeRange)
     
 object SignUpSlot {

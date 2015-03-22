@@ -42,7 +42,10 @@ POST	/events/createGroupCreationRequest		controllers.Events.createGroupCreationR
 POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(eventID, status)
 
 # Scheduler
-GET     /scheduler                      controllers.Scheduling.schedulingForm
+GET     /scheduler                      controllers.Scheduling.showForm
+
+# SlotSignUp
+GET     /events/:eventID/slotSignUp/:slotID     controllers.SlotSignUp.signUpForSlot(eventID, slotID)
 
 # Authentication
 POST     /signUp                         controllers.Users.create

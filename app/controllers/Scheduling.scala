@@ -18,19 +18,32 @@ import reactivemongo.bson.BSONObjectID
  * @author Leevi
  */
 object Scheduling extends Controller with MongoController {
-    /*
-     * Render a page where the user can specify their "free time" query
-     */
-    def schedulingForm = Action { implicit request =>
-        val schedulingForm = Form(
+    val schedulingForm = Form(
         tuple(
             "isRecurring" -> boolean, // recurring event or onetime event
             "timeRanges" -> list(TimeRange.form.mapping),
             "duration" -> optional(longNumber), // duration needed to schedule
             "recurrenceType" -> optional(nonEmptyText),
             "entities" -> optional(list(nonEmptyText)) // BSONObjectIDs
-            ))
+        ))
+            
+    /**
+     * Render a page where the user can specify their "free time" query
+     */
+    def showForm = Action { implicit request =>
   
-            Ok(views.html.scheduler(schedulingForm))     
+        Ok(views.html.scheduler(schedulingForm))     
+    }
+    
+    /**
+     * Render a page with the returned data from the "free time" query
+     */
+    def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
+        schedulingForm.bindFromRequest.fold(
+            errors => Ok(views.html.scheduler(errors)),
+            scheduleFormVals =>
+                // TODO: use form vals to make database query and return map of times and conflicting users/events
+            Redirect(routes.Application.index)
+        )
     }
 }
