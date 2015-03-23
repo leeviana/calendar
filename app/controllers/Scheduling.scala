@@ -106,14 +106,26 @@ object Scheduling extends Controller with MongoController {
             errors => Ok(views.html.scheduler(errors, None)),
 
             scheduleFormVals => {
+                var newEvents = ListBuffer[Event]()
 
                 var calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
                 val newEvent = new Event(calendar = calendar, timeRange = scheduleFormVals._1, recurrenceMeta = scheduleFormVals._2, name = scheduleFormVals._4, description = scheduleFormVals._5)
+                newEvents.append(newEvent)
+
+                EventDAO.insert(newEvent)
 
                 // if recurrence, recur
+                if (newEvent.recurrenceMeta.isDefined) {
+                    newEvents.appendAll(Events.createRecurrences(newEvent))
+                }
 
-                for (entity <- scheduleFormVals._3) {
-                    // send creationRequest
+                // create creation requests
+                for (event <- newEvents.toList) {
+                    for (entity <- scheduleFormVals._3.getOrElse(List.empty)) {
+                        for (user <- GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))) {
+                            Events.createCreationRequest(event._id, user.firstCalendar)
+                        }
+                    }
                 }
 
                 Redirect(routes.Events.showEvent(newEvent._id.stringify))

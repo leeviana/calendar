@@ -248,7 +248,9 @@ object Events extends Controller with MongoController {
     /**
      * Creates recurring events. TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
      */
-    def createRecurrences(event: Event) = {
+    def createRecurrences(event: Event): List[Event] = {
+        val newEvents = ListBuffer[Event]()
+        
         val calendar = event.calendar 
         val recType = event.recurrenceMeta.get.recurrenceType
         
@@ -286,12 +288,14 @@ object Events extends Controller with MongoController {
                     }
         
                     val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
+                    newEvents.append(updatedEvent)
                     EventDAO.insert(updatedEvent)
                 }
             } 
         } else {
             // for future expansion, infinite recurrence
         }
+        newEvents.toList
     }
     
     /**
