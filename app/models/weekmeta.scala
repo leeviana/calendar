@@ -15,8 +15,8 @@ import org.joda.time.Period
  * @author Leevi
  */
 case class WeekMeta(
-    dayNumber: Option[Int], // integer representing days of the week. 0 is Sunday. Alternative: use another object?
-    numberOfWeeks: Option[Int]
+    dayNumber: Option[Int] = None, // integer representing days of the week. 0 is Sunday. Alternative: use another object?
+    numberOfWeeks: Option[Int] = Some(1)
     ) {
     var recurrenceType = RecurrenceType.Weekly
 }
