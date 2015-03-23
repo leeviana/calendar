@@ -1,0 +1,62 @@
+@(field: Field)		
+			
+			@viewComponents.html.dropdown(field("recurrenceType"),
+	    		label = "Recurrence Type",
+	        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
+	       
+	       	@viewComponents.html.number(field("daily.numberOfDays"), 
+	       		label = "Days",
+	       		help = "How many days between each reminder?")
+	       		
+	       	@viewComponents.html.number(field("weekly.numberOfWeeks"), 
+	       		label = "Weeks",
+	       		help = "How many weeks between each reminder?")
+	       	
+	       	@viewComponents.html.number(field("monthly.numberOfMonths"), 
+	       		label = "Months",
+	       		help = "How many months between each reminder?")
+	       
+	       @viewComponents.html.number(field("yearly.numberOfYears"), 
+	       		label = "Years",
+	       		help = "How many years between each reminder?")
+	       	
+
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$('#@field("daily.numberOfDays").id').hide();
+				$('#@field("weekly.numberOfWeeks").id').hide();
+				$('#@field("monthly.numberOfMonths").id').hide();
+				$('#@field("yearly.numberOfYears").id').hide();				
+			});
+			
+	    	$(document).ready(function(){
+		    	$('#@(field("recurrenceType").id+"s")').on('change', function() {   	     
+				      if (this.value == "Daily"){
+							$('#@field("daily.numberOfDays").id').show();
+							$('#@field("weekly.numberOfWeeks").id').hide();
+							$('#@field("monthly").id').hide();
+							$('#@field("yearly.numberOfYears").id').hide();
+				      }
+				      if (this.value == "Weekly"){
+							$('#@field("daily.numberOfDays").id').hide();
+							$('#@field("weekly.numberOfWeeks").id').show();
+							$('#@field("monthly.numberOfMonths").id').hide();
+							$('#@field("yearly.numberOfYears").id').hide();
+				      }
+				      
+				      if (this.value == "Monthly"){
+							$('#@field("daily.numberOfDays").id').hide();
+							$('#@field("weekly.numberOfWeeks").id').hide();
+							$('#@field("monthly.numberOfMonths").id').show();
+							$('#@field("yearly.numberOfYears").id').hide();			      
+				      }
+				      
+				      if (this.value == "Yearly"){
+							$('#@field("daily.numberOfDays").id').hide();
+							$('#@field("weekly.numberOfWeeks").id').hide();
+							$('#@field("monthly.numberOfMonths").id').hide();
+							$('#@field("yearly.numberOfYears").id').show();			      
+				      }     
+		    });
+		});
+	    </script>
