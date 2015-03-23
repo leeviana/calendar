@@ -32,10 +32,6 @@ case class Event(
     PUDPriority: Option[Int] = None,
     signUpSlots: Option[List[SignUpSlot]] = None,
     maxSlots: Option[Int] = None ){
-                 
-//    def this(calendar: BSONObjectID) {
-//        this(false, new DateTime(), Some(new DateTime()), Duration.ZERO);
-//    }
     
     def getFirstTimeRange(): TimeRange = {
         return this.timeRange.headOption.getOrElse(new TimeRange())
@@ -49,6 +45,7 @@ object Event {
             "calendar" -> nonEmptyText, // BSONObjectID
             "timeRangeList" -> optional(list(TimeRange.form.mapping)),
             "timeRange" -> optional(TimeRange.form.mapping),
+            "timeRangeCount" -> number,
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "rules" -> optional(list(Rule.form.mapping)),
@@ -58,11 +55,11 @@ object Event {
             "PUDPriority" -> optional(number),
             "isPUDEvent" -> boolean,
             "maxSlots" -> optional(number)
-            ) { (calendar, timeRangeList, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, maxSlots) =>
+            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, maxSlots) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
-                    if(timeRangeList.isDefined) {timeRangeList.get} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
+                    if(timeRangeList.isDefined) {timeRangeList.get.slice(0, timeRangeCount)} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
                     name,
                     description,
                     None,
@@ -81,6 +78,7 @@ object Event {
                     event.calendar.stringify,
                     Some(event.timeRange),
                     Some(event.getFirstTimeRange()),
+                    event.timeRange.size,
                     event.name,
                     event.description,
                     Some(event.rules),
