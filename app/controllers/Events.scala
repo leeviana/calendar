@@ -234,10 +234,19 @@ object Events extends Controller with MongoController {
                         createSignUpSlots(event)    
                     }
 
-                    EventDAO.insert(event)
+                    if (event.recurrenceMeta.isDefined) {
+                        val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
+                        val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
+                        EventDAO.insert(event.copy(recurrenceMeta = Some(newRecurrenceMeta)))
+                    }
+                    else {
+                        EventDAO.insert(event)
+                    }
 
                     if ((event.recurrenceMeta.isDefined) && (event.eventType != EventType.PUD)) {
-                        createRecurrences(event)
+                        val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
+                        val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
+                        createRecurrences(event.copy(recurrenceMeta = Some(newRecurrenceMeta)))
                     }
 
                     Redirect(routes.Events.index(event.eventType.toString()))
@@ -246,7 +255,7 @@ object Events extends Controller with MongoController {
     }
 
     /**
-     * Creates recurring events. TODO: With the implementation of a RecurrenceMeta hierarchy, refactor this
+     * Creates recurring events.
      */
     def createRecurrences(event: Event): List[Event] = {
         val newEvents = ListBuffer[Event]()
@@ -258,39 +267,61 @@ object Events extends Controller with MongoController {
             val end = event.recurrenceMeta.get.timeRange.end.get
             
             for(timeRange <- event.timeRange){
-                val recurrenceDates = new ListBuffer[Long]()
-                val start = timeRange.start
+                //val recurrenceDates = new ListBuffer[Long]()
+                //val start = timeRange.start
+                val recurrencePeriod = event.recurrenceMeta.get.recurDuration
                 
-                if (recType.compare(RecurrenceType.Daily) == 0) {
-                    recurrenceDates ++= DayMeta.generateRecurrence(start, end)
-                }
-                else if (recType.compare(RecurrenceType.Weekly) == 0) {
-                    recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
-                }
-                else if (recType.compare(RecurrenceType.Monthly) == 0) {
-                    recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
-                }
-                else if (recType.compare(RecurrenceType.Yearly) == 0) {
-                    recurrenceDates ++= YearMeta.generateRecurrence(start, end)
-                }
+                var current = timeRange.start.plus(recurrencePeriod)
                 
-                // TODO: effectively utilize new list of timeranges for recurring events?
-                // would just need to pass events to frontend differently. calendar app?
-                for (difference <- recurrenceDates) {
-                    val newStartDate = new DateTime(timeRange.start.getMillis + difference)
+                while (current.compareTo(end) <= 0) {
+                    
                     var newTimeRange = new TimeRange
                     
                     if (timeRange.end.isDefined) {
-                        val newEndDate = new DateTime(timeRange.end.get.getMillis + difference)
-                        newTimeRange = timeRange.copy(start = newStartDate, end = Some(newEndDate))
+                        val newEndDate = timeRange.end.get.plus(recurrencePeriod)
+                        newTimeRange = timeRange.copy(start = current, end = Some(newEndDate))
                     } else {
-                        newTimeRange = timeRange.copy(start = newStartDate)
+                        newTimeRange = timeRange.copy(start = current)
                     }
         
                     val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
                     newEvents.append(updatedEvent)
                     EventDAO.insert(updatedEvent)
+                
+                    current = current.plusDays(1)
                 }
+            
+//                
+//                if (recType.compare(RecurrenceType.Daily) == 0) {
+//                    recurrenceDates ++= DayMeta.generateRecurrence(start, end)
+//                }
+//                else if (recType.compare(RecurrenceType.Weekly) == 0) {
+//                    recurrenceDates ++= WeekMeta.generateRecurrence(start, end)
+//                }
+//                else if (recType.compare(RecurrenceType.Monthly) == 0) {
+//                    recurrenceDates ++= MonthMeta.generateRecurrence(start, end)
+//                }
+//                else if (recType.compare(RecurrenceType.Yearly) == 0) {
+//                    recurrenceDates ++= YearMeta.generateRecurrence(start, end)
+//                }
+//                
+//                // TODO: effectively utilize new list of timeranges for recurring events?
+//                // would just need to pass events to frontend differently. calendar app?
+//                for (difference <- recurrenceDates) {
+//                    val newStartDate = new DateTime(timeRange.start.getMillis + difference)
+//                    var newTimeRange = new TimeRange
+//                    
+//                    if (timeRange.end.isDefined) {
+//                        val newEndDate = new DateTime(timeRange.end.get.getMillis + difference)
+//                        newTimeRange = timeRange.copy(start = newStartDate, end = Some(newEndDate))
+//                    } else {
+//                        newTimeRange = timeRange.copy(start = newStartDate)
+//                    }
+//        
+//                    val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
+//                    newEvents.append(updatedEvent)
+//                    EventDAO.insert(updatedEvent)
+//                }
             } 
         } else {
             // for future expansion, infinite recurrence
@@ -396,30 +427,34 @@ object Events extends Controller with MongoController {
         EventDAO.findById(objectID).map(event =>
             if (event.isDefined) {
                 if (event.get.recurrenceMeta.isDefined) {
+                    val lastStart = event.get.getFirstTimeRange().start
+                    val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = lastStart.plus(event.get.recurrenceMeta.get.recurDuration), duration = event.get.getFirstTimeRange().duration)))
+                    regenerateReminders(newEvent)
+                    EventDAO.insert(newEvent)
                     
-                    val recType = event.get.recurrenceMeta.get.recurrenceType
-                    
-                    if (recType.compare(RecurrenceType.Daily) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
-                        regenerateReminders(newEvent)
-                        EventDAO.insert(newEvent)
-                    }
-                    if (recType.compare(RecurrenceType.Weekly) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = WeekMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
-                        regenerateReminders(newEvent)
-                        EventDAO.insert(newEvent)
-                    }
-                    if (recType.compare(RecurrenceType.Monthly) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = MonthMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
-                        regenerateReminders(newEvent)
-                        EventDAO.insert(newEvent)
-                    }
-                    if (recType.compare(RecurrenceType.Yearly) == 0) {
-                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
-                        regenerateReminders(newEvent)
-                        EventDAO.insert(newEvent)
-                    }
-                    
+//                  //  val recType = event.get.recurrenceMeta.get.recurrenceType
+//                    
+//                    if (recType.compare(RecurrenceType.Daily) == 0) {
+//                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = DayMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+//                        regenerateReminders(newEvent)
+//                        EventDAO.insert(newEvent)
+//                    }
+//                    if (recType.compare(RecurrenceType.Weekly) == 0) {
+//                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = WeekMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+//                        regenerateReminders(newEvent)
+//                        EventDAO.insert(newEvent)
+//                    }
+//                    if (recType.compare(RecurrenceType.Monthly) == 0) {
+//                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = MonthMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+//                        regenerateReminders(newEvent)
+//                        EventDAO.insert(newEvent)
+//                    }
+//                    if (recType.compare(RecurrenceType.Yearly) == 0) {
+//                        val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = YearMeta.generateNext(DateTime.now()), duration = event.get.getFirstTimeRange().duration)))
+//                        regenerateReminders(newEvent)
+//                        EventDAO.insert(newEvent)
+//                    }
+//                    
                     
                 }
             })
