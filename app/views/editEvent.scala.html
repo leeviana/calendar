@@ -49,35 +49,37 @@
     		</select>
     	</div> -->
     	
+    	<div id = "forPUD">
     	@viewComponents.html.checkbox(form("isPUDEvent"), label = "Use time for PUD Events")
+        </div>
         
 		<script type="text/javascript">	
 	    $(document).ready(function(){
 		    $('#@(form("eventType").id+"s")').on('change', function() {
-		      if (this.value == "Fixed"){
-		        $('#@form("timeRange.startDate").id').show();
-		        $('#@form("timeRange.endDate").id').show();
-		        $('#@form("timeRange.startTime").id').show();
-		        $('#@form("timeRange.endTime").id').show();
-		        $('#@form("isPUDEvent").id').show();
+		      if (this.value == "Fixed" || this.value == "SignUp"){
+		        $('#slot1').show();
 		        
 		        $('#@form("timeRange.durationMin").id').hide();
 		        $('#@form("PUDPriority").id').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
+		        $('#forPUD').hide();
+		      }
+		      
+		      if (this.value == "Fixed"){
+		      	$('#forPUD').show();
 		      }
 		      if (this.value == "PUD"){
-		        $('#@form("timeRange.startDate").id').hide();
-		        $('#@form("timeRange.endDate").id').hide();
-		        $('#@form("timeRange.startTime").id').hide();
-		        $('#@form("timeRange.endTime").id').hide();
-		        $('#@form("isPUDEvent").id').hide();
+		        $('#slot1').hide();
+
 		        
 		        $('#@form("timeRange.durationMin").id').show();
 		        $('#@form("PUDPriority").id').show();
 		        
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
 		      }
+		      
+		      
 		    });
 		});
 		
@@ -87,35 +89,24 @@
 			label = "Time Allocated",
 			help = "minutes")
 		
-		
-		<!-- <label class="col-sm-2 control-label">Time Allocated</label>
-    	<div class="col-sm-5" style="width:190px">
-      		<input type="number" 
-             	class="form-control" 
-             	name='@form("timeRange.durationMin").name'
-             	value='@form("timeRange.durationMin").value'
-             	min="1" 
-             	max="1440"/>
-        </div>  -->
-		
 		@viewComponents.html.number(form("PUDPriority"),
 			label = "Priority")
 		
 	
         <!--  Time Range -->      
-        @helper.repeat(form("timeRangeList"), min = 1){ timeRangeObject =>
-        	@viewComponents.html.datepicker(timeRangeObject("startDate"),
-        		label = "Start Date")
-			<br>
-	        @viewComponents.html.timepicker(timeRangeObject("startTime"),
-	        	label = "Start Time")  
-	        <br>	
-	        @viewComponents.html.datepicker(timeRangeObject("endDate"),
-	        	label = "End Date")  
-	        <br>
-	        @viewComponents.html.timepicker(timeRangeObject("endTime"),
-	        	label = "End Time")
-	        <br> }
+        <div id ="slot1">
+			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[1].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[1].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[1].endTime"),
+			label = "End Time")</div>
+		
 
 		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
