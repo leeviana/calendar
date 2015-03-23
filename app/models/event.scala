@@ -44,6 +44,7 @@ object Event {
             "calendar" -> nonEmptyText, // BSONObjectID
             "timeRangeList" -> optional(list(TimeRange.form.mapping)),
             "timeRange" -> optional(TimeRange.form.mapping),
+            "timeRangeCount" -> number,
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "rules" -> optional(list(Rule.form.mapping)),
@@ -52,11 +53,11 @@ object Event {
             "eventType" -> nonEmptyText,
             "PUDPriority" -> optional(number),
             "isPUDEvent" -> boolean 
-            ) { (calendar, timeRangeList, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
+            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
-                    if(timeRangeList.isDefined) {timeRangeList.get} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
+                    if(timeRangeList.isDefined) {timeRangeList.get.slice(0, timeRangeCount)} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
                     name,
                     description,
                     None,
@@ -74,6 +75,7 @@ object Event {
                     event.calendar.stringify,
                     Some(event.timeRange),
                     Some(event.getFirstTimeRange()),
+                    event.timeRange.size,
                     event.name,
                     event.description,
                     Some(event.rules),

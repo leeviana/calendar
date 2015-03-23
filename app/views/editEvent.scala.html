@@ -39,7 +39,7 @@
        
        @viewComponents.html.dropdown(form("eventType"),
     		label = "Event Type",
-        	List("Fixed", "PUD"))   
+        	List("Fixed", "PUD", "SignUp"))   
         	
         <!-- <label class="col-sm-2 control-label">Event Type</label>
     	<div class="col-sm-5">
@@ -102,18 +102,183 @@
 			label = "Priority")
 		
 	
-        <!--  Time Range -->
-        @viewComponents.html.datepicker(form("timeRange.startDate"),
-        	label = "Start Date")  
-       
-        @viewComponents.html.timepicker(form("timeRange.startTime"),
-        	label = "Start Time")  
-        	
-        @viewComponents.html.datepicker(form("timeRange.endDate"),
-        	label = "End Date")  
+        <!--  Time Range -->      
+        @helper.repeat(form("timeRangeList"), min = 1){ timeRangeObject =>
+        	@viewComponents.html.datepicker(timeRangeObject("startDate"),
+        		label = "Start Date")
+			<br>
+	        @viewComponents.html.timepicker(timeRangeObject("startTime"),
+	        	label = "Start Time")  
+	        <br>	
+	        @viewComponents.html.datepicker(timeRangeObject("endDate"),
+	        	label = "End Date")  
+	        <br>
+	        @viewComponents.html.timepicker(timeRangeObject("endTime"),
+	        	label = "End Time")
+	        <br> }
+
+		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
+        <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+         
+		<div id="slot2">
+			<legend>Slot 2</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[1].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[1].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[1].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot3">
+			<legend>Slot 3</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[2].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[2].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[2].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[2].endTime"),
+			label = "End Time")</div>
+
+		<div id="slot4">
+			<legend>Slot 4</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[3].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[3].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[3].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[3].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot5">
+			<legend>Slot 5</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[4].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[4].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[4].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[4].endTime"),
+			label = "End Time")</div>
+
+		<div id="slot6">
+			<legend>Slot 6</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[5].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[5].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[5].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[5].endTime"),
+			label = "End Time")</div>
+	
+		<div id="slot7">
+			<legend>Slot 7</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[6].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[6].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[6].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[6].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot8">
+			<legend>Slot 8</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[7].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[7].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[7].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[7].endTime"),
+			label = "End Time")</div>
         
-        @viewComponents.html.timepicker(form("timeRange.endTime"),
-        	label = "End Time")  
+		<div id="slot9">
+			<legend>Slot 9</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[8].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[8].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[8].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[8].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot10">
+			<legend>Slot 10</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[9].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[9].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[9].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[9].endTime"),
+			label = "End Time")</div>
+        
+        <input type="number" 
+             	class="form-control" 
+             	name='@form("timeRangeCount").name'
+             	id = 'counter'
+             	value='@form("timeRangeCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var x = 1;
+        $(document).ready(function(){
+        	$("#counter").hide();
+			for (i = counter.value; i <= 10; i++){
+				$("#slot" + i).hide();
+			}
+        	
+   
+        	$("#add").click(function(e){
+        		alert("Add");
+        		++x;
+        		$("#slot" + x).show();		
+        		counter.value = x;
+        		console.log(x);
+        	});
+        	
+        	$("#subtract").click(function(e){
+        		alert("Subtract");
+        		$("#slot"+x).hide();
+        		--x;
+        		counter.value = x;
+        	
+        	});
+        
+       	});
+        </script>
         	
       	<!--  All day -->  
       	<!-- <div>

@@ -1,10 +1,5 @@
 @(field: Field, label: String = "")  
-	<head>
-		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-timepicker.min.css")">
-	  	<script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-timepicker.min.js")"></script>
-	</head>
-  
-  	<body>
+  	
   	<div class="form-group @if(field.hasErrors) {has-error}"  id="@field.id">
 		<label for="form-control" class="col-sm-2 control-label">@label</label>	
 			<div class="col-sm-5">
@@ -23,4 +18,3 @@
 			        </script>
 			</div>
 	</div>
-	</body>
