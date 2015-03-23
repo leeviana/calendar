@@ -15,9 +15,9 @@ import play.api.libs.json.Json
  * @author Leevi
  */
 case class RecurrenceMeta(
-    timeRange: TimeRange, // TODO: what is this for?
+    timeRange: TimeRange, // range of time recurrence occurs for
     reminderTime: Option[Long], // how many milliseconds before event to create reminder. TODO: this is a duration, also unneeded now?
-    reminderType: Option[ReminderType.ReminderType],
+    reminderType: Option[ReminderType.ReminderType], // TODO: remove
     recurrenceType: RecurrenceType.RecurrenceType,
     daily: Option[DayMeta],
     weekly: Option[WeekMeta],

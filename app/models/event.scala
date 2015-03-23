@@ -32,7 +32,11 @@ case class Event(
     PUDPriority: Option[Int] = None,
     signUpSlots: Option[List[SignUpSlot]] = None,
     maxSlots: Option[Int] = None ){
-                   
+                 
+//    def this(calendar: BSONObjectID) {
+//        this(false, new DateTime(), Some(new DateTime()), Duration.ZERO);
+//    }
+    
     def getFirstTimeRange(): TimeRange = {
         return this.timeRange.headOption.getOrElse(new TimeRange())
     }

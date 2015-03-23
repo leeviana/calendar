@@ -43,7 +43,7 @@ object SlotSignUp extends Controller with MongoController {
                 EventDAO.updateById(objectID, $pull("signUpSlots", Json.obj("_id" $eq slotID)))
                 EventDAO.updateById(objectID, $push("signUpSlots", signedUpSlot))
             
-                var calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
+                val calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
                 val newEvent = new Event(calendar = calendar, timeRange = List[TimeRange](signUpSlot.timeRange), master = Some(event.get._id))
                 EventDAO.insert(newEvent)
             }
@@ -59,9 +59,9 @@ object SlotSignUp extends Controller with MongoController {
      */
     def canSignUp(eventID: BSONObjectID, userID: BSONObjectID): Boolean = {
         val future = EventDAO.findById(eventID).map { event =>
-            var signUpSlots = event.get.signUpSlots.get
+            val signUpSlots = event.get.signUpSlots.get
 
-            var signedUp = signUpSlots.count { signUpSlot =>
+            val signedUp = signUpSlots.count { signUpSlot =>
                 signUpSlot.userID.getOrElse(-1) == userID
             }
 

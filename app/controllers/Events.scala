@@ -1,7 +1,7 @@
 package controllers
 
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.Map
+import scala.collection.mutable.{Map => MapBuffer}
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
@@ -39,55 +39,52 @@ import org.joda.time.{Duration => JodaDuration}
 object Events extends Controller with MongoController {
 
     /**
+     * Returns a JSObject that performs an access filter on events
+     */
+    def getEventFilter(user: User): JsObject = {
+        val userGroupIDs = GroupDAO.getUsersGroups(user._id)
+        
+        val myEventsQuery = Json.obj("$or" -> Json.arr(
+                            Json.obj(
+                                "calendar" -> Json.obj(
+                                    "$in" -> user.subscriptions)),
+                            Json.obj(
+                                "rules.entityID" -> user._id),
+                            Json.obj(
+                                "rules.entityID" -> Json.obj(
+                                    "$in" -> userGroupIDs))))
+        myEventsQuery      
+    }
+    
+    /**
      * Shows the user's fixed events and events shared with the user via rules
      */
-
     def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
-
-                var userGroupIDs = ListBuffer[BSONObjectID]()
-                val futureGroups = GroupDAO.findAll("userIDs" $eq user.head._id).map {
-                    groups =>
-                        for (group <- groups) {
-                            userGroupIDs += group._id
-                        }
-                }
-                Await.ready(futureGroups, Duration(5000, MILLISECONDS))
-
                 // filter based on start time
                 var timeQuery = Json.obj("timeRange.start" $gte DateTime.now())
                 if(eventType == EventType.PUD.toString())
                     timeQuery = Json.obj("timeRange.start" $lte DateTime.now())
-                    
-                val myEventsQuery = Json.obj("$or" -> Json.arr(
-                            Json.obj(
-                                "calendar" -> Json.obj(
-                                    "$in" -> user.get.subscriptions)),
-                            Json.obj(
-                                "rules.entityID" -> user.get._id),
-                            Json.obj(
-                                "rules.entityID" -> Json.obj(
-                                    "$in" -> userGroupIDs))))
-                
+
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
                         Json.obj("eventType" -> eventType),
                         timeQuery,
-                        myEventsQuery))
+                        getEventFilter(user.get)))
 
                 if (eventType == EventType.PUD) {
                     val sort = Json.obj("PUDPriority" -> 1)
                     
                     EventDAO.findAll(jsonquery, sort).map { events =>
-                        val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
+                        val accessEvents = applyAccesses(events, user.get)
                         Ok(views.html.events(accessEvents, eventType))
                     }
                 } else {
                     val sort = Json.obj("timeRange.start" -> 1, "timeRange.startTime" -> 1)
                     EventDAO.findAll(jsonquery, sort).map { events =>
-                        val accessEvents = applyAccesses(events, user.get, userGroupIDs.toList)
-                        val PUDupdatedEvents = updatePUD(accessEvents, myEventsQuery)
+                        val accessEvents = applyAccesses(events, user.get)
+                        val PUDupdatedEvents = updatePUD(accessEvents, user.get)
                         Ok(views.html.events(PUDupdatedEvents, eventType))
                     }
                 }
@@ -98,8 +95,10 @@ object Events extends Controller with MongoController {
         }
     }
 
-    def applyAccesses(events: List[Event], user: User, groupIDs: List[BSONObjectID]): List[Event] = {
+    def applyAccesses(events: List[Event], user: User): List[Event] = {
         events.map { event =>
+            
+            val groupIDs = GroupDAO.getUsersGroups(user._id)
             var newEvent = new Event()
 
             // user owns the event
@@ -139,7 +138,7 @@ object Events extends Controller with MongoController {
         }.toList
     }
 
-  def updatePUD(events: List[Event], eventsQuery: JsObject): List[Event] =  {
+  def updatePUD(events: List[Event], user: User): List[Event] =  {
     events.map { event =>
         var newEvent = event
       if (!event.viewType.isEmpty) {
@@ -150,7 +149,7 @@ object Events extends Controller with MongoController {
               Json.obj("eventType" -> "PUD"),
               Json.obj("timeRange.duration" -> Json.obj(
                 "$lte" -> dur)),
-              eventsQuery))
+              getEventFilter(user)))
               
           val sort = Json.obj("PUDPriority" -> 1)
           var temp: List[models.Event] = List()
@@ -201,7 +200,7 @@ object Events extends Controller with MongoController {
         val iterator = RecurrenceType.values.iterator
 
         UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
-            var calMap: Map[String, String] = Map()
+            var calMap: MapBuffer[String, String] = MapBuffer()
 
             for (calID <- user.get.subscriptions) {
                 calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
@@ -210,7 +209,7 @@ object Events extends Controller with MongoController {
             Ok(views.html.editEvent(None, Event.form, iterator, calMap))
         }
     }
-
+    
     /**
      * Creates an event on a calendar
      */
@@ -218,7 +217,7 @@ object Events extends Controller with MongoController {
         val iterator = RecurrenceType.values.iterator
 
         UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
-            var calMap: Map[String, String] = Map()
+            var calMap: MapBuffer[String, String] = MapBuffer()
 
             for (calID <- user.get.subscriptions) {
                 CalendarDAO.findById(calID).map { cal =>
@@ -330,7 +329,7 @@ object Events extends Controller with MongoController {
             val iterator = RecurrenceType.values.iterator
 
             UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
-                var calMap: Map[String, String] = Map()
+                var calMap: MapBuffer[String, String] = MapBuffer()
 
                 for (calID <- user.get.subscriptions) {
                     calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
@@ -347,7 +346,7 @@ object Events extends Controller with MongoController {
     def editEvent(eventID: String) = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
         UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
-            var calMap: Map[String, String] = Map()
+            var calMap: MapBuffer[String, String] = MapBuffer()
 
             for (calID <- user.get.subscriptions) {
                 CalendarDAO.findById(calID).map { cal =>

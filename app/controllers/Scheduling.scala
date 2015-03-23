@@ -9,6 +9,7 @@ import play.api.data.Forms.longNumber
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
 import play.api.data.Forms.tuple
+import play.api.data.Forms.jodaDate
 import play.api.mvc.Action
 import play.api.mvc.Controller
 import play.modules.reactivemongo.MongoController
@@ -22,6 +23,10 @@ import reactivemongo.extensions.json.dsl.JsonDsl._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.collection.mutable.Map
+import apputils.UserDAO
+import apputils.AuthStateDAO
+import org.joda.time.DateTime
+import models.RecurrenceMeta
 
 /**
  * @author Leevi
@@ -29,63 +34,89 @@ import scala.collection.mutable.Map
 object Scheduling extends Controller with MongoController {
     val schedulingForm = Form(
         tuple(
-            "isRecurring" -> boolean, // recurring event or onetime event
-            "timeRanges" -> list(TimeRange.form.mapping),
-            "duration" -> optional(longNumber), // duration needed to schedule
-            "recurrenceType" -> optional(nonEmptyText),
-            "entities" -> optional(list(nonEmptyText)) // BSONObjectIDs
-        ))
-            
+            "timeRanges" -> list(TimeRange.form.mapping), // specifically specify duration on the frontend to use in determining slots
+            "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
+            "entities" -> optional(list(nonEmptyText)), // BSONObjectIDs
+            "name" -> nonEmptyText,
+            "description" -> optional(nonEmptyText)))
+
     /**
      * Render a page where the user can specify their "free time" query
      */
     def showForm = Action { implicit request =>
-        Ok(views.html.scheduler(schedulingForm, None))     
+        Ok(views.html.scheduler(schedulingForm, None))
     }
-    
+
     /**
      * Render a page with the returned data from the "free time" query
      */
+    // TODO: use duration to break into slots
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
         schedulingForm.bindFromRequest.fold(
             errors => Ok(views.html.scheduler(errors, None)),
-            
+
             scheduleFormVals => {
+                schedulingForm.fill(scheduleFormVals)
                 // Form values    
-                val isRecurring = scheduleFormVals._1
-                val timeRanges = scheduleFormVals._2
-                val duration = scheduleFormVals._3.getOrElse(None)
-                val recurrenceType = scheduleFormVals._4.getOrElse(None)
-                val entities = scheduleFormVals._5.getOrElse(List.empty)
-                
-                var scheduleMap = Map[TimeRange, List[Event]]()
-                
-                for(timeRange <- timeRanges){
+                val timeRanges = scheduleFormVals._1
+                val recurrenceMeta = scheduleFormVals._2
+                val entities = scheduleFormVals._3.getOrElse(List.empty)
+
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])])]()
+
+                for (timeRange <- timeRanges) {
                     // get user's calendars
                     val calendars = ListBuffer[BSONObjectID]()
-                    
-                    for(entity <- entities){
+
+                    for (entity <- entities) {
                         val users = GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))
-                        users.foreach { user => 
+                        users.foreach { user =>
                             calendars.appendAll(user.subscriptions)
                         }
                     }
-                   
-                    if(!isRecurring){
-                        // query for conflicting events
-                        val conflicts = List[Event]()
-                        
-                        EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte timeRange.end, "timeRange.end" $gte timeRange.start)).map { events => 
-                            scheduleMap += (timeRange -> events)
+
+                    // returns conflicting events (that you have at least view access to)
+                    if (!recurrenceMeta.isDefined) {
+                        val futureUser = UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
+                            EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte timeRange.end, "timeRange.end" $gte timeRange.start, Events.getEventFilter(user.get))).map { events =>
+
+                                val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
+
+                                scheduleMap += (timeRange -> (events, newForm))
+                            }
                         }
-                    }
-                    else {
-                        print("TODO: generate recurrence conflict data")       
+
+                    } else {
+                        // check sample in the same way as above
+                        // then check subsequent recurrences based recurrenceType until recurrenceEnd
+                        // same scheduleMap += (timeRange -> (events, newForm))
+                        print("TODO: recurrence be handled slightly differently")
                     }
                 }
-                
+
                 Ok(views.html.scheduler(schedulingForm, Some(scheduleMap)))
-            }
-        )
+            })
+    }
+
+    /**
+     * Create an event and send requests based on query forms
+     */
+    def createEventAndRequests() = Action { implicit request =>
+        schedulingForm.bindFromRequest.fold(
+            errors => Ok(views.html.scheduler(errors, None)),
+
+            scheduleFormVals => {
+
+                var calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
+                val newEvent = new Event(calendar = calendar, timeRange = scheduleFormVals._1, recurrenceMeta = scheduleFormVals._2, name = scheduleFormVals._4, description = scheduleFormVals._5)
+
+                // if recurrence, recur
+
+                for (entity <- scheduleFormVals._3) {
+                    // send creationRequest
+                }
+
+                Redirect(routes.Events.showEvent(newEvent._id.stringify))
+            })
     }
 }
