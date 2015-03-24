@@ -230,23 +230,28 @@ object Events extends Controller with MongoController {
 
                 event => {
                     
+                    var myEvent = new Event
+                    
                     if((event.eventType == EventType.SignUp)) {
-                        createSignUpSlots(event)    
+                        myEvent = createSignUpSlots(event)    
+                    }
+                    else {
+                        myEvent = event
                     }
 
                     if (event.recurrenceMeta.isDefined) {
                         val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
                         val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
-                        EventDAO.insert(event.copy(recurrenceMeta = Some(newRecurrenceMeta)))
+                        EventDAO.insert(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
                     }
                     else {
-                        EventDAO.insert(event)
+                        EventDAO.insert(myEvent)
                     }
 
                     if ((event.recurrenceMeta.isDefined) && (event.eventType != EventType.PUD)) {
                         val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
                         val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
-                        createRecurrences(event.copy(recurrenceMeta = Some(newRecurrenceMeta)))
+                        createRecurrences(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
                     }
 
                     Redirect(routes.Events.index(event.eventType.toString()))
@@ -345,7 +350,8 @@ object Events extends Controller with MongoController {
         
         for(timeRange <- event.timeRange) {
             var currentStart = timeRange.start
-            val duration = new JodaDuration(new Period(0, event.minSignUpSlotDuration.get, 0, 0).getMillis)
+            val duration = new Period(0, event.minSignUpSlotDuration.get, 0, 0).toStandardDuration()
+            
             var currentEnd = new DateTime(currentStart.getMillis + (duration.getMillis))
             println("currentend: " + currentEnd + " | end: " + timeRange.end.get + " | duration: " + duration.getMillis)
                
