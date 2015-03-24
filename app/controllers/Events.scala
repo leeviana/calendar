@@ -344,20 +344,19 @@ object Events extends Controller with MongoController {
         
         for(timeRange <- event.timeRange) {
             var currentStart = timeRange.start
-            val duration = timeRange.duration
-            var currentEnd = new DateTime(currentStart.getMillis + duration.getMillis)
+            val duration = new JodaDuration(new Period(0, event.minSignUpSlotDuration.get, 0, 0).getMillis)
+            var currentEnd = new DateTime(currentStart.getMillis + (duration.getMillis))
             
             while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0){
                 val newSlot = SignUpSlot(timeRange = new TimeRange(start = currentStart, end = Some(currentEnd), duration = duration))
+                
                 signUpSlots.append(newSlot)
                 
                 currentStart = currentEnd
                 currentEnd = currentEnd.plus(duration)
             }
-            // use duration and start and end times to generate signupSlots and add to list
         }
         
-        // see if we can replace instance of event with another?
         val updatedEvent = event.copy(signUpSlots = Some(signUpSlots.toList))
         updatedEvent
     }
