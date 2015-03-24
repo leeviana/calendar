@@ -270,32 +270,33 @@ object Events extends Controller with MongoController {
                 //val recurrenceDates = new ListBuffer[Long]()
                 //val start = timeRange.start
                 val recurrencePeriod = event.recurrenceMeta.get.recurDuration
-                
-                var currentStart = timeRange.start.plus(recurrencePeriod)
-                var currentEnd = new DateTime
-                var nextPointer = BSONObjectID.generate
-                
-                if(timeRange.end.isDefined) {
-                    var currentEnd = timeRange.end.get.plus(recurrencePeriod)
-                }
+                if (recurrencePeriod.getMillis > 0) {
+                    var currentStart = timeRange.start.plus(recurrencePeriod)
+                    var currentEnd = new DateTime
+                    var nextPointer = BSONObjectID.generate
                     
-                while (currentStart.compareTo(end) <= 0) {
-                    
-                    var newTimeRange = new TimeRange
-                    
-                    if (timeRange.end.isDefined) {
-                        newTimeRange = timeRange.copy(start = currentStart, end = Some(currentEnd))
-                    } else {
-                        newTimeRange = timeRange.copy(start = currentStart)
+                    if(timeRange.end.isDefined) {
+                        var currentEnd = timeRange.end.get.plus(recurrencePeriod)
                     }
+                        
+                    while (currentStart.compareTo(end) <= 0) {
+                        
+                        var newTimeRange = new TimeRange
+                        
+                        if (timeRange.end.isDefined) {
+                            newTimeRange = timeRange.copy(start = currentStart, end = Some(currentEnd))
+                        } else {
+                            newTimeRange = timeRange.copy(start = currentStart)
+                        }
+                        
+                        val updatedEvent = event.copy(_id = nextPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
+                        newEvents.append(updatedEvent)
+                        EventDAO.insert(updatedEvent)
                     
-                    val updatedEvent = event.copy(_id = nextPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
-                    newEvents.append(updatedEvent)
-                    EventDAO.insert(updatedEvent)
-                
-                    currentStart = currentEnd.plus(recurrencePeriod)
-                    currentEnd = currentEnd.plus(recurrencePeriod)
-                    nextPointer = BSONObjectID.generate
+                        currentStart = currentEnd.plus(recurrencePeriod)
+                        currentEnd = currentEnd.plus(recurrencePeriod)
+                        nextPointer = BSONObjectID.generate
+                    }
                 }
             
 //                
@@ -346,14 +347,18 @@ object Events extends Controller with MongoController {
             var currentStart = timeRange.start
             val duration = new JodaDuration(new Period(0, event.minSignUpSlotDuration.get, 0, 0).getMillis)
             var currentEnd = new DateTime(currentStart.getMillis + (duration.getMillis))
-            
-            while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0){
-                val newSlot = SignUpSlot(timeRange = new TimeRange(start = currentStart, end = Some(currentEnd), duration = duration))
-                
-                signUpSlots.append(newSlot)
-                
-                currentStart = currentEnd
-                currentEnd = currentEnd.plus(duration)
+            println("currentend: " + currentEnd + " | end: " + timeRange.end.get + " | duration: " + duration.getMillis)
+               
+            if (duration.getMillis != 0) {
+                while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0){
+                    
+                    val newSlot = SignUpSlot(timeRange = new TimeRange(start = currentStart, end = Some(currentEnd), duration = duration))
+                    
+                    signUpSlots.append(newSlot)
+                    
+                    currentStart = currentEnd
+                    currentEnd = currentEnd.plus(duration)
+                }
             }
         }
         
