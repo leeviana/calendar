@@ -5,7 +5,7 @@ import models.TimeRange
 import play.api.data.Form
 import play.api.data.Forms.boolean
 import play.api.data.Forms.list
-import play.api.data.Forms.longNumber
+import play.api.data.Forms.number
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
 import play.api.data.Forms.tuple
@@ -38,7 +38,8 @@ object Scheduling extends Controller with MongoController {
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
             "entities" -> optional(list(nonEmptyText)), // BSONObjectIDs
             "name" -> nonEmptyText,
-            "description" -> optional(nonEmptyText)))
+            "description" -> optional(nonEmptyText),
+            "duration" -> number))
 
     /**
      * Render a page where the user can specify their "free time" query
@@ -61,8 +62,9 @@ object Scheduling extends Controller with MongoController {
                 val timeRanges = scheduleFormVals._1
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
+                val duration = scheduleFormVals._6
 
-                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])])]()
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]()
 
                 for (timeRange <- timeRanges) {
                     // get user's calendars

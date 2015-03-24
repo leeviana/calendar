@@ -57,7 +57,7 @@ object Events extends Controller with MongoController {
     }
     
     /**
-     * Shows the user's fixed events and events shared with the user via rules
+     * Shows the user's events of type "eventType" and events shared with the user via rules
      */
     def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
@@ -275,9 +275,10 @@ object Events extends Controller with MongoController {
                 //val recurrenceDates = new ListBuffer[Long]()
                 //val start = timeRange.start
                 val recurrencePeriod = event.recurrenceMeta.get.recurDuration
-                if (recurrencePeriod.getMillis > 0) {
+                if (recurrencePeriod.toStandardDuration().getMillis > 0) {
                     var currentStart = timeRange.start.plus(recurrencePeriod)
                     var currentEnd = new DateTime
+                    var thisPointer = BSONObjectID.generate
                     var nextPointer = BSONObjectID.generate
                     
                     if(timeRange.end.isDefined) {
@@ -294,13 +295,15 @@ object Events extends Controller with MongoController {
                             newTimeRange = timeRange.copy(start = currentStart)
                         }
                         
-                        val updatedEvent = event.copy(_id = nextPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
+                        val updatedEvent = event.copy(_id = thisPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
                         newEvents.append(updatedEvent)
                         EventDAO.insert(updatedEvent)
                     
                         currentStart = currentEnd.plus(recurrencePeriod)
                         currentEnd = currentEnd.plus(recurrencePeriod)
+                        thisPointer = nextPointer
                         nextPointer = BSONObjectID.generate
+                        
                     }
                 }
             
@@ -517,7 +520,12 @@ object Events extends Controller with MongoController {
                     
                     // if masterEvent is SignUp event, clear slot
                     if(master.get.eventType == EventType.SignUp) {
-                       // TODO: query to find slot where slot.timeRange.start == oldEvent.start in master.get.SignUpSlots, push userID = None
+                        master.get.signUpSlots.get.map { signUpSlot => 
+                            if(signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
+                                signUpSlot.copy(userID = None)
+                            } else {
+                                signUpSlot
+                            } }
                     }
                     else { // normal shared event
                         // if you are the owner of the master event also
