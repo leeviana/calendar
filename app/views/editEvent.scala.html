@@ -63,15 +63,17 @@
 		        $('#@form("PUDPriority").id').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
+		        $('#maxSlots').show();
 		        $('#forPUD').hide();
 		      }
 		      
 		      if (this.value == "Fixed"){
+		       	$('#maxSlots').hide();
 		      	$('#forPUD').show();
 		      }
 		      if (this.value == "PUD"){
 		        $('#slot1').hide();
-
+				$('#maxSlots').hide();
 		        
 		        $('#@form("timeRange.durationMin").id').show();
 		        $('#@form("PUDPriority").id').show();
@@ -95,23 +97,28 @@
 	
         <!--  Time Range -->      
         <div id ="slot1">
-			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
+			@viewComponents.html.datepicker(form("timeRangeList[0].startDate"),
 			label = "Start Date")
 
-			@viewComponents.html.timepicker(form("timeRangeList[1].startTime"),
+			@viewComponents.html.timepicker(form("timeRangeList[0].startTime"),
 			label = "Start Time")
 
-			@viewComponents.html.datepicker(form("timeRangeList[1].endDate"),
+			@viewComponents.html.datepicker(form("timeRangeList[0].endDate"),
 			label = "End Date")
 
-			@viewComponents.html.timepicker(form("timeRangeList[1].endTime"),
+			@viewComponents.html.timepicker(form("timeRangeList[0].endTime"),
 			label = "End Time")</div>
 		
 
 		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
          
-		<div id="slot2">
+        <div id = "maxSlots">
+        	@viewComponents.html.number(form("maxSlots"),
+			label = "Max Slots",
+			help = "Maximum number of slots a user can sign up for")
+        </div>
+		<div id="slot2">			
 			<legend>Slot 2</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
 			label = "Start Date")
