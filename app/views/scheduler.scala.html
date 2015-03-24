@@ -1,15 +1,32 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])], scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])])]])
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])], userId: BSONObjectID, scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])])]])
 
 @main("Scheduler") {
 
-<div class="container">
-	<div class="row">
-		<div class="col-md-9">
-			<h1>Scheduler</h1>
-		</div>
+<div class="row">
+	<div class="col-md-9">
+		<h1>Scheduler</h1>
+		<legend>Schedule an event</legend>
+		
+		@helper.form(action = routes.Scheduling.showForm, 'class -> "form-horizontal") {
+		
+			<!-- Event Name -->
+			@viewComponents.html.text(schedulingForm("name"),
+    			label = "Name",
+        		placeholder = "Event Name")
+        
+ 			<!--  Description -->
+			@viewComponents.html.textarea(schedulingForm("description"),
+    			label = "Description",
+        		placeholder = "Event Description") 
+        		
+        	@viewComponents.html.dropdown(form("entity"),
+    			label = "Entity",
+        		List())   
+        	
+		}
 	</div>
 </div>
-</div>
+
 }
 
 
