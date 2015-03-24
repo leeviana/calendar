@@ -29,11 +29,25 @@
 			<p>Description: @event.description</p>
 			<p>Calendar: @CalendarDAO.getCalendarFromID(event.calendar).name</p>
 			
-		}else{
+		} 
+		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
 			<h2>PUD Information: @event.name</h2>
 			<p> Duration: @event.getFirstTimeRange().duration.getStandardMinutes minutes</p>
 			<p> Priority: @event.PUDPriority</p>
-		}
+			} 
+		 
+		@if(event.eventType.toString == models.enums.EventType.SignUp.toString){
+			<h2>Event Information: @event.name</h2>
+			
+		
+				@for(slot <- event.signUpSlots){
+					@for(s <- slot){
+						<h1> @s._id	</h1>
+					}		
+				}
+			
+			}
+		
 			
 		<legend>Add Reminder</legend>
 		@helper.form(action = routes.Events.addReminder(event._id.stringify),'class -> "form-horizontal") { 
