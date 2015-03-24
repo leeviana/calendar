@@ -271,24 +271,31 @@ object Events extends Controller with MongoController {
                 //val start = timeRange.start
                 val recurrencePeriod = event.recurrenceMeta.get.recurDuration
                 
-                var current = timeRange.start.plus(recurrencePeriod)
+                var currentStart = timeRange.start.plus(recurrencePeriod)
+                var currentEnd = new DateTime
+                var nextPointer = BSONObjectID.generate
                 
-                while (current.compareTo(end) <= 0) {
+                if(timeRange.end.isDefined) {
+                    var currentEnd = timeRange.end.get.plus(recurrencePeriod)
+                }
+                    
+                while (currentStart.compareTo(end) <= 0) {
                     
                     var newTimeRange = new TimeRange
                     
                     if (timeRange.end.isDefined) {
-                        val newEndDate = timeRange.end.get.plus(recurrencePeriod)
-                        newTimeRange = timeRange.copy(start = current, end = Some(newEndDate))
+                        newTimeRange = timeRange.copy(start = currentStart, end = Some(currentEnd))
                     } else {
-                        newTimeRange = timeRange.copy(start = current)
+                        newTimeRange = timeRange.copy(start = currentStart)
                     }
-        
-                    val updatedEvent = event.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](newTimeRange))
+                    
+                    val updatedEvent = event.copy(_id = nextPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
                     newEvents.append(updatedEvent)
                     EventDAO.insert(updatedEvent)
                 
-                    current = current.plusDays(1)
+                    currentStart = currentEnd.plus(recurrencePeriod)
+                    currentEnd = currentEnd.plus(recurrencePeriod)
+                    nextPointer = BSONObjectID.generate
                 }
             
 //                
@@ -489,6 +496,8 @@ object Events extends Controller with MongoController {
         // Check for any associated reminders and delete those too
         ReminderDAO.remove("eventID" $eq objectID)
 
+        // TODO: use recurrencepointer to delete events afterwards. make new deleteAll method for it?
+        
         EventDAO.findAndRemove("_id" $eq objectID).map { oldEvent =>
             // Check for any associated creation request and update those
             if (oldEvent.get.master.isDefined) {
