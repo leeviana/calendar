@@ -44,7 +44,7 @@ object Scheduling extends Controller with MongoController {
      * Render a page where the user can specify their "free time" query
      */
     def showForm = Action { implicit request =>
-        Ok(views.html.scheduler(schedulingForm, AuthStateDAO.getUserID(), None))
+        Ok(views.html.scheduler(schedulingForm, None))
     }
 
     /**
@@ -53,7 +53,7 @@ object Scheduling extends Controller with MongoController {
     // TODO: use duration to break into slots
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, AuthStateDAO.getUserID(), None)),
+            errors => Ok(views.html.scheduler(errors, None)),
 
             scheduleFormVals => {
                 schedulingForm.fill(scheduleFormVals)
@@ -94,7 +94,7 @@ object Scheduling extends Controller with MongoController {
                     }
                 }
 
-                Ok(views.html.scheduler(schedulingForm, AuthStateDAO.getUserID(), Some(scheduleMap)))
+                Ok(views.html.scheduler(schedulingForm, Some(scheduleMap)))
             })
     }
 
@@ -103,7 +103,7 @@ object Scheduling extends Controller with MongoController {
      */
     def createEventAndRequests() = Action { implicit request =>
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, AuthStateDAO.getUserID(), None)),
+            errors => Ok(views.html.scheduler(errors, None)),
 
             scheduleFormVals => {
                 var newEvents = ListBuffer[Event]()
