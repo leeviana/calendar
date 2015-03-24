@@ -41,7 +41,17 @@ object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoCo
         Await.result(futureRequests, Duration(5000, MILLISECONDS))
     }
 }
-object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events")
+object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") {
+    def canSignUp(eventID: BSONObjectID, userID: BSONObjectID): Boolean = {
+        val futureEvent = this.findById(eventID)
+        val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
+        
+        val slots = event.get.signUpSlots.get
+        val count = slots.count { slot => slot.userID == userID }
+
+        count < event.get.maxSlots.get       
+    }
+}
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") {
     def getUsersGroups(userID: BSONObjectID): List[Group] = {
         val futureUser = UserDAO.findById(userID)
@@ -52,13 +62,6 @@ object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") 
 
         groups
     }
-
-/*    def isGroup(entityID: BSONObjectID): Boolean = {
-        val futureGroup = this.findById(entityID)
-        val group = Await.result(futureGroup, Duration(5000, MILLISECONDS))
-
-        group.isDefined
-    }*/
     
     def getUsersOfEntity(entityID: BSONObjectID): List[User] = {
         
@@ -77,6 +80,7 @@ object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") 
         }
     }
 }
+
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
     /**

@@ -5,7 +5,7 @@ import models.TimeRange
 import play.api.data.Form
 import play.api.data.Forms.boolean
 import play.api.data.Forms.list
-import play.api.data.Forms.longNumber
+import play.api.data.Forms.number
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
 import play.api.data.Forms.tuple
@@ -38,7 +38,8 @@ object Scheduling extends Controller with MongoController {
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
             "entities" -> optional(list(nonEmptyText)), // BSONObjectIDs
             "name" -> nonEmptyText,
-            "description" -> optional(nonEmptyText)))
+            "description" -> optional(nonEmptyText),
+            "duration" -> number))
 
     /**
      * Render a page where the user can specify their "free time" query
@@ -50,19 +51,20 @@ object Scheduling extends Controller with MongoController {
     /**
      * Render a page with the returned data from the "free time" query
      */
-    // TODO: use duration to break into slots
+    // TODO: use duration to break timeRange into multiple timeranges
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
         schedulingForm.bindFromRequest.fold(
             errors => Ok(views.html.scheduler(errors, None)),
 
             scheduleFormVals => {
-                schedulingForm.fill(scheduleFormVals)
+                
                 // Form values    
                 val timeRanges = scheduleFormVals._1
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
+                val duration = scheduleFormVals._6
 
-                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String])])]()
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]()
 
                 for (timeRange <- timeRanges) {
                     // get user's calendars
@@ -76,21 +78,31 @@ object Scheduling extends Controller with MongoController {
                     }
 
                     // returns conflicting events (that you have at least view access to)
-                    if (!recurrenceMeta.isDefined) {
-                        val futureUser = UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
+                    val futureUser = UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
+                        if (!recurrenceMeta.isDefined) {
                             EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte timeRange.end, "timeRange.end" $gte timeRange.start, Events.getEventFilter(user.get))).map { events =>
 
                                 val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
-
                                 scheduleMap += (timeRange -> (events, newForm))
                             }
-                        }
 
-                    } else {
-                        // check sample in the same way as above
-                        // then check subsequent recurrences based recurrenceType until recurrenceEnd
-                        // same scheduleMap += (timeRange -> (events, newForm))
-                        print("TODO: recurrence be handled slightly differently")
+                        } else {
+                            // check sample in the same way as above
+                            var conflictEvents = new ListBuffer[Event]
+                            var current = timeRange.copy(start = timeRange.start, end = timeRange.end, duration = timeRange.duration)
+                            while (current.end.get.compareTo(recurrenceMeta.get.timeRange.end.get) <= 0) {
+
+                                // TODO: check if this code works without using futures
+                                EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte current.end, "timeRange.end" $gte current.start, Events.getEventFilter(user.get))).map { events =>
+                                    conflictEvents.appendAll(events)
+                                }
+
+                                current = timeRange.copy(start = timeRange.start.plus(recurrenceMeta.get.recurDuration), end = Some(timeRange.end.get.plus(recurrenceMeta.get.recurDuration)))
+                            }
+
+                            val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
+                            scheduleMap += (timeRange -> (conflictEvents.toList, newForm))
+                        }
                     }
                 }
 

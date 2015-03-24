@@ -70,28 +70,12 @@ class ReminderCheckActor extends Actor {
  
     /**
      * Takes a reminder that has been sent and creates the recurring reminder based on recurrence information
-     * TODO: refactor when recurrence is refactored
      */
     def handleRecurrence(reminder: Reminder) = {
         if(reminder.recurrenceMeta.isDefined) {
-            val recType = reminder.recurrenceMeta.get.recurrenceType
-            
-            if (recType.compare(RecurrenceType.Daily) == 0) {
-                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = DayMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.daily.get.numberOfDays)))
-                ReminderDAO.insert(newReminder)
-            }
-            if (recType.compare(RecurrenceType.Weekly) == 0) {
-                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = WeekMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.weekly.get.numberOfWeeks.getOrElse(1))))
-                ReminderDAO.insert(newReminder)
-            }
-            if (recType.compare(RecurrenceType.Monthly) == 0) {
-                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = DayMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.monthly.get.numberOfMonths.getOrElse(1))))
-                ReminderDAO.insert(newReminder)
-            }
-            if (recType.compare(RecurrenceType.Yearly) == 0) {
-                val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = DayMeta.generateNext(reminder.timestamp.start, reminder.recurrenceMeta.get.yearly.get.numberOfYears.getOrElse(1))))
-                ReminderDAO.insert(newReminder)
-            }
+            val lastStart = reminder.timestamp.start
+            val newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = lastStart.plus(reminder.recurrenceMeta.get.recurDuration)))
+            ReminderDAO.insert(newReminder)
         }
     }
 }

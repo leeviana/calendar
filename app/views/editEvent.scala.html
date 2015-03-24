@@ -39,7 +39,7 @@
        
        @viewComponents.html.dropdown(form("eventType"),
     		label = "Event Type",
-        	List("Fixed", "PUD"))   
+        	List("Fixed", "PUD", "SignUp"))   
         	
         <!-- <label class="col-sm-2 control-label">Event Type</label>
     	<div class="col-sm-5">
@@ -49,35 +49,39 @@
     		</select>
     	</div> -->
     	
+    	<div id = "forPUD">
     	@viewComponents.html.checkbox(form("isPUDEvent"), label = "Use time for PUD Events")
+        </div>
         
 		<script type="text/javascript">	
 	    $(document).ready(function(){
 		    $('#@(form("eventType").id+"s")').on('change', function() {
-		      if (this.value == "Fixed"){
-		        $('#@form("timeRange.startDate").id').show();
-		        $('#@form("timeRange.endDate").id').show();
-		        $('#@form("timeRange.startTime").id').show();
-		        $('#@form("timeRange.endTime").id').show();
-		        $('#@form("isPUDEvent").id').show();
+		      if (this.value == "Fixed" || this.value == "SignUp"){
+		        $('#slot1').show();
 		        
 		        $('#@form("timeRange.durationMin").id').hide();
 		        $('#@form("PUDPriority").id').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
+		        $('#maxSlots').show();
+		        $('#forPUD').hide();
+		      }
+		      
+		      if (this.value == "Fixed"){
+		       	$('#maxSlots').hide();
+		      	$('#forPUD').show();
 		      }
 		      if (this.value == "PUD"){
-		        $('#@form("timeRange.startDate").id').hide();
-		        $('#@form("timeRange.endDate").id').hide();
-		        $('#@form("timeRange.startTime").id').hide();
-		        $('#@form("timeRange.endTime").id').hide();
-		        $('#@form("isPUDEvent").id').hide();
+		        $('#slot1').hide();
+				$('#maxSlots').hide();
 		        
 		        $('#@form("timeRange.durationMin").id').show();
 		        $('#@form("PUDPriority").id').show();
 		        
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
 		      }
+		      
+		      
 		    });
 		});
 		
@@ -87,33 +91,197 @@
 			label = "Time Allocated",
 			help = "minutes")
 		
-		
-		<!-- <label class="col-sm-2 control-label">Time Allocated</label>
-    	<div class="col-sm-5" style="width:190px">
-      		<input type="number" 
-             	class="form-control" 
-             	name='@form("timeRange.durationMin").name'
-             	value='@form("timeRange.durationMin").value'
-             	min="1" 
-             	max="1440"/>
-        </div>  -->
-		
 		@viewComponents.html.number(form("PUDPriority"),
 			label = "Priority")
 		
 	
-        <!--  Time Range -->
-        @viewComponents.html.datepicker(form("timeRange.startDate"),
-        	label = "Start Date")  
-       
-        @viewComponents.html.timepicker(form("timeRange.startTime"),
-        	label = "Start Time")  
-        	
-        @viewComponents.html.datepicker(form("timeRange.endDate"),
-        	label = "End Date")  
+        <!--  Time Range -->      
+        <div id ="slot1">
+			@viewComponents.html.datepicker(form("timeRangeList[0].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[0].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[0].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[0].endTime"),
+			label = "End Time")</div>
+		
+
+		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
+        <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+         
+        <div id = "maxSlots">
+        	@viewComponents.html.number(form("maxSlots"),
+			label = "Max Slots",
+			help = "Maximum number of slots a user can sign up for")
+			
+			@viewComponents.html.number(form("minSignUpSlotDuration"),
+			label = "Minimum SignUp Slot Duration",
+			help = "Minutes")
+
+        </div>
+		<div id="slot2">			
+			<legend>Slot 2</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[1].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[1].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[1].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot3">
+			<legend>Slot 3</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[2].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[2].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[2].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[2].endTime"),
+			label = "End Time")</div>
+
+		<div id="slot4">
+			<legend>Slot 4</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[3].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[3].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[3].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[3].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot5">
+			<legend>Slot 5</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[4].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[4].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[4].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[4].endTime"),
+			label = "End Time")</div>
+
+		<div id="slot6">
+			<legend>Slot 6</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[5].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[5].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[5].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[5].endTime"),
+			label = "End Time")</div>
+	
+		<div id="slot7">
+			<legend>Slot 7</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[6].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[6].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[6].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[6].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot8">
+			<legend>Slot 8</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[7].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[7].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[7].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[7].endTime"),
+			label = "End Time")</div>
         
-        @viewComponents.html.timepicker(form("timeRange.endTime"),
-        	label = "End Time")  
+		<div id="slot9">
+			<legend>Slot 9</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[8].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[8].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[8].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[8].endTime"),
+			label = "End Time")</div>
+			
+		<div id="slot10">
+			<legend>Slot 10</legend>
+			@viewComponents.html.datepicker(form("timeRangeList[9].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[9].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRangeList[9].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRangeList[9].endTime"),
+			label = "End Time")</div>
+        
+        <input type="number" 
+             	class="form-control" 
+             	name='@form("timeRangeCount").name'
+             	id = 'counter'
+             	value='@form("timeRangeCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var x = 1;
+        $(document).ready(function(){
+        	$("#counter").hide();
+			for (i = counter.value; i <= 10; i++){
+				$("#slot" + i).hide();
+			}
+        	
+   
+        	$("#add").click(function(e){
+        		alert("Add");
+        		++x;
+        		$("#slot" + x).show();		
+        		counter.value = x;
+        		console.log(x);
+        	});
+        	
+        	$("#subtract").click(function(e){
+        		alert("Subtract");
+        		$("#slot"+x).hide();
+        		--x;
+        		counter.value = x;
+        	
+        	});
+        
+       	});
+        </script>
         	
       	<!--  All day -->  
       	<!-- <div>
@@ -132,13 +300,11 @@
                 style="visibility: hidden" />
        	
        	<!--  Recurrence Details -->    	
-       	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),
-    		label = "Recurrence Type",
-        	List("", "Daily", "Weekly", "Monthly", "Yearly"))
-        			
+       			
         @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
-       		
+       		 
+		@viewComponents.html.recurrenceHelper(form("recurrenceMeta"))
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">

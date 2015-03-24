@@ -7,6 +7,7 @@ import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
 import play.api.data.Forms.number
+import play.api.data.Forms.longNumber
 import play.api.data.Forms.boolean
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
@@ -14,6 +15,8 @@ import play.modules.reactivemongo.json.BSONFormats._
 import models.enums.EventType
 import models.enums.ViewType
 import apputils.UserDAO
+import org.joda.time.Duration
+import models.JsonDuration.DurationFormat
 
 case class Event(
     _id: BSONObjectID = BSONObjectID.generate,
@@ -31,11 +34,8 @@ case class Event(
     viewType: Option[ViewType.ViewType] = None,
     PUDPriority: Option[Int] = None,
     signUpSlots: Option[List[SignUpSlot]] = None,
+    minSignUpSlotDuration: Option[Int] = None, // minutes
     maxSlots: Option[Int] = None ){
-                 
-//    def this(calendar: BSONObjectID) {
-//        this(false, new DateTime(), Some(new DateTime()), Duration.ZERO);
-//    }
     
     def getFirstTimeRange(): TimeRange = {
         return this.timeRange.headOption.getOrElse(new TimeRange())
@@ -49,6 +49,7 @@ object Event {
             "calendar" -> nonEmptyText, // BSONObjectID
             "timeRangeList" -> optional(list(TimeRange.form.mapping)),
             "timeRange" -> optional(TimeRange.form.mapping),
+            "timeRangeCount" -> number,
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "rules" -> optional(list(Rule.form.mapping)),
@@ -57,12 +58,13 @@ object Event {
             "eventType" -> nonEmptyText,
             "PUDPriority" -> optional(number),
             "isPUDEvent" -> boolean,
+            "minSignUpSlotDuration" -> optional(number), // in minutes
             "maxSlots" -> optional(number)
-            ) { (calendar, timeRangeList, timeRange, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, maxSlots) =>
+            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, minSignUpSlotDuration, maxSlots) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
-                    if(timeRangeList.isDefined) {timeRangeList.get} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
+                    if(timeRangeList.isDefined) {timeRangeList.get.slice(0, timeRangeCount)} else if (timeRange.isDefined) {List[TimeRange](timeRange.get)} else {List[TimeRange]()},
                     name,
                     description,
                     None,
@@ -75,12 +77,14 @@ object Event {
                     if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
                     PUDPriority,
                     None,
+                    minSignUpSlotDuration,
                     maxSlots)
             } { event =>
                 Some((
                     event.calendar.stringify,
                     Some(event.timeRange),
                     Some(event.getFirstTimeRange()),
+                    event.timeRange.size,
                     event.name,
                     event.description,
                     Some(event.rules),
@@ -89,6 +93,7 @@ object Event {
                     event.eventType.toString(),
                     event.PUDPriority,
                     if(event.viewType.isDefined) {event.viewType.get.toString() == ViewType.PUDEvent} else {false},
+                    event.minSignUpSlotDuration,
                     event.maxSlots))
             })
 }
