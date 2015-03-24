@@ -16,7 +16,7 @@ import org.joda.time.Period
  * @author Leevi
  */
 case class MonthMeta(
-    monthDay: Option[Int] = None,
+    monthDay: Option[Int] = None, // TODO: remove. Just use required number of months
     numberOfMonths: Option[Int] = Some(1)) {
     var recurrenceType = RecurrenceType.Monthly
 }
@@ -28,23 +28,4 @@ object MonthMeta {
         mapping(
             "monthDay" -> optional(number),
             "numberOfMonths" -> optional(number))(MonthMeta.apply)(MonthMeta.unapply))
-
-    /**
-     * Returns list of Longs, which represent the amount of time between the start and end dates
-     */
-    def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
-        var current = start.plusMonths(1)
-        var timestamps = ListBuffer[Long]()
-
-        while (current.compareTo(end) <= 0) {
-            timestamps += current.getMillis - start.getMillis
-            current = current.plusMonths(1)
-        }
-
-        timestamps.toList
-    }
-    
-    def generateNext(start: DateTime, numberOfMonths: Int = 1): DateTime = {
-        start.plusMonths(numberOfMonths)
-    }
 }

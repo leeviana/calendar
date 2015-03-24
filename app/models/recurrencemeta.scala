@@ -21,19 +21,10 @@ import org.joda.time.Period
  */
 case class RecurrenceMeta(
     timeRange: TimeRange, // range of time recurrence occurs for
-    reminderTime: Option[Long], // how many milliseconds before event to create reminder. TODO: this is a duration, also unneeded now?
+    reminderTime: Option[Long], // how many milliseconds before event to create reminder. TODO: this is a duration. is this used?
     reminderType: Option[ReminderType.ReminderType], // TODO: remove
     recurrenceType: RecurrenceType.RecurrenceType,
-    recurDuration: Period
-    
-    //daily: Option[DayMeta],
-    //weekly: Option[WeekMeta],
-    //monthly: Option[MonthMeta],
-    //yearly: Option[YearMeta] // TODO: remove 'recurrenceType', which is inside of meta objects and just have all meta objects extend from the same class
-    
-    // learn more about Scala's hierarchy system and possibly use it to clean up this class
-    // TODO: move all the recurrence meta classes into their own package
-    )
+    recurDuration: Period)
 
 object RecurrenceMeta {
     implicit val EventFormat = Json.format[RecurrenceMeta]
@@ -57,17 +48,13 @@ object RecurrenceMeta {
                     recType,
                     if (recType.compare(RecurrenceType.Daily) == 0) {
                         new Period(0, 0, 0, daily.get.numberOfDays, 0, 0, 0, 0)
-                    }
-                    else if (recType.compare(RecurrenceType.Weekly) == 0) {
+                    } else if (recType.compare(RecurrenceType.Weekly) == 0) {
                         new Period(0, 0, weekly.get.numberOfWeeks.get, 0, 0, 0, 0, 0)
-                    }  
-                    else if (recType.compare(RecurrenceType.Monthly) == 0) {
+                    } else if (recType.compare(RecurrenceType.Monthly) == 0) {
                         new Period(0, monthly.get.numberOfMonths.get, 0, 0, 0, 0, 0, 0)
-                    }  
-                    else {
+                    } else {
                         new Period(yearly.get.numberOfYears.get, 0, 0, 0, 0, 0, 0, 0)
-                    }
-                )
+                    })
             } { recurrencemeta =>
                 Some(
                     (recurrencemeta.timeRange,
@@ -77,7 +64,6 @@ object RecurrenceMeta {
                         Some(new DayMeta(recurrencemeta.recurDuration.getDays)),
                         Some(new WeekMeta(None, Some(recurrencemeta.recurDuration.getWeeks))),
                         Some(new MonthMeta(None, Some(recurrencemeta.recurDuration.getMonths))),
-                        Some(new YearMeta(None, None, Some(recurrencemeta.recurDuration.getYears)))
-                        ))
+                        Some(new YearMeta(None, None, Some(recurrencemeta.recurDuration.getYears)))))
             })
 }
