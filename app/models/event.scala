@@ -7,6 +7,7 @@ import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
 import play.api.data.Forms.number
+import play.api.data.Forms.longNumber
 import play.api.data.Forms.boolean
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
@@ -14,6 +15,8 @@ import play.modules.reactivemongo.json.BSONFormats._
 import models.enums.EventType
 import models.enums.ViewType
 import apputils.UserDAO
+import org.joda.time.Duration
+import models.JsonDuration.DurationFormat
 
 case class Event(
     _id: BSONObjectID = BSONObjectID.generate,
@@ -31,6 +34,7 @@ case class Event(
     viewType: Option[ViewType.ViewType] = None,
     PUDPriority: Option[Int] = None,
     signUpSlots: Option[List[SignUpSlot]] = None,
+    minSignUpSlotDuration: Option[Int] = None, // minutes
     maxSlots: Option[Int] = None ){
     
     def getFirstTimeRange(): TimeRange = {
@@ -54,8 +58,9 @@ object Event {
             "eventType" -> nonEmptyText,
             "PUDPriority" -> optional(number),
             "isPUDEvent" -> boolean,
+            "minSignUpSlotDuration" -> optional(number), // in minutes
             "maxSlots" -> optional(number)
-            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, maxSlots) =>
+            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, minSignUpSlotDuration, maxSlots) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
@@ -72,6 +77,7 @@ object Event {
                     if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
                     PUDPriority,
                     None,
+                    minSignUpSlotDuration,
                     maxSlots)
             } { event =>
                 Some((
@@ -87,6 +93,7 @@ object Event {
                     event.eventType.toString(),
                     event.PUDPriority,
                     if(event.viewType.isDefined) {event.viewType.get.toString() == ViewType.PUDEvent} else {false},
+                    event.minSignUpSlotDuration,
                     event.maxSlots))
             })
 }

@@ -295,13 +295,11 @@
                 style="visibility: hidden" />
        	
        	<!--  Recurrence Details -->    	
-       	@viewComponents.html.dropdown(form("recurrenceMeta.recurrenceType"),
-    		label = "Recurrence Type",
-        	List("", "Daily", "Weekly", "Monthly", "Yearly"))
-        			
+       			
         @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
-       		
+       		 
+		@viewComponents.html.recurrenceHelper(form("recurrenceMeta"))
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">

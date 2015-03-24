@@ -59,13 +59,13 @@ object RecurrenceMeta {
                         new Period(0, 0, 0, daily.get.numberOfDays, 0, 0, 0, 0)
                     }
                     else if (recType.compare(RecurrenceType.Weekly) == 0) {
-                        new Period(0, 0, weekly.get.numberOfWeeks.get, 0, 0, 0, 0)
+                        new Period(0, 0, weekly.get.numberOfWeeks.get, 0, 0, 0, 0, 0)
                     }  
                     else if (recType.compare(RecurrenceType.Monthly) == 0) {
-                        new Period(0, monthly.get.numberOfMonths, 0, 0, 0, 0, 0)
+                        new Period(0, monthly.get.numberOfMonths.get, 0, 0, 0, 0, 0, 0)
                     }  
                     else {
-                        new Period(yearly.get.numberOfYears, 0, 0, 0, 0, 0, 0)
+                        new Period(yearly.get.numberOfYears.get, 0, 0, 0, 0, 0, 0, 0)
                     }
                 )
             } { recurrencemeta =>
