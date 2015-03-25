@@ -196,7 +196,6 @@
 			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].endTime"),
 			label = "End Time")
 
-			</div>
 			
 			<span aria-hidden="true" id="tadd"> <span class="glyphicon glyphicon-plus"></span> </span>
         	<span aria-hidden="true" id="tsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
@@ -335,8 +334,23 @@
 							<tr>
 								<td>@k.start.toString("MMM-dd-yyyy")</td>
 								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
-								<td>@v._1.length</td>
-								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+						<td>
+						<div class= @k.start.toString("hh:mm a")>
+								<p>
+									<button class="btn btn-primary" type="button"
+										data-toggle="collapse" data-target="#collapseExample"
+										aria-expanded="false" aria-controls="collapseExample">
+										@v._1.length</button>
+								</p>
+								<div class="collapse" id="collapseExample">
+									<div class="well">@for(event <- v._1){
+										<p>~~~</p>
+										<p>Calendar: @event.calendar</p>
+										<p>Event: @event.name</p>
+									}</div>
+								</div>
+							</div> </td>
+						<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
 									<!-- Time Range -->
 									@for(i <- 0 to v._2("timeRangeCount").value.get.toInt - 1 ){									
 										@viewComponents.html.datepicker(v._2("timeRanges["+ i + "].startDate"),
