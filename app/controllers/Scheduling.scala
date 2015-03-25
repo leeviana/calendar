@@ -78,13 +78,14 @@ object Scheduling extends Controller with MongoController {
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = new Period(0, scheduleFormVals._6, 0, 0).toStandardDuration()
-
+                val entitiesCount = scheduleFormVals._7.getOrElse(0)
+                
                 var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])])]()
                         
                 // get applicable user's calendars
                 var calendars = ListBuffer[BSONObjectID]()
 
-                for (entity <- entities) {
+                for (entity <- entities.slice(0, entitiesCount)) {
                     val users = GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))
                     users.foreach { user =>
                         calendars.appendAll(user.subscriptions)
