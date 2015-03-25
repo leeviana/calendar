@@ -96,6 +96,15 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
         else
             throw new Exception("Database incongruity: User ID not found")
     }
+    
+    /**
+     * Blocking call for getting list of all users
+     */
+    def getAllUsers(): List[User] = {
+        val futureUsers = this.findAll()
+
+        Await.result(futureUsers, Duration(5000, MILLISECONDS))
+    }
 
     /**
      * Blocking call that returns ID of the first calendar that a user owns

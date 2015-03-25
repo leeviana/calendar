@@ -46,6 +46,7 @@ object Scheduling extends Controller with MongoController {
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "duration" -> number))
+            
 
     /**
      * Render a page where the user can specify their "free time" query
@@ -53,7 +54,9 @@ object Scheduling extends Controller with MongoController {
     def showForm = Action { implicit request =>
         var entities = getEntities
         var users = getUsers
-        Ok(views.html.scheduler(schedulingForm, None, users))
+        val userID = AuthStateDAO.getUserID().stringify
+        Console.println("userID " + userID)
+        Ok(views.html.scheduler(schedulingForm, None, users, userID))
     }
 
     /**
@@ -62,9 +65,10 @@ object Scheduling extends Controller with MongoController {
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
         var entities = getEntities
         var users = getUsers
+        val userID = AuthStateDAO.getUserID().stringify
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, users)),
+            errors => Ok(views.html.scheduler(errors, None, users, userID)),
 
             scheduleFormVals => {
 
@@ -136,7 +140,7 @@ object Scheduling extends Controller with MongoController {
                 
                 Await.ready(futureUser, Duration(5000, MILLISECONDS))
 
-                Ok(views.html.scheduler(schedulingForm.fill(scheduleFormVals), Some(scheduleMap), users))
+                Ok(views.html.scheduler(schedulingForm.fill(scheduleFormVals), Some(scheduleMap), users, userID))
             })
     }
 
@@ -146,9 +150,10 @@ object Scheduling extends Controller with MongoController {
     def createEventAndRequests() = Action { implicit request =>
         var entities = getEntities
         var users = getUsers
+        val userID = AuthStateDAO.getUserID().stringify
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, users)),
+            errors => Ok(views.html.scheduler(errors, None, users, userID)),
 
             scheduleFormVals => {
                 var newEvents = ListBuffer[Event]()
