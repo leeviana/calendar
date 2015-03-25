@@ -35,9 +35,8 @@
         		placeholder = "Event Description") 
         		
         	<!-- Duration -->
-        	@viewComponents.html.text(schedulingForm("duration"),
-        		label = "Duration (minutes)",
-        		placeholder = "30")	
+			@viewComponents.html.number(schedulingForm("duration"),
+        		label = "Duration (minutes)")	
         	
 			
 			<!-- Users -->
