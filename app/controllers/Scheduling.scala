@@ -51,7 +51,6 @@ object Scheduling extends Controller with MongoController {
     def showForm = Action { implicit request =>
         var entities = getEntities
         var users = getUsers
-        Console.println("initializing form")
         Ok(views.html.scheduler(schedulingForm, None, users))
     }
 
@@ -59,7 +58,6 @@ object Scheduling extends Controller with MongoController {
      * Render a page with the returned data from the "free time" query
      */
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
-        Console.println("getting to schedulingOptions")
         var entities = getEntities
         var users = getUsers
         
@@ -70,12 +68,6 @@ object Scheduling extends Controller with MongoController {
 
                 // Form values    
                 val timeRanges = scheduleFormVals._1
-                for(t <- timeRanges){
-                  Console.println("timeRange is " + t.toString)
-                }
-                if(timeRanges.isEmpty){
-                  Console.println("there is no timerange")
-                }
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = new Period(0, scheduleFormVals._6, 0, 0).toStandardDuration()
@@ -138,13 +130,7 @@ object Scheduling extends Controller with MongoController {
                 }
                 
                 Await.ready(futureUser, Duration(5000, MILLISECONDS))
-                Console.println("before scheduleMap check")
-                if(scheduleMap.isEmpty){
-                  Console.println("nothing in scheduleMap")
-                }
-                for((k, v)<- scheduleMap){
-                  Console.println("scheduleMap")
-                }
+
                 Ok(views.html.scheduler(schedulingForm, Some(scheduleMap), users))
             })
     }

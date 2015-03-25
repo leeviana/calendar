@@ -119,17 +119,11 @@
 							<td>NA</td>
 						</tr>
 					}else{
-						<tr>
-							<td>not empty</td>
-							<td>not empty</td>
-							<td>not empty</td>
-							<td>not empty</td>
-						</tr>
 						@for((k, v) <- scheduleMap.get){
 							<tr>
-								<td>date</td>
-								<td>time</td>
-								<td>Conflicts</td>
+								<td>@k.start.toString("MMM-dd-yyyy")</td>
+								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
+								<td>@v._1.length</td>
 								<td>Schedule</td>
 							</tr>
 						}
