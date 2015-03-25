@@ -347,19 +347,19 @@
 							    		label = "Recurrence Type",
 							        	help = "") 
 							       
-							       	@viewComponents.html.number(v._2("recurrenceMeta.daily.numberOfDays"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.daily.numberOfDays"), 
 							       		label = "Days",
 							       		help = "How many days between each recurrence?")
 							       		
-							       	@viewComponents.html.number(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
 							       		label = "Weeks",
 							       		help = "How many weeks between each recurrence?")
 							       	
-							       	@viewComponents.html.number(v._2("recurrenceMeta.monthly.numberOfMonths"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.monthly.numberOfMonths"), 
 							       		label = "Months",
 							       		help = "How many months between each recurrence?")
 							       
-							       @viewComponents.html.number(v._2("recurrenceMeta.yearly.numberOfYears"), 
+							       @viewComponents.html.text(v._2("recurrenceMeta.yearly.numberOfYears"), 
 							       		label = "Years",
 							       		help = "How many years between each recurrence?")		
 							       		
