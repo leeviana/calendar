@@ -109,11 +109,11 @@ object Events extends Controller with MongoController {
                 newEvent = event.copy(accessType = Some(AccessType.Modify))
             }
             //pudEvents should not by modifiable if you don't own it
-            else if(event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString){
+            else if(event.viewType.getOrElse(None) == models.enums.ViewType.PUDEvent){
                 newEvent = event.copy(accessType = Some(AccessType.BusyOnly))  
             }
             else {
-                if(event.viewType == ViewType.PUDEvent.toString()){
+                if(event.viewType.getOrElse(None) == ViewType.PUDEvent){
                     newEvent = event.copy(accessType = Some(AccessType.SeePUD))
                 }
                 else {
@@ -328,7 +328,6 @@ object Events extends Controller with MongoController {
             val duration = new Period(0, event.minSignUpSlotDuration.get, 0, 0).toStandardDuration()
             
             var currentEnd = new DateTime(currentStart.getMillis + (duration.getMillis))
-            println("currentend: " + currentEnd + " | end: " + timeRange.end.get + " | duration: " + duration.getMillis)
                
             if (duration.getMillis != 0) {
                 while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0){
