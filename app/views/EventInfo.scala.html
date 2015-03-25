@@ -38,13 +38,43 @@
 		 
 		@if(event.eventType.toString == models.enums.EventType.SignUp.toString){
 			<h2>Event Information: @event.name</h2>
-			
-		
-				@for(slot <- event.signUpSlots){
-					@for(s <- slot){
-						<h1> @s._id	</h1>
-					}		
-				}
+				<legend> SignUp Slots </legend>
+				<table class="table">
+					<thead>
+						<tr>
+							<th> Start Date </th>
+							<th> Start Time </th>
+							<th> End Date </th>
+							<th> End Time </th>
+							<th> Sign Up </th>
+						</tr>
+					</thead>
+					<tbody>					
+						@for(slot <- event.signUpSlots){
+							@for(s <- slot){
+								<tr>
+									<td> @s.timeRange.start.toString("MMM-dd-yyyy")	</td>
+									<td> @s.timeRange.start.toString("hh:mm a") </td>
+									<td> @s.timeRange.end.get.toString("MMM-dd-yyyy") </td>
+									<td> @s.timeRange.end.get.toString("hh:mm a") </td>
+									
+									@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+										@if(canSign == true){
+											@defining(event._id.stringify){ eventID =>
+												@defining(s._id.stringify){ slotID =>
+													@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
+									    				<td><button type="submit" class="btn btn-success">SignUp</button></td>		
+													}
+												}
+											}						
+										} 
+									}
+	
+								</tr>
+							}		
+						}
+					</tbody>
+				</table>
 			
 			}
 		
