@@ -31,6 +31,8 @@ import org.joda.time.Period
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
+import play.api.libs.json.Json
+import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 
 /**
  * @author Leevi
@@ -43,7 +45,10 @@ object Scheduling extends Controller with MongoController {
             "entities" -> optional(list(nonEmptyText)), // BSONObjectIDs
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
-            "duration" -> number))
+            "duration" -> number,
+            "entitiesCount" -> number,
+            "timeRangesCount" -> number))
+            
 
     /**
      * Render a page where the user can specify their "free time" query
@@ -51,39 +56,34 @@ object Scheduling extends Controller with MongoController {
     def showForm = Action { implicit request =>
         var entities = getEntities
         var users = getUsers
-        Console.println("initializing form")
-        Ok(views.html.scheduler(schedulingForm, None, users))
+        val userID = AuthStateDAO.getUserID().stringify
+        Console.println("userID " + userID)
+        Ok(views.html.scheduler(schedulingForm, None, users, userID))
     }
 
     /**
      * Render a page with the returned data from the "free time" query
      */
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
-        Console.println("getting to schedulingOptions")
         var entities = getEntities
         var users = getUsers
+        val userID = AuthStateDAO.getUserID().stringify
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, users)),
+            errors => Ok(views.html.scheduler(errors, None, users, userID)),
 
             scheduleFormVals => {
 
                 // Form values    
                 val timeRanges = scheduleFormVals._1
-                for(t <- timeRanges){
-                  Console.println("timeRange is " + t.toString)
-                }
-                if(timeRanges.isEmpty){
-                  Console.println("there is no timerange")
-                }
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = new Period(0, scheduleFormVals._6, 0, 0).toStandardDuration()
 
-                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]()
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]()
                         
                 // get applicable user's calendars
-                val calendars = ListBuffer[BSONObjectID]()
+                var calendars = ListBuffer[BSONObjectID]()
 
                 for (entity <- entities) {
                     val users = GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))
@@ -105,9 +105,13 @@ object Scheduling extends Controller with MongoController {
 
                                 // returns conflicting events (that you have at least view access to)
                                 if (!recurrenceMeta.isDefined) {
-                                    EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte timeRange.end, "timeRange.end" $gte timeRange.start, Events.getEventFilter(user.get))).map { events =>
+                                    println("calendars: " + calendars)
+                                    var calQuery = Json.obj(
+                                        "calendar" -> Json.obj(
+                                            "$in" -> calendars.toList))
+                                    EventDAO.findAll($and(calQuery, "timeRange.start" $lte currentEnd, "timeRange.end" $gte currentStart, Events.getEventFilter(user.get))).map { events =>
 
-                                        val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
+                                        val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](new TimeRange(currentStart, currentEnd))))
                                         scheduleMap += (new TimeRange(currentStart, currentEnd) -> (events, newForm))
                                     }
 
@@ -117,7 +121,6 @@ object Scheduling extends Controller with MongoController {
                                     var current = timeRange.copy(start = timeRange.start, end = timeRange.end, duration = timeRange.duration)
                                     while (current.end.get.compareTo(recurrenceMeta.get.timeRange.end.get) <= 0) {
 
-                                        // TODO: check if this code works without using futures
                                         EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte current.end, "timeRange.end" $gte current.start, Events.getEventFilter(user.get))).map { events =>
                                             conflictEvents.appendAll(events)
                                         }
@@ -136,14 +139,10 @@ object Scheduling extends Controller with MongoController {
 
                     }
                 }
-                Console.println("before scheduleMap check")
-                if(scheduleMap.isEmpty){
-                  Console.println("nothing in scheduleMap")
-                }
-                for((k, v)<- scheduleMap){
-                  Console.println("scheduleMap")
-                }
-                Ok(views.html.scheduler(schedulingForm, Some(scheduleMap), users))
+                
+                Await.ready(futureUser, Duration(5000, MILLISECONDS))
+
+                Ok(views.html.scheduler(schedulingForm.fill(scheduleFormVals), Some(scheduleMap), users, userID))
             })
     }
 
@@ -153,9 +152,10 @@ object Scheduling extends Controller with MongoController {
     def createEventAndRequests() = Action { implicit request =>
         var entities = getEntities
         var users = getUsers
+        val userID = AuthStateDAO.getUserID().stringify
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, users)),
+            errors => Ok(views.html.scheduler(errors, None, users, userID)),
 
             scheduleFormVals => {
                 var newEvents = ListBuffer[Event]()

@@ -14,5 +14,5 @@ case class AuthInfo(
     passwordHash: String)
 
 object AuthInfo {
-    implicit val CalendarFormat = Json.format[AuthInfo]
+    implicit val AuthInfoFormat = Json.format[AuthInfo]
 }

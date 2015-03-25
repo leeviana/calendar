@@ -1,6 +1,19 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], 
-	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]], 
-	userList: List[models.User])
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)], 
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]], 
+	userList: List[models.User], userID : String)
+	
+@import apputils.CreationRequestDAO
+@import apputils.UserDAO
+@import apputils.CalendarDAO
+@import apputils.GroupDAO
+@import apputils.AuthStateDAO
+@import org.joda.time.Duration
+
+
+@import reactivemongo.api.collections.default.BSONCollection
+@import reactivemongo.bson._
+@import reactivemongo.extensions.json.dsl.JsonDsl._
+@import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 
 @main("Scheduler") {
 
@@ -25,17 +38,62 @@
         	@viewComponents.html.text(schedulingForm("duration"),
         		label = "Duration (minutes)",
         		placeholder = "30")	
-        		
-        	<!-- Entities -->
+        	
+			
+			<!-- Users -->
 			<div id="User0">
+			@defining(UserDAO.getAllUsers()) { userList =>
+				<label class="col-sm-2 control-label">Users</label>
 				<select name="entities[0]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
 				</select>
+				}
 			</div>
-
+			
 		<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
-        	<span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+        <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+
+		<div id="User1">
+			@defining(UserDAO.getAllUsers()) { userList =>
+				<label class="col-sm-2 control-label">Users</label>
+				<select name="entities[1]" class="form-control" style="width: 250px">
+					@for(element <- userList){
+					<option value='@element._id.stringify'>@element.username</option> }
+				</select>
+				}
+			</div>
+			
+		<div id="User2">
+			@defining(UserDAO.getAllUsers()) { userList =>
+				<label class="col-sm-2 control-label">Users</label>
+				<select name="entities[2]" class="form-control" style="width: 250px">
+					@for(element <- userList){
+					<option value='@element._id.stringify'>@element.username</option> }
+				</select>
+				}
+			</div>
+			
+		<div id="User3">
+			@defining(UserDAO.getAllUsers()) { userList =>
+				<label class="col-sm-2 control-label">Users</label>
+				<select name="entities[3]" class="form-control" style="width: 250px">
+					@for(element <- userList){
+					<option value='@element._id.stringify'>@element.username</option> }
+				</select>
+				}
+			</div>
+			
+		<div id="User4">
+			@defining(UserDAO.getAllUsers()) { userList =>
+				<label class="col-sm-2 control-label">Users</label>
+				<select name="entities[4]" class="form-control" style="width: 250px">
+					@for(element <- userList){
+					<option value='@element._id.stringify'>@element.username</option> }
+				</select>
+				}
+			</div>
+			
 
 			<input type="number" 
              	class="form-control" 
@@ -47,13 +105,12 @@
         var x = 1;
         $(document).ready(function(){
         	$("#counter").hide();
-			for (i = counter.value; i <= 10; i++){
+			for (i = counter.value; i <= 5; i++){
 				$("#User" + i).hide();
 			}
         	
    
-        	$("#add").click(function(e){
-        		alert("Add");
+        	$("#add").click(function(e){        		
         		$("#User" + x).show();		
         		++x;
         		counter.value = x;
@@ -61,7 +118,6 @@
         	});
         	
         	$("#subtract").click(function(e){
-        		alert("Subtract");
         		$("#User"+x).hide();
         		--x;
         		counter.value = x;
@@ -70,7 +126,95 @@
         
        	});
         </script>
-        		
+        <br><br>
+        
+        <!-- Groups -->
+			<div id="Group0">
+			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+				<label class="col-sm-2 control-label">Groups</label>
+				<select name="entities[5]" class="form-control" style="width: 250px">
+					@for(element <- groupList){
+					<option value='@element._id.stringify'>@element.name</option> }
+				</select>
+				}
+			</div>
+			
+			<span aria-hidden="true" id="gadd"> <span class="glyphicon glyphicon-plus"></span> </span>
+        	<span aria-hidden="true" id="gsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+        
+        	<div id="Group1">
+			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+				<label class="col-sm-2 control-label">Groups</label>
+				<select name="entities[6] class="form-control" style="width: 250px">
+					@for(element <- groupList){
+					<option value='@element._id.stringify'>@element.name</option> }
+				</select>
+				}
+			</div>
+			
+			<div id="Group2">
+			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+				<label class="col-sm-2 control-label">Groups</label>
+				<select name="entities[7]" class="form-control" style="width: 250px">
+					@for(element <- groupList){
+					<option value='@element._id.stringify'>@element.name</option> }
+				</select>
+				}
+			</div>
+			
+			<div id="Group3">
+			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+				<label class="col-sm-2 control-label">Groups</label>
+				<select name="entities[8]" class="form-control" style="width: 250px">
+					@for(element <- groupList){
+					<option value='@element._id.stringify'>@element.name</option> }
+				</select>
+				}
+			</div>
+			
+			<div id="Group4">
+			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+				<label class="col-sm-2 control-label">Groups</label>
+				<select name="entities[9]" class="form-control" style="width: 250px">
+					@for(element <- groupList){
+					<option value='@element._id.stringify'>@element.name</option> }
+				</select>
+				}
+			</div>
+			
+			<input type="number" 
+             	class="form-control" 
+             	name='@schedulingForm("groupCount").name'
+             	id = 'gcounter'
+             	value='@schedulingForm("groupCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var y = 1;
+        $(document).ready(function(){
+        	$("#gcounter").hide();
+			for (j = gcounter.value; j <= 5; j++){
+				$("#Group" + j).hide();
+			}
+        	
+   
+        	$("#gadd").click(function(e){        		
+        		$("#Group" + y).show();		
+        		++y;
+        		gcounter.value = y;
+        		console.log(y);
+        	});
+        	
+        	$("#gsubtract").click(function(e){
+        		$("#Group"+y).hide();
+        		--y;
+        		gcounter.value = y
+        	
+        	});
+        
+       	});
+        </script>
+        <br><br>
+        	
         	<!-- TimeRange -->
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[0].startDate"),
 			label = "Start Date")
@@ -119,18 +263,74 @@
 							<td>NA</td>
 						</tr>
 					}else{
-						<tr>
-							<td>not empty</td>
-							<td>not empty</td>
-							<td>not empty</td>
-							<td>not empty</td>
-						</tr>
-						@for((k, v) <- scheduleMap.get){
+
+						@for((k, v) <- scheduleMap.get.toList.sortBy ( time => time._1.start.getMillis)){
 							<tr>
-								<td>date</td>
-								<td>time</td>
-								<td>Conflicts</td>
-								<td>Schedule</td>
+								<td>@k.start.toString("MMM-dd-yyyy")</td>
+								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
+								<td>@v._1.length</td>
+								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+									<!-- Time Range -->
+									@viewComponents.html.datepicker(v._2("timeRanges[0].startDate"),
+									label = "Start Date")
+						
+									@viewComponents.html.timepicker(v._2("timeRanges[0].startTime"),
+									label = "Start Time")
+						
+									@viewComponents.html.datepicker(v._2("timeRanges[0].endDate"),
+									label = "End Date")
+						
+									@viewComponents.html.timepicker(v._2("timeRanges[0].endTime"),
+									label = "End Time")		
+									
+									<!-- Recurrence -->
+									@viewComponents.html.dropdown(v._2("recurrenceMeta.recurrenceType"),
+							    		label = "Recurrence Type",
+							        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
+							       
+							       	@viewComponents.html.number(v._2("recurrenceMeta.daily.numberOfDays"), 
+							       		label = "Days",
+							       		help = "How many days between each recurrence?")
+							       		
+							       	@viewComponents.html.number(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
+							       		label = "Weeks",
+							       		help = "How many weeks between each recurrence?")
+							       	
+							       	@viewComponents.html.number(v._2("recurrenceMeta.monthly.numberOfMonths"), 
+							       		label = "Months",
+							       		help = "How many months between each recurrence?")
+							       
+							       @viewComponents.html.number(v._2("recurrenceMeta.yearly.numberOfYears"), 
+							       		label = "Years",
+							       		help = "How many years between each recurrence?")		
+							       		
+							       	<!-- Entities -->									
+									@for(i <- 0 to 1){
+										@viewComponents.html.text(v._2("entities[" + i +"]"),
+											label = "",
+											placeholder ="")
+									}
+								
+									
+									@viewComponents.html.text(v._2("name"),
+    									label = "Name",
+        								placeholder = "Event Name")
+        
+ 					
+									@viewComponents.html.textarea(v._2("description"),
+							    		label = "Description",
+							        	placeholder = "Event Description")
+        
+									
+									@viewComponents.html.number(v._2("duration"),
+										label = "",
+										help = "")
+									
+									
+									<div class="form-actions">
+										<input class="btn btn-primary" type="submit"> 
+									</div>
+								}</td>
 							</tr>
 						}
 					}
