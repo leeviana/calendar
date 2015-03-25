@@ -45,7 +45,9 @@ object Scheduling extends Controller with MongoController {
             "entities" -> optional(list(nonEmptyText)), // BSONObjectIDs
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
-            "duration" -> number))
+            "duration" -> number,
+            "entitiesCount" -> number,
+            "timeRangesCount" -> number))
             
 
     /**
@@ -78,7 +80,7 @@ object Scheduling extends Controller with MongoController {
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = new Period(0, scheduleFormVals._6, 0, 0).toStandardDuration()
 
-                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]()
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]()
                         
                 // get applicable user's calendars
                 var calendars = ListBuffer[BSONObjectID]()
@@ -109,7 +111,7 @@ object Scheduling extends Controller with MongoController {
                                             "$in" -> calendars.toList))
                                     EventDAO.findAll($and(calQuery, "timeRange.start" $lte currentEnd, "timeRange.end" $gte currentStart, Events.getEventFilter(user.get))).map { events =>
 
-                                        val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
+                                        val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](new TimeRange(currentStart, currentEnd))))
                                         scheduleMap += (new TimeRange(currentStart, currentEnd) -> (events, newForm))
                                     }
 
