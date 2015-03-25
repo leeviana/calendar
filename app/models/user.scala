@@ -16,7 +16,11 @@ case class User(
     email: String,
     subscriptions: List[BSONObjectID], // list of calIDs
     settings: List[UserSetting] // list of UserSettings
-    )
+    ) {
+    def firstCalendar: BSONObjectID = {
+        return this.subscriptions.head
+    }
+}
 
 object User {
     implicit val UserFormat = Json.format[User]

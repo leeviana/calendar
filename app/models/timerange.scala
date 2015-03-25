@@ -29,10 +29,18 @@ case class TimeRange(
     def this() {
         this(false, new DateTime(), Some(new DateTime()), Duration.ZERO);
     }
+    
+    def this(start: DateTime, end: DateTime) {
+        this(false, start, Some(end), new Duration(end.getMillis - start.getMillis));
+    }
 }
 
 object TimeRange {
     implicit val TimeRangeFormat = Json.format[TimeRange]
+
+    //def validateTimes(allday: Boolean, startDate: Option[DateTime], startTime: Option[DateTime], endDate: Option[DateTime], endTime: Option[DateTime], durationMin: Option[Long], durationHour: Option[Long], durationDay: Option[Long]) = {
+    //    if 
+    //}
 
     // TODO: temp workaround for time zone
     val form = Form(
@@ -45,17 +53,23 @@ object TimeRange {
             "durationMin" -> optional(longNumber),
             "durationHour" -> optional(longNumber),
             "durationDay" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, durationMin, durationHour, durationDay) =>
+                val start = if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime(0)).getMillis).minusHours(5)} else {DateTime.now()}
+                val end = if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime(0)).getMillis).minusHours(5))} else {None}
                 TimeRange(
                     allday,
-                    if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime(0)).getMillis).minusHours(5)} else {DateTime.now()},
-                    if (endDate.isDefined) {Some(new DateTime(endDate.get.getMillis+endTime.getOrElse(new DateTime(0)).getMillis).minusHours(5))} else {None},
+                    start,
+                    end,
                     if (durationMin.isDefined | durationHour.isDefined | durationDay.isDefined) {
                         new Duration(
                             Duration.standardMinutes(durationMin.getOrElse(0)).getMillis +
                             Duration.standardHours(durationHour.getOrElse(0)).getMillis +
                             Duration.standardDays(durationDay.getOrElse(0)).getMillis   
-                        ) 
-                    } else if (startDate.isDefined) {Duration.standardDays(1)} else {Duration.ZERO}
+                        )
+                    } else if (end.isDefined) {
+                        new Duration(end.get.getMillis - start.getMillis)
+                    } else if (startDate.isDefined) {
+                        Duration.standardDays(1)
+                    } else { Duration.ZERO }
             )} { timerange =>
                 Some(
                     (timerange.allday,
@@ -66,5 +80,7 @@ object TimeRange {
                         Some(timerange.duration.getStandardMinutes), // does this work?
                         Some(timerange.duration.getStandardHours),
                         Some(timerange.duration.getStandardDays)))
-            })
+            }) //verifying("Your start/end time/date combination doesn't make sense! (start must be before end, with positive duration)", fields => fields match {
+                //case userData => validateTimes(userData.allday, userData.startDate, userData.startTime, userData.endDate, userData.endTime, userData.durationMin, userData.durationHour, userData.durationDay).isDefined
+            //})
 }

@@ -12,7 +12,6 @@ import reactivemongo.extensions.json.dao.JsonDao
 import play.modules.reactivemongo.json.BSONFormats._
 import reactivemongo.extensions.json.dsl.JsonDsl._
 
-
 object MongoContext {
     val driver = new MongoDriver
     val connection = driver.connection(List(Constants.DBLocation))
@@ -20,7 +19,7 @@ object MongoContext {
 }
 
 object CalendarDAO extends JsonDao[Calendar, BSONObjectID](MongoContext.db, "calendars") {
-    /*
+    /**
      * Blocking call for getting a calendar object from ID for calls that don't care about performance and/or
      * would have to immediately block on the call anyways
      */
@@ -42,21 +41,49 @@ object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoCo
         Await.result(futureRequests, Duration(5000, MILLISECONDS))
     }
 }
-object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events")
+object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") {
+    def canSignUp(eventID: BSONObjectID, userID: BSONObjectID): Boolean = {
+        val futureEvent = this.findById(eventID)
+        val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
+        
+        val slots = event.get.signUpSlots.get
+        val count = slots.count { slot => slot.userID == userID }
+
+        count < event.get.maxSlots.get       
+    }
+}
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") {
     def getUsersGroups(userID: BSONObjectID): List[Group] = {
         val futureUser = UserDAO.findById(userID)
-        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))    
-        
+        val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+
         val futureGroups = GroupDAO.findAll("userIDs" $eq user.get._id)
         val groups = Await.result(futureGroups, Duration(5000, MILLISECONDS))
-        
+
         groups
     }
+    
+    def getUsersOfEntity(entityID: BSONObjectID): List[User] = {
+        
+        val futureGroup = this.findById(entityID)
+        val group = Await.result(futureGroup, Duration(5000, MILLISECONDS))
+
+        if (group.isDefined) {
+            val futureUsers = UserDAO.findAll("_id" $in group.get.userIDs)
+            return Await.result(futureUsers, Duration(5000, MILLISECONDS)) 
+        }
+        else {
+            val futureUser = UserDAO.findById(entityID)
+            val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+            
+            return List[User](user.get)
+        }
+    }
 }
+
 object ReminderDAO extends JsonDao[Reminder, BSONObjectID](MongoContext.db, "reminders")
 object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
-    /*
+    /**
      * Blocking call for getting user object from ID for calls that don't care about performance and/or
      * would have to immediately block on the call anyways
      */
@@ -69,11 +96,25 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
         else
             throw new Exception("Database incongruity: User ID not found")
     }
-    
+
+    /**
+     * Blocking call that returns ID of the first calendar that a user owns
+     */
+    def getFirstCalendarFromUserID(id: BSONObjectID): BSONObjectID = {
+        val futureUser = this.findById(id)
+
+        var user = Await.result(futureUser, Duration(5000, MILLISECONDS))
+        if (user.isDefined)
+            user.get.subscriptions.head
+        else
+            throw new Exception("Database incongruity: User ID not found")
+
+    }
+
     def getOwner(eventID: BSONObjectID): User = {
         val futureEvent = EventDAO.findById(eventID)
         val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
-        
+
         val futureUser = findOne("subscriptions" $all (event.get.calendar))
         val user = Await.result(futureUser, Duration(5000, MILLISECONDS))
         if (user.isDefined)

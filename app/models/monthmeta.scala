@@ -16,8 +16,8 @@ import org.joda.time.Period
  * @author Leevi
  */
 case class MonthMeta(
-    monthDay: Option[Int],
-    numberOfMonths: Option[Int]) {
+    monthDay: Option[Int] = None,
+    numberOfMonths: Option[Int] = Some(1)) {
     var recurrenceType = RecurrenceType.Monthly
 }
 

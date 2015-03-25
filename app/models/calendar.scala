@@ -11,10 +11,10 @@ import play.modules.reactivemongo.json.BSONFormats._
  */
 case class Calendar(
     _id: BSONObjectID,
-    owner: BSONObjectID, // foreign ref, owner
+    owner: BSONObjectID, // foreign ref, owner. not used?
     name: String,
-    rules: List[Rule], // list of Rules
-    settings: List[UserSetting] // list of [User]Settings,
+    rules: List[Rule], // list of Rules. not used?
+    settings: List[UserSetting] // list of [User]Settings. not used.
     ) {
     def this(owner: BSONObjectID, name: String) {
         this(BSONObjectID.generate, owner, name, List[Rule](), List[UserSetting]())
