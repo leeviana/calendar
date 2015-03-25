@@ -38,13 +38,54 @@
 		 
 		@if(event.eventType.toString == models.enums.EventType.SignUp.toString){
 			<h2>Event Information: @event.name</h2>
-			
-		
-				@for(slot <- event.signUpSlots){
-					@for(s <- slot){
-						<h1> @s._id	</h1>
-					}		
-				}
+				<legend> SignUp Slots </legend>
+				<table class="table">
+					<thead>
+						<tr>
+							<th> Start Date </th>
+							<th> Start Time </th>
+							<th> End Date </th>
+							<th> End Time </th>
+							<th> Sign Up </th>
+						</tr>
+					</thead>
+					<tbody>					
+						@for(slot <- event.signUpSlots.get.sortBy ( slot => slot._id.stringify)){
+									<tr>	
+														
+									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>
+									<td> @slot.timeRange.start.toString("hh:mm a") </td>
+									<td> @slot.timeRange.end.get.toString("MMM-dd-yyyy") </td>
+									<td> @slot.timeRange.end.get.toString("hh:mm a") </td>
+									
+									@if(slot.userID.isEmpty){	
+										@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+											@if(canSign){
+												@defining(event._id.stringify){ eventID =>
+													@defining(slot._id.stringify){ slotID =>
+														@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
+										    				<td><button type="submit" class="btn btn-success">SignUp</button></td>		
+														}
+													}
+												}						
+											} else{
+													<td> </td>
+												}
+
+										}
+									} else{
+										@if(slot.userID.get.stringify == userID){
+											<td>You are signed up!</td>
+										} else{
+											<td> Slot is taken </td>
+										}
+									}
+
+								</tr>
+									
+						}
+					</tbody>
+				</table>
 			
 			}
 		
@@ -133,7 +174,7 @@
     }
     <br>
 
-     @if(!event.viewType.isDefined){
+     @if(!event.viewType.isDefined || event.eventType.toString == models.enums.EventType.SignUp.toString){
    
     <legend>Invitations</legend>
 
@@ -190,7 +231,7 @@
 		}
 	}
 
-	</div>	 
+ 
 	<br>
 	<br>     			
     	

@@ -19,6 +19,10 @@ GET 	/groups/new						controllers.Groups.newGroupForm
 POST    /groups/new                     controllers.Groups.addGroup
 POST    /groups/addUsertoGroup          controllers.Groups.addUsertoGroup
 
+# SlotSignUp
+POST    /events/:eventID/slotSignUp/:slotID     controllers.SlotSignUp.signUpForSlot(eventID, slotID)
+
+
 # Events
 GET     /events                         controllers.Events.index(eventType = "Fixed")
 GET     /events/reminders               controllers.Events.showReminders
@@ -43,11 +47,9 @@ POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(
 
 # Scheduler
 GET     /scheduler                      controllers.Scheduling.showForm
-POST    /scheduler/options              controllers.Scheduling.schedulingOptions
-#POST    /scheduler/options/new          controllers.Scheduling.createEventAndRequests
+POST    /scheduler/options            	controllers.Scheduling.schedulingOptions
+#POST   /scheduler/options/new          controllers.Scheduling.createEventAndRequests
 
-# SlotSignUp
-GET     /events/:eventID/slotSignUp/:slotID     controllers.SlotSignUp.signUpForSlot(eventID, slotID)
 
 # Authentication
 POST     /signUp                         controllers.Users.create

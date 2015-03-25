@@ -1,15 +1,139 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]])
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], 
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]], 
+	userList: List[models.User])
 
 @main("Scheduler") {
 
-<div class="container">
-	<div class="row">
-		<div class="col-md-9">
-			<h1>Scheduler</h1>
+<div class="row">
+	<div class="col-md-9">
+		<h1>Scheduler</h1>
+		<legend>Schedule an event</legend>
+		
+		@helper.form(action = routes.Scheduling.schedulingOptions, 'enctype -> "multipart/form-data", 'class -> "form-horizontal") {
+		
+			<!-- Event Name -->
+			@viewComponents.html.text(schedulingForm("name"),
+    			label = "Name",
+        		placeholder = "Event Name")
+        
+ 			<!--  Description -->
+			@viewComponents.html.textarea(schedulingForm("description"),
+    			label = "Description",
+        		placeholder = "Event Description") 
+        		
+        	<!-- Duration -->
+        	@viewComponents.html.text(schedulingForm("duration"),
+        		label = "Duration (minutes)",
+        		placeholder = "30")	
+        		
+        	<!-- Entities -->
+			<div id="User0">
+				<select name="entities[0]" class="form-control" style="width: 250px">
+					@for(element <- userList){
+					<option value='@element._id.stringify'>@element.username</option> }
+				</select>
+			</div>
+
+		<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
+        	<span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+
+			<input type="number" 
+             	class="form-control" 
+             	name='@schedulingForm("timeRangeCount").name'
+             	id = 'counter'
+             	value='@schedulingForm("timeRangeCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var x = 1;
+        $(document).ready(function(){
+        	$("#counter").hide();
+			for (i = counter.value; i <= 10; i++){
+				$("#User" + i).hide();
+			}
+        	
+   
+        	$("#add").click(function(e){
+        		alert("Add");
+        		$("#User" + x).show();		
+        		++x;
+        		counter.value = x;
+        		console.log(x);
+        	});
+        	
+        	$("#subtract").click(function(e){
+        		alert("Subtract");
+        		$("#User"+x).hide();
+        		--x;
+        		counter.value = x;
+        	
+        	});
+        
+       	});
+        </script>
+        		
+        	<!-- TimeRange -->
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[0].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[0].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].endTime"),
+			label = "End Time")
+			
+			<!--  Recurrence Details -->    	
+        	@viewComponents.html.datepicker(schedulingForm("recurrenceMeta.timeRange.endDate"),
+        	label = "Recurrence End Date")
+       		 
+			@viewComponents.html.recurrenceHelper(schedulingForm("recurrenceMeta"))
+			
+			
+			<label class="col-sm-2"> </label>
+			<div class="col-sm-5">
+				<div class="form-actions">
+					<input class="btn btn-primary" type="submit"> 
+				</div>
+			</div>
+        	
+		}
+		<legend>Options</legend>
+		<div class = container>
+			<table class = table>
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Time</th>
+						<th>Conflicts</th>
+						<th>Schedule</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if(scheduleMap.isEmpty){
+						<tr>
+							<td>NA</td>
+							<td>NA</td>
+							<td>No Conflicts</td>
+							<td>NA</td>
+						</tr>
+					}else{
+						@for((k, v) <- scheduleMap.get){
+							<tr>
+								<td>@k.start.toString("MMM-dd-yyyy")</td>
+								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
+								<td>@v._1.length</td>
+								<td>Schedule</td>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
 		</div>
 	</div>
 </div>
-</div>
+
 }
 
 
