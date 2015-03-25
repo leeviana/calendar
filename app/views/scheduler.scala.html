@@ -117,9 +117,11 @@
 
 			<input type="number" 
              	class="form-control" 
+
              	name='@schedulingForm("entitiesCount").name'
              	id = 'counter'
              	value='@schedulingForm("entitiesCount").value.getOrElse("1")'/>
+
              	               		
         <script type="text/javascript">
         var x = 1;
@@ -163,7 +165,7 @@
 
 			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].endTime"),
 			label = "End Time")
-			</div>
+
 			
 			<span class="glyphicon glyphicon-time" aria-hidden="true"></span><span aria-hidden="true" id="tadd"> <span class="glyphicon glyphicon-plus"></span> </span>
         	<span aria-hidden="true" id="tsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
@@ -260,6 +262,7 @@
        	});
         </script>
         <br><br>
+
 			
 			<!--  Recurrence Details -->    	
         	@viewComponents.html.datepicker(schedulingForm("recurrenceMeta.timeRange.endDate"),
@@ -302,11 +305,26 @@
 							<tr>
 								<td>@k.start.toString("MMM-dd-yyyy")</td>
 								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
-								<td>@v._1.length</td>
-								<td>@v._2("recurrenceMeta.recurrenceType").value </td>
-								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
-									<div hidden class="autoForm" >
-									<!-- Time Range -->														
+						<td>
+						<div class= @k.start.toString("hh:mm a")>
+								<p>
+									<button class="btn btn-primary" type="button"
+										data-toggle="collapse" data-target="#collapseExample"
+										aria-expanded="false" aria-controls="collapseExample">
+										@v._1.length</button>
+								</p>
+								<div class="collapse" id="collapseExample">
+									<div class="well">@for(event <- v._1){
+										<p>~~~</p>
+										<p>Calendar: @event.calendar</p>
+										<p>Event: @event.name</p>
+									}</div>
+								</div>
+							</div> </td>
+					    <td>@v._2("recurrenceMeta.recurrenceType").value </td>
+						<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+						            <div hidden class="autoForm" >
+									<!-- Time Range -->
 									@viewComponents.html.text(v._2("timeRanges[0].startDate"),
 										label = "Start Date")
 							
