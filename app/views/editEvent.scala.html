@@ -124,7 +124,7 @@
 
         </div>
 		<div id="slot2">			
-			<legend>Slot 2</legend>
+			<legend>SignUp Block 2</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
 			label = "Start Date")
 
@@ -138,7 +138,7 @@
 			label = "End Time")</div>
 			
 		<div id="slot3">
-			<legend>Slot 3</legend>
+			<legend>SignUp Block 3</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[2].startDate"),
 			label = "Start Date")
 
@@ -152,7 +152,7 @@
 			label = "End Time")</div>
 
 		<div id="slot4">
-			<legend>Slot 4</legend>
+			<legend>SignUp Block 4</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[3].startDate"),
 			label = "Start Date")
 
@@ -166,7 +166,7 @@
 			label = "End Time")</div>
 			
 		<div id="slot5">
-			<legend>Slot 5</legend>
+			<legend>SignUp Block 5</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[4].startDate"),
 			label = "Start Date")
 
@@ -180,7 +180,7 @@
 			label = "End Time")</div>
 
 		<div id="slot6">
-			<legend>Slot 6</legend>
+			<legend>SignUp Block 6</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[5].startDate"),
 			label = "Start Date")
 
@@ -194,7 +194,7 @@
 			label = "End Time")</div>
 	
 		<div id="slot7">
-			<legend>Slot 7</legend>
+			<legend>SignUp Block 7</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[6].startDate"),
 			label = "Start Date")
 
@@ -208,7 +208,7 @@
 			label = "End Time")</div>
 			
 		<div id="slot8">
-			<legend>Slot 8</legend>
+			<legend>SignUp Block 8</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[7].startDate"),
 			label = "Start Date")
 
@@ -222,7 +222,7 @@
 			label = "End Time")</div>
         
 		<div id="slot9">
-			<legend>Slot 9</legend>
+			<legend>SignUp Block 9</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[8].startDate"),
 			label = "Start Date")
 
@@ -236,7 +236,7 @@
 			label = "End Time")</div>
 			
 		<div id="slot10">
-			<legend>Slot 10</legend>
+			<legend>SignUp Block 10</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[9].startDate"),
 			label = "Start Date")
 
@@ -263,21 +263,28 @@
 				$("#slot" + i).hide();
 			}
         	
-   
         	$("#add").click(function(e){
-        		alert("Add");
-        		++x;
-        		$("#slot" + x).show();		
-        		counter.value = x;
-        		console.log(x);
+        		if (x < 10){
+        			++x;
+        			$("#slot" + x).show();		
+        			counter.value = x;
+        			console.log(x);
+        		}
+        		else{
+        			alert("Reached maximum number of slots");
+        		}
         	});
         	
         	$("#subtract").click(function(e){
-        		alert("Subtract");
-        		$("#slot"+x).hide();
-        		--x;
-        		counter.value = x;
-        	
+        		if (x > 1){
+        			alert("Subtract");
+        			$("#slot"+x).hide();
+        			--x;
+        			counter.value = x;
+        		}
+        		else{
+        			alert("Cannot have negative number of slots");
+        		}
         	});
         
        	});
