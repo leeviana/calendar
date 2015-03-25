@@ -265,31 +265,30 @@ object Events extends Controller with MongoController {
         
         val calendar = event.calendar 
         val recType = event.recurrenceMeta.get.recurrenceType
-        
+                
         if (event.recurrenceMeta.get.timeRange.end.isDefined) {
             val end = event.recurrenceMeta.get.timeRange.end.get
-            
+                
             for(timeRange <- event.timeRange){
                 val recurrencePeriod = event.recurrenceMeta.get.recurDuration
-                if (recurrencePeriod.toStandardDuration().getMillis > 0) {
+                if (recurrencePeriod.toStandardDuration().getMillis > 0 & timeRange.end.isDefined) {
                     var currentStart = timeRange.start.plus(recurrencePeriod)
-                    var currentEnd = new DateTime
+                    var currentEnd = timeRange.end.get.plus(recurrencePeriod)
                     var thisPointer = BSONObjectID.generate
                     var nextPointer = BSONObjectID.generate
                     
-                    if(timeRange.end.isDefined) {
+                    /*if(timeRange.end.isDefined) {
                         var currentEnd = timeRange.end.get.plus(recurrencePeriod)
                     }
-                        
+                        */
                     while (currentStart.compareTo(end) <= 0) {
+                        var newTimeRange = new TimeRange(currentStart, currentEnd)
                         
-                        var newTimeRange = new TimeRange
-                        
-                        if (timeRange.end.isDefined) {
-                            newTimeRange = timeRange.copy(start = currentStart, end = Some(currentEnd))
-                        } else {
-                            newTimeRange = timeRange.copy(start = currentStart)
-                        }
+//                        if (timeRange.end.isDefined) {
+//                            newTimeRange = timeRange.copy(start = currentStart, end = Some(currentEnd))
+//                        } else {
+//                            newTimeRange = timeRange.copy(start = currentStart)
+//                        }
                         
                         val updatedEvent = event.copy(_id = thisPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
                         newEvents.append(updatedEvent)
