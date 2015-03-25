@@ -1,5 +1,5 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int], Option[Int])], 
-	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int], Option[Int])])]], 
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])], 
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])])]], 
 	userList: List[models.User], userID : String)
 	
 @import apputils.CreationRequestDAO
@@ -311,20 +311,20 @@
 									<button class="btn btn-primary" type="button"
 										data-toggle="collapse" data-target="#collapseExample"
 										aria-expanded="false" aria-controls="collapseExample">
-										@v._1.length</button>
+										@v._1.length event conflicts</button>
 								</p>
-								<div class="collapse" id="collapseExample">
+								<!-- <div class="collapse" id="collapseExample"> -->
 									<div class="well">@for(event <- v._1){
 										<p>~~~</p>
-										<p>Calendar: @event.calendar</p>
-										<p>Event: @event.name</p>
-									}</div>
+										<p>User: @UserDAO.getOwner(event._id).username</p>
+										<p>Event: <a href = "../events/info/@event._id.stringify">@event.name</a></p>
+										<p>Recurring: @event.recurrenceMeta.isDefined</p>
+									}<!--</div> -->
 								</div>
 							</div> </td>
 					    <td>@v._2("recurrenceMeta.recurrenceType").value </td>
 						<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
-						            <div hidden class="autoForm" >
-									<!-- Time Range -->
+						            <!-- Time Range -->
 									@viewComponents.html.text(v._2("timeRanges[0].startDate"),
 										label = "Start Date")
 							
@@ -339,6 +339,10 @@
 									
 									
 									<!-- Recurrence -->
+									@viewComponents.html.datepicker(v._2("recurrenceMeta.timeRange.endDate"),
+                                        label = "Recurrence End Date")
+            
+									
 									@viewComponents.html.text(v._2("recurrenceMeta.recurrenceType"),
 							    		label = "Recurrence Type",
 							        	help = "") 
@@ -381,7 +385,6 @@
 										label = "",
 										help = "")
 									
-									</div>
 									<div class="form-actions">
 										<input class="btn btn-primary" type="submit"> 
 									</div>
