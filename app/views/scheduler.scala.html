@@ -268,7 +268,68 @@
 								<td>@k.start.toString("MMM-dd-yyyy")</td>
 								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
 								<td>@v._1.length</td>
-								<td>Schedule</td>
+								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+									<!-- Time Range -->
+									@viewComponents.html.datepicker(v._2("timeRanges[0].startDate"),
+									label = "Start Date")
+						
+									@viewComponents.html.timepicker(v._2("timeRanges[0].startTime"),
+									label = "Start Time")
+						
+									@viewComponents.html.datepicker(v._2("timeRanges[0].endDate"),
+									label = "End Date")
+						
+									@viewComponents.html.timepicker(v._2("timeRanges[0].endTime"),
+									label = "End Time")		
+									
+									<!-- Recurrence -->
+									@viewComponents.html.dropdown(v._2("recurrenceMeta.recurrenceType"),
+							    		label = "Recurrence Type",
+							        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
+							       
+							       	@viewComponents.html.number(v._2("recurrenceMeta.daily.numberOfDays"), 
+							       		label = "Days",
+							       		help = "How many days between each recurrence?")
+							       		
+							       	@viewComponents.html.number(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
+							       		label = "Weeks",
+							       		help = "How many weeks between each recurrence?")
+							       	
+							       	@viewComponents.html.number(v._2("recurrenceMeta.monthly.numberOfMonths"), 
+							       		label = "Months",
+							       		help = "How many months between each recurrence?")
+							       
+							       @viewComponents.html.number(v._2("recurrenceMeta.yearly.numberOfYears"), 
+							       		label = "Years",
+							       		help = "How many years between each recurrence?")		
+							       		
+							       	<!-- Entities -->									
+									@for(i <- 0 to 1){
+										@viewComponents.html.text(v._2("entities[" + i +"]"),
+											label = "",
+											placeholder ="")
+									}
+								
+									
+									@viewComponents.html.text(v._2("name"),
+    									label = "Name",
+        								placeholder = "Event Name")
+        
+ 					
+									@viewComponents.html.textarea(v._2("description"),
+							    		label = "Description",
+							        	placeholder = "Event Description")
+        
+									
+									@viewComponents.html.number(v._2("duration"),
+										label = "",
+										help = "")
+									
+									
+									<div class="form-actions">
+										<input class="btn btn-primary" type="submit"> 
+									</div>
+								}</td>
 							</tr>
 						}
 					}
