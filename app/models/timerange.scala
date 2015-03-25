@@ -40,8 +40,8 @@ object TimeRange {
 
     def validateTimes(allday: Boolean, start: DateTime, end: Option[DateTime], duration: Duration) = {
         end match {
-            case _ if !(end.isEmpty) => (end.get.getMillis >= start.getMillis)
-            case _ => true
+            case _ if !(end.isEmpty) => (end.get.getMillis >= start.getMillis);
+            case _ => true;
         }
     }
 
