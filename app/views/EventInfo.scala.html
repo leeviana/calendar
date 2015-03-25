@@ -50,27 +50,38 @@
 						</tr>
 					</thead>
 					<tbody>					
-						@for(slot <- event.signUpSlots){
-							@for(s <- slot){
-								<tr>
-									<td> @s.timeRange.start.toString("MMM-dd-yyyy")	</td>
-									<td> @s.timeRange.start.toString("hh:mm a") </td>
-									<td> @s.timeRange.end.get.toString("MMM-dd-yyyy") </td>
-									<td> @s.timeRange.end.get.toString("hh:mm a") </td>
+						@for(slotList <- event.signUpSlots){
+							@for(slot <- slotList){														
+									<tr>	
+														
+									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>
+									<td> @slot.timeRange.start.toString("hh:mm a") </td>
+									<td> @slot.timeRange.end.get.toString("MMM-dd-yyyy") </td>
+									<td> @slot.timeRange.end.get.toString("hh:mm a") </td>
 									
-									@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
-										@if(canSign == true){
-											@defining(event._id.stringify){ eventID =>
-												@defining(s._id.stringify){ slotID =>
-													@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
-									    				<td><button type="submit" class="btn btn-success">SignUp</button></td>		
+									@if(slot.userID.isEmpty){	
+										@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+											@if(canSign == true){
+												@defining(event._id.stringify){ eventID =>
+													@defining(slot._id.stringify){ slotID =>
+														@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
+										    				<td><button type="submit" class="btn btn-success">SignUp</button></td>		
+														}
 													}
-												}
-											}						
-										} 
+												}						
+											} 
+										}
+									} else{
+										@if(slot.userID.get.toString == userID){
+											<td>You are signed up!</td>
+										} else{
+											<td> Slot is taken </td>
+										}
 									}
-	
+
 								</tr>
+								
+								
 							}		
 						}
 					</tbody>
