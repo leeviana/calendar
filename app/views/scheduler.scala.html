@@ -1,4 +1,6 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]])
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], 
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]], 
+	userList: List[String])
 
 @main("Scheduler") {
 
@@ -18,6 +20,129 @@
 			@viewComponents.html.textarea(schedulingForm("description"),
     			label = "Description",
         		placeholder = "Event Description") 
+        		
+        	<!-- Duration -->
+        	@viewComponents.html.text(schedulingForm("duration"),
+        		label = "Duration (minutes)",
+        		placeholder = "30")	
+        		
+        	<!-- Entities -->
+        	<div id="User0">
+			@viewComponents.html.dropdown(schedulingForm("entities[0]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
+        	<span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+        	
+			<div id="User1">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<div id="User2">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			<div id="User3">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<div id="User5">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<div id="User6">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<div id="User7">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<div id="User8">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+			
+			<div id="User9">
+			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
+				label = "Users/Groups",
+				userList)  
+			</div>
+
+			<input type="number" 
+             	class="form-control" 
+             	name='@schedulingForm("timeRangeCount").name'
+             	id = 'counter'
+             	value='@schedulingForm("timeRangeCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var x = 1;
+        $(document).ready(function(){
+        	$("#counter").hide();
+			for (i = counter.value; i <= 10; i++){
+				$("#User" + i).hide();
+			}
+        	
+   
+        	$("#add").click(function(e){
+        		alert("Add");
+        		$("#User" + x).show();		
+        		++x;
+        		counter.value = x;
+        		console.log(x);
+        	});
+        	
+        	$("#subtract").click(function(e){
+        		alert("Subtract");
+        		$("#User"+x).hide();
+        		--x;
+        		counter.value = x;
+        	
+        	});
+        
+       	});
+        </script>
+        		
+        	<!-- TimeRange -->
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges.startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges.startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges.endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges.endTime"),
+			label = "End Time")
+			
+			<!--  Recurrence Details -->    	
+        	@viewComponents.html.datepicker(schedulingForm("recurrenceMeta.timeRange.endDate"),
+        	label = "Recurrence End Date")
+       		 
+			@viewComponents.html.recurrenceHelper(schedulingForm("recurrenceMeta"))
+			
+			
+			<label class="col-sm-2"> </label>
+			<div class="col-sm-5">
+				<div class="form-actions">
+					<input class="btn btn-primary" type="submit"> 
+				</div>
+			</div>
         	
 		}
 	</div>

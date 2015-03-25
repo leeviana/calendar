@@ -27,6 +27,9 @@ import apputils.UserDAO
 import apputils.AuthStateDAO
 import org.joda.time.DateTime
 import models.RecurrenceMeta
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.MILLISECONDS
 
 /**
  * @author Leevi
@@ -45,7 +48,9 @@ object Scheduling extends Controller with MongoController {
      * Render a page where the user can specify their "free time" query
      */
     def showForm = Action { implicit request =>
-        Ok(views.html.scheduler(schedulingForm, None))
+        var entities = getEntities
+        
+        Ok(views.html.scheduler(schedulingForm, None, entities))
     }
 
     /**
@@ -53,8 +58,10 @@ object Scheduling extends Controller with MongoController {
      */
     // TODO: use duration to break timeRange into multiple timeranges
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
+        var entities = getEntities
+        
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None)),
+            errors => Ok(views.html.scheduler(errors, None, entities)),
 
             scheduleFormVals => {
                 
@@ -106,7 +113,7 @@ object Scheduling extends Controller with MongoController {
                     }
                 }
 
-                Ok(views.html.scheduler(schedulingForm, Some(scheduleMap)))
+                Ok(views.html.scheduler(schedulingForm, Some(scheduleMap), entities))
             })
     }
 
@@ -114,8 +121,10 @@ object Scheduling extends Controller with MongoController {
      * Create an event and send requests based on query forms
      */
     def createEventAndRequests() = Action { implicit request =>
+        var entities = getEntities
+        
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None)),
+            errors => Ok(views.html.scheduler(errors, None, entities)),
 
             scheduleFormVals => {
                 var newEvents = ListBuffer[Event]()
@@ -143,4 +152,33 @@ object Scheduling extends Controller with MongoController {
                 Redirect(routes.Events.showEvent(newEvent._id.stringify))
             })
     }
+    
+    def getEntities : List[String] = {
+        var temp:  List[models.User] = List()          
+        val future = UserDAO.findAll().map { users =>
+            temp = users;
+        }
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        var temp2: List[models.Group] = List()
+        val future2 = GroupDAO.findAll().map { groups =>
+            temp2 = groups
+        }
+        Await.ready(future2, Duration(5000, MILLISECONDS))
+        var entities: List[String] = List()
+        Console.println("check")
+        for(t <- temp){
+          Console.println("user")
+          entities = entities :+ t.username
+        }
+        for(t <- temp2){
+          Console.println("group")
+          entities = entities :+ t.name
+        }
+        for(e <- entities){
+          Console.println("is there anything in this list?")
+        }
+        return entities
+      
+    }
+    
 }
