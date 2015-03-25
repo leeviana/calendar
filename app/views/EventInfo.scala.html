@@ -58,7 +58,7 @@
 									<td> @s.timeRange.end.get.toString("MMM-dd-yyyy") </td>
 									<td> @s.timeRange.end.get.toString("hh:mm a") </td>
 									
-									@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply("54e3d996bf52b408025aef03"))){canSign =>
+									@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
 										@if(canSign == true){
 											@defining(event._id.stringify){ eventID =>
 												@defining(s._id.stringify){ slotID =>
