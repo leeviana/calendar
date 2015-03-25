@@ -49,7 +49,7 @@ object Scheduling extends Controller with MongoController {
      */
     def showForm = Action { implicit request =>
         var entities = getEntities
-        
+        Console.println("initializing form")
         Ok(views.html.scheduler(schedulingForm, None, entities))
     }
 
@@ -58,6 +58,7 @@ object Scheduling extends Controller with MongoController {
      */
     // TODO: use duration to break timeRange into multiple timeranges
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
+        Console.println("getting to schedulingOptions")
         var entities = getEntities
         
         schedulingForm.bindFromRequest.fold(
@@ -67,9 +68,13 @@ object Scheduling extends Controller with MongoController {
                 
                 // Form values    
                 val timeRanges = scheduleFormVals._1
+                for(t <- timeRanges){
+                  Console.println("there is a timeRange")
+                }
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = scheduleFormVals._6
+                Console.println("The duration is " + duration)
 
                 var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]()
 
@@ -165,17 +170,11 @@ object Scheduling extends Controller with MongoController {
         }
         Await.ready(future2, Duration(5000, MILLISECONDS))
         var entities: List[String] = List()
-        Console.println("check")
         for(t <- temp){
-          Console.println("user")
           entities = entities :+ t.username
         }
         for(t <- temp2){
-          Console.println("group")
           entities = entities :+ t.name
-        }
-        for(e <- entities){
-          Console.println("is there anything in this list?")
         }
         return entities
       

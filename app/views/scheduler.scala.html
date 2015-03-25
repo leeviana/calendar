@@ -145,6 +145,37 @@
 			</div>
         	
 		}
+		<legend>Options</legend>
+		<div class = container>
+			<table class = table>
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Time</th>
+						<th>Conflicts</th>
+						<th>Schedule</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if(scheduleMap.isEmpty){
+						<tr>
+							<td>NA</td>
+							<td>NA</td>
+							<td>No Conflicts</td>
+							<td>NA</td>
+						</tr>
+					}else{
+						@scheduleMap.foreach { keyVal =>
+							<tr>
+								<td>TimeRange.start.toString("MMM-dd-yyyy")</td>
+								<td>TimeRange.start.toString("hh:mm a") - TimeRange.end.get.toString("hh:mm a")</td>
+								<td>Conflicts</td>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
 

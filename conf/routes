@@ -43,7 +43,7 @@ POST    /events/reply/:eventID/:status  controllers.Events.updateCreationStatus(
 
 # Scheduler
 GET     /scheduler                      controllers.Scheduling.showForm
-POST    /scheduler/options              controllers.Scheduling.schedulingOptions
+POST    /scheduler/options             	controllers.Scheduling.schedulingOptions
 #POST   /scheduler/options/new          controllers.Scheduling.createEventAndRequests
 
 # SlotSignUp
