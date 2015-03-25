@@ -97,9 +97,9 @@
 
 			<input type="number" 
              	class="form-control" 
-             	name='@schedulingForm("timeRangeCount").name'
+             	name='@schedulingForm("userCount").name'
              	id = 'counter'
-             	value='@schedulingForm("timeRangeCount").value.getOrElse("1")'/>
+             	value='@schedulingForm("userCount").value.getOrElse("1")'/>
              	               		
         <script type="text/javascript">
         var x = 1;
@@ -216,6 +216,8 @@
         <br><br>
         	
         	<!-- TimeRange -->
+        	<div id = Time0>
+        	<h4>TimeRange0</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[0].startDate"),
 			label = "Start Date")
 
@@ -227,6 +229,103 @@
 
 			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].endTime"),
 			label = "End Time")
+			</div>
+			
+			<span aria-hidden="true" id="tadd"> <span class="glyphicon glyphicon-plus"></span> </span>
+        	<span aria-hidden="true" id="tsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+			
+			<div id = Time1>
+			<h4>TimeRange1</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[1].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[1].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[1].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[1].endTime"),
+			label = "End Time")
+			</div>
+			
+			<div id = Time2>
+			<h4>TimeRange2</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[2].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[2].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[2].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[2].endTime"),
+			label = "End Time")
+			</div>
+			
+			<div id = Time3>
+			<h4>TimeRange3</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[3].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[3].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[3].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[3].endTime"),
+			label = "End Time")
+			</div>
+			
+			<div id = Time4>
+			<h4>TimeRange4</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[4].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[4].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[4].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[4].endTime"),
+			label = "End Time")
+			</div>
+			
+			<input type="number" 
+             	class="form-control" 
+             	name='@schedulingForm("timeCount").name'
+             	id = 'tcounter'
+             	value='@schedulingForm("timeCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var z = 1;
+        $(document).ready(function(){
+        	$("#tcounter").hide();
+			for (k = tcounter.value; k <= 5; k++){
+				$("#Time" + k).hide();
+			}
+        	
+   
+        	$("#tadd").click(function(e){        		
+        		$("#Time" + z).show();		
+        		++z;
+        		tcounter.value = z;
+        		console.log(z);
+        	});
+        	
+        	$("#tsubtract").click(function(e){
+        		$("#Time"+z).hide();
+        		--z;
+        		gcounter.value = z
+        	
+        	});
+        
+       	});
+        </script>
+        <br><br>
 			
 			<!--  Recurrence Details -->    	
         	@viewComponents.html.datepicker(schedulingForm("recurrenceMeta.timeRange.endDate"),
