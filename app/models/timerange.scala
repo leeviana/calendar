@@ -83,6 +83,6 @@ object TimeRange {
                         Some(timerange.duration.getStandardMinutes), // does this work?
                         Some(timerange.duration.getStandardHours),
                         Some(timerange.duration.getStandardDays)))
-            }.verifying("Your start/end time/date combination doesn't make sense! (start must be before end, with positive duration)", f => validateTimes(f.allday, f.start, f.end, f.duration))
+            }//.verifying("Your start/end time/date combination doesn't make sense! (start must be before end, with positive duration)", f => validateTimes(f.allday, f.start, f.end, f.duration))
             )
 }
