@@ -53,39 +53,6 @@
     	@viewComponents.html.checkbox(form("isPUDEvent"), label = "Use time for PUD Events")
         </div>
         
-		<script type="text/javascript">	
-	    $(document).ready(function(){
-		    $('#@(form("eventType").id+"s")').on('change', function() {
-		      if (this.value == "Fixed" || this.value == "SignUp"){
-		        $('#slot1').show();
-		        
-		        $('#@form("timeRange.durationMin").id').hide();
-		        $('#@form("PUDPriority").id').hide();
-		        
-		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
-		        $('#maxSlots').show();
-		        $('#forPUD').hide();
-		      }
-		      
-		      if (this.value == "Fixed"){
-		       	$('#maxSlots').hide();
-		      	$('#forPUD').show();
-		      }
-		      if (this.value == "PUD"){
-		        $('#slot1').hide();
-				$('#maxSlots').hide();
-		        
-		        $('#@form("timeRange.durationMin").id').show();
-		        $('#@form("PUDPriority").id').show();
-		        
-                $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
-		      }
-		      
-		      
-		    });
-		});
-		
-		</script>
 		<!--  PUD Fields -->
 		@viewComponents.html.number(form("timeRange.durationMin"),
 			label = "Time Allocated",
@@ -262,7 +229,7 @@
 			for (i = counter.value; i <= 10; i++){
 				$("#slot" + i).hide();
 			}
-        	
+
         	$("#add").click(function(e){
         		if (x < 10){
         			++x;
@@ -286,7 +253,35 @@
         			alert("Cannot have negative number of slots");
         		}
         	});
-        
+
+		    $('#@(form("eventType").id+"s")').on('change', function() {
+		      if (this.value == "Fixed" || this.value == "SignUp"){
+		        $('#slot1').show();
+		        
+		        $('#@form("timeRange.durationMin").id').hide();
+		        $('#@form("PUDPriority").id').hide();
+		        
+		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
+		        $('#maxSlots').show();
+		        $('#forPUD').hide();
+		      }
+		      
+		      if (this.value == "Fixed"){
+		       	$('#maxSlots').hide();
+		      	$('#forPUD').show();
+		      }
+		      if (this.value == "PUD"){
+		        $('#slot1').hide();
+				$('#maxSlots').hide();
+		        
+		        $('#@form("timeRange.durationMin").id').show();
+		        $('#@form("PUDPriority").id').show();
+		        
+                $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
+		      } 
+		    });
+		    
+        	$('#@(form("eventType").id+"s")').change();
        	});
         </script>
         	

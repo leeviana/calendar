@@ -16,10 +16,12 @@ import models.enums.ViewType
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
-import play.api.libs.json.JsObject
+import play.api.libs.json._
 import play.api.libs.json.Json.toJsFieldJsValueWrapper
 import play.api.mvc.Action
 import play.api.mvc.Controller
+import play.api.mvc.Cookie
+import play.api.mvc.DiscardingCookie
 import play.modules.reactivemongo.MongoController
 import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 import reactivemongo.bson._
@@ -212,57 +214,47 @@ object Events extends Controller with MongoController {
                 calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
             }
 
-            Ok(views.html.editEvent(None, Event.form, iterator, calMap))
+            Ok(views.html.editEvent(None, Event.form, iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
         }
     }
     
     /**
      * Creates an event on a calendar
      */
-    def create = Action.async { implicit request =>
+    def create = Action { implicit request =>
         val iterator = RecurrenceType.values.iterator
+        Event.form.bindFromRequest.fold(
+            errors => Ok(views.html.editEvent(None, errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value)))),
 
-        UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
-            var calMap: MapBuffer[String, String] = MapBuffer()
-
-            for (calID <- user.get.subscriptions) {
-                CalendarDAO.findById(calID).map { cal =>
-                    calMap += (calID.stringify -> cal.get.name)
+            event => {
+                
+                var myEvent = new Event
+                
+                if((event.eventType == EventType.SignUp)) {
+                    myEvent = createSignUpSlots(event)    
                 }
+                else {
+                    myEvent = event
+                }
+
+                if (event.recurrenceMeta.isDefined) {
+                    val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
+                    val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
+                    EventDAO.insert(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
+                }
+                else {
+                    EventDAO.insert(myEvent)
+                }
+
+                if ((event.recurrenceMeta.isDefined) && (event.eventType != EventType.PUD)) {
+                    val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
+                    val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
+                    createRecurrences(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
+                }
+
+                Redirect(routes.Events.index(event.eventType.toString()))
             }
-
-            Event.form.bindFromRequest.fold(
-                errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
-
-                event => {
-                    
-                    var myEvent = new Event
-                    
-                    if((event.eventType == EventType.SignUp)) {
-                        myEvent = createSignUpSlots(event)    
-                    }
-                    else {
-                        myEvent = event
-                    }
-
-                    if (event.recurrenceMeta.isDefined) {
-                        val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
-                        val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
-                        EventDAO.insert(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
-                    }
-                    else {
-                        EventDAO.insert(myEvent)
-                    }
-
-                    if ((event.recurrenceMeta.isDefined) && (event.eventType != EventType.PUD)) {
-                        val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
-                        val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
-                        createRecurrences(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
-                    }
-
-                    Redirect(routes.Events.index(event.eventType.toString()))
-                })
-        }
+        )
     }
 
     /**
@@ -361,9 +353,33 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
                 }
 
-                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap))
+                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
             }
         }
+    }
+
+    def jsonToMap(json : JsValue) : MapBuffer[String, String] = {
+        var output = MapBuffer[String, String]()
+        val test = json match {
+            case o: JsObject => {
+                val keys = o.keys;
+                for (k <- keys) {
+                    output += (k -> (o \ k).as[String]);
+                }
+            }
+            case _ => Set()
+        }
+        return output
+    }
+
+    def mapToJson(map : MapBuffer[String, String]) : JsValue = {
+        var output = new JsObject(Seq[(String, JsValue)]());
+        map.foreach {
+            case (k,v) => {
+                output = output + (k -> Json.toJson(v));
+            }
+        }
+        return output;
     }
 
     /**
@@ -371,42 +387,34 @@ object Events extends Controller with MongoController {
      */
     def editEvent(eventID: String) = Action.async { implicit request =>
         val iterator = RecurrenceType.values.iterator
-        UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
-            var calMap: MapBuffer[String, String] = MapBuffer()
 
-            for (calID <- user.get.subscriptions) {
-                CalendarDAO.findById(calID).map { cal =>
-                    calMap += (calID.stringify -> cal.get.name)
-                }
-            }
-          
-            EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
-                Event.form.bindFromRequest.fold(
-                    errors => Ok(views.html.editEvent(None, errors, iterator, calMap)),
+        EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
+            Event.form.bindFromRequest.fold(
+                errors => {
+                    Ok(views.html.editEvent(Some(oldEvent.get._id.stringify), errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value))));
+                },
 
-                    event => {
-                        if (!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
-                            val newEvent = event.copy(_id = BSONObjectID(eventID))
-                            EventDAO.save(newEvent)
+                event => {
+                    if (!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
+                        val newEvent = event.copy(_id = BSONObjectID(eventID))
+                        EventDAO.save(newEvent)
 
-                            CreationRequestDAO.update($and("master" $eq oldEvent.get._id, "requestStatus" $ne CreationRequestStatus.Removed.toString()), $set("requestStatus" -> CreationRequestStatus.Pending.toString()))
+                        CreationRequestDAO.update($and("master" $eq oldEvent.get._id, "requestStatus" $ne CreationRequestStatus.Removed.toString()), $set("requestStatus" -> CreationRequestStatus.Pending.toString()))
 
-                            // updates all slave events that are not on your own calendar (which are pending master requests)
-                            EventDAO.findAll($and("master" $eq oldEvent.get._id, "calendar" $ne oldEvent.get.calendar)).map { slaveEvents =>
-                                slaveEvents.map { slaveEvent =>
-                                    val updatedEvent = event.copy(_id = slaveEvent._id, calendar = slaveEvent.calendar, master = slaveEvent.master, rules = slaveEvent.rules, viewType = Some(ViewType.Request))
-                                    EventDAO.save(updatedEvent)
-                                }
+                        // updates all slave events that are not on your own calendar (which are pending master requests)
+                        EventDAO.findAll($and("master" $eq oldEvent.get._id, "calendar" $ne oldEvent.get.calendar)).map { slaveEvents =>
+                            slaveEvents.map { slaveEvent =>
+                                val updatedEvent = event.copy(_id = slaveEvent._id, calendar = slaveEvent.calendar, master = slaveEvent.master, rules = slaveEvent.rules, viewType = Some(ViewType.Request))
+                                EventDAO.save(updatedEvent)
                             }
-                            Redirect(routes.Events.index(newEvent.eventType.toString()))
-                        } else {
-                            // if event master is not the master
-                            createMasterRequest(event, oldEvent.get.master.get)
-                            Redirect(routes.Events.index(event.eventType.toString()))
                         }
-                    })
-            }
-
+                        Redirect(routes.Events.index(newEvent.eventType.toString()))
+                    } else {
+                        // if event master is not the master
+                        createMasterRequest(event, oldEvent.get.master.get)
+                        Redirect(routes.Events.index(event.eventType.toString()))
+                    }
+                })
         }
     }
 
@@ -502,9 +510,11 @@ object Events extends Controller with MongoController {
     /**
      * Renders a page that shows details about a specific event
      */
-    def showEvent(eventID: String, reminderForm: Form[Reminder] = Reminder.form, ruleForm: Form[Rule] = Rule.form) = Action.async { implicit request =>
-        val objectID = BSONObjectID.apply(eventID)
-        var userList: List[models.User] = List()
+    def showEvent(eventID: String) = Action.async { implicit request =>
+        val objectID = BSONObjectID.apply(eventID);
+        var userList: List[models.User] = List();
+        var reminderForm: Form[Reminder] = Reminder.form;
+        var ruleForm: Form[Rule] = Rule.form;
 
         val future = UserDAO.findAll().map { users =>
             userList = users;
@@ -513,10 +523,11 @@ object Events extends Controller with MongoController {
         Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
-            if (event.isDefined)
-                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, userList))
-            else
+            if (event.isDefined) {
+                Ok(views.html.EventInfo(event.get, reminderForm, ruleForm, AuthStateDAO.getUserID().stringify, userList)).withCookies(Cookie("userList", Json.stringify(Json.toJson(userList))));
+            } else {
                 throw new Exception("Database incongruity: Event ID not found")
+            }
         }
     }
 
@@ -525,17 +536,12 @@ object Events extends Controller with MongoController {
      */
     def addReminder(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-         var userList: List[models.User] = List()
-
-        val future = UserDAO.findAll().map { users =>
-            userList = users;
-        }
-        
-        Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Reminder.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, userList)),
+                errors => {
+                    Ok(views.html.EventInfo(event.get, errors, Rule.form, AuthStateDAO.getUserID().stringify, Json.parse(request.cookies.get("userList").get.value).as[List[models.User]]));
+                },
 
                 reminder => {
                     var newReminder = reminder
@@ -548,7 +554,7 @@ object Events extends Controller with MongoController {
                     ReminderDAO.insert(newReminder)
                     EventDAO.updateById(objectID, $push("reminders", newReminder))
                         
-                    Redirect(routes.Events.showEvent(eventID))
+                    Redirect(routes.Events.showEvent(eventID)).flashing("test" -> reminder.toString())
                 })
         }
     }
@@ -560,17 +566,10 @@ object Events extends Controller with MongoController {
      */
     def addRule(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
-        var userList: List[models.User] = List()
-
-        val future = UserDAO.findAll().map { users =>
-            userList = users;
-        }
-        
-        Await.ready(future, Duration(5000, MILLISECONDS))
 
         EventDAO.findById(objectID).map { event =>
             Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, userList)),
+                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, Json.parse(request.cookies.get("userList").get.value).as[List[models.User]])),
 
                 rule => {
                     EventDAO.updateById(objectID, $push("rules", rule))
