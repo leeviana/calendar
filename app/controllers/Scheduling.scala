@@ -46,8 +46,8 @@ object Scheduling extends Controller with MongoController {
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "duration" -> number,
-            "entitiesCount" -> number,
-            "timeRangesCount" -> number))
+            "entitiesCount" -> optional(number),
+            "timeRangeCount" -> optional(number)))
             
 
     /**
@@ -80,7 +80,7 @@ object Scheduling extends Controller with MongoController {
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = new Period(0, scheduleFormVals._6, 0, 0).toStandardDuration()
 
-                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]()
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int], Option[Int])])]()
                         
                 // get applicable user's calendars
                 var calendars = ListBuffer[BSONObjectID]()
