@@ -1,6 +1,6 @@
 @(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], 
 	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]], 
-	userList: List[String])
+	userList: List[models.User])
 
 @main("Scheduler") {
 
@@ -9,7 +9,7 @@
 		<h1>Scheduler</h1>
 		<legend>Schedule an event</legend>
 		
-		@helper.form(action = routes.Scheduling.showForm, 'class -> "form-horizontal") {
+		@helper.form(action = routes.Scheduling.schedulingOptions, 'enctype -> "multipart/form-data", 'class -> "form-horizontal") {
 		
 			<!-- Event Name -->
 			@viewComponents.html.text(schedulingForm("name"),
@@ -27,61 +27,15 @@
         		placeholder = "30")	
         		
         	<!-- Entities -->
-        	<div id="User0">
-			@viewComponents.html.dropdown(schedulingForm("entities[0]"),
-				label = "Users/Groups",
-				userList)  
+			<div id="User0">
+				<select name="entities[0]" class="form-control" style="width: 250px">
+					@for(element <- userList){
+					<option value='@element._id.stringify'>@element.username</option> }
+				</select>
 			</div>
-			
-			<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
+
+		<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
         	<span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
-        	
-			<div id="User1">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			
-			<div id="User2">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			<div id="User3">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			
-			<div id="User5">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			
-			<div id="User6">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			
-			<div id="User7">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			
-			<div id="User8">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
-			
-			<div id="User9">
-			@viewComponents.html.dropdown(schedulingForm("entities[1]"),
-				label = "Users/Groups",
-				userList)  
-			</div>
 
 			<input type="number" 
              	class="form-control" 
@@ -118,16 +72,16 @@
         </script>
         		
         	<!-- TimeRange -->
-        	@viewComponents.html.datepicker(schedulingForm("timeRanges.startDate"),
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[0].startDate"),
 			label = "Start Date")
 
-			@viewComponents.html.timepicker(schedulingForm("timeRanges.startTime"),
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].startTime"),
 			label = "Start Time")
 
-			@viewComponents.html.datepicker(schedulingForm("timeRanges.endDate"),
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[0].endDate"),
 			label = "End Date")
 
-			@viewComponents.html.timepicker(schedulingForm("timeRanges.endTime"),
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].endTime"),
 			label = "End Time")
 			
 			<!--  Recurrence Details -->    	
@@ -165,11 +119,18 @@
 							<td>NA</td>
 						</tr>
 					}else{
-						@scheduleMap.foreach { keyVal =>
+						<tr>
+							<td>not empty</td>
+							<td>not empty</td>
+							<td>not empty</td>
+							<td>not empty</td>
+						</tr>
+						@for((k, v) <- scheduleMap.get){
 							<tr>
-								<td>TimeRange.start.toString("MMM-dd-yyyy")</td>
-								<td>TimeRange.start.toString("hh:mm a") - TimeRange.end.get.toString("hh:mm a")</td>
+								<td>date</td>
+								<td>time</td>
 								<td>Conflicts</td>
+								<td>Schedule</td>
 							</tr>
 						}
 					}

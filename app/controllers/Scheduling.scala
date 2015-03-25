@@ -49,8 +49,9 @@ object Scheduling extends Controller with MongoController {
      */
     def showForm = Action { implicit request =>
         var entities = getEntities
+        var users = getUsers
         Console.println("initializing form")
-        Ok(views.html.scheduler(schedulingForm, None, entities))
+        Ok(views.html.scheduler(schedulingForm, None, users))
     }
 
     /**
@@ -60,19 +61,26 @@ object Scheduling extends Controller with MongoController {
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
         Console.println("getting to schedulingOptions")
         var entities = getEntities
+        var users = getUsers
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, entities)),
+            errors => Ok(views.html.scheduler(errors, None, users)),
 
             scheduleFormVals => {
                 
                 // Form values    
                 val timeRanges = scheduleFormVals._1
                 for(t <- timeRanges){
-                  Console.println("there is a timeRange")
+                  Console.println("timeRange is " + t.toString)
+                }
+                if(timeRanges.isEmpty){
+                  Console.println("there is no timerange")
                 }
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
+                for(e <- entities){
+                  Console.println("entity is " + e.toString)
+                }
                 val duration = scheduleFormVals._6
                 Console.println("The duration is " + duration)
 
@@ -105,11 +113,12 @@ object Scheduling extends Controller with MongoController {
                             while (current.end.get.compareTo(recurrenceMeta.get.timeRange.end.get) <= 0) {
 
                                 // TODO: check if this code works without using futures
-                                EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte current.end, "timeRange.end" $gte current.start, Events.getEventFilter(user.get))).map { events =>
+                                val future = EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte current.end, "timeRange.end" $gte current.start, Events.getEventFilter(user.get))).map { events =>
                                     conflictEvents.appendAll(events)
                                 }
 
                                 current = timeRange.copy(start = timeRange.start.plus(recurrenceMeta.get.recurDuration), end = Some(timeRange.end.get.plus(recurrenceMeta.get.recurDuration)))
+                                Await.result(future, Duration(5000, MILLISECONDS))
                             }
 
                             val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
@@ -117,8 +126,14 @@ object Scheduling extends Controller with MongoController {
                         }
                     }
                 }
-
-                Ok(views.html.scheduler(schedulingForm, Some(scheduleMap), entities))
+                Console.println("before scheduleMap check")
+                if(scheduleMap.isEmpty){
+                  Console.println("nothing in scheduleMap")
+                }
+                for((k, v)<- scheduleMap){
+                  Console.println("scheduleMap")
+                }
+                Ok(views.html.scheduler(schedulingForm, Some(scheduleMap), users))
             })
     }
 
@@ -127,9 +142,10 @@ object Scheduling extends Controller with MongoController {
      */
     def createEventAndRequests() = Action { implicit request =>
         var entities = getEntities
+        var users = getUsers
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, entities)),
+            errors => Ok(views.html.scheduler(errors, None, users)),
 
             scheduleFormVals => {
                 var newEvents = ListBuffer[Event]()
@@ -178,6 +194,15 @@ object Scheduling extends Controller with MongoController {
         }
         return entities
       
+    }
+    
+    def getUsers : List[models.User] = {
+      var temp:  List[models.User] = List()          
+        val future = UserDAO.findAll().map { users =>
+            temp = users;
+        }
+        Await.ready(future, Duration(5000, MILLISECONDS))
+        return temp;
     }
     
 }
