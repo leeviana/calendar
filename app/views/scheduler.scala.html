@@ -305,6 +305,7 @@
 								<td>@v._1.length</td>
 								<td>@v._2("recurrenceMeta.recurrenceType").value </td>
 								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+									<div hidden class="autoForm" >
 									<!-- Time Range -->														
 									@viewComponents.html.text(v._2("timeRanges[0].startDate"),
 										label = "Start Date")
@@ -362,7 +363,7 @@
 										label = "",
 										help = "")
 									
-									
+									</div>
 									<div class="form-actions">
 										<input class="btn btn-primary" type="submit"> 
 									</div>
