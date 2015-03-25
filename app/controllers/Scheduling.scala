@@ -136,6 +136,8 @@ object Scheduling extends Controller with MongoController {
 
                     }
                 }
+                
+                Await.ready(futureUser, Duration(5000, MILLISECONDS))
                 Console.println("before scheduleMap check")
                 if(scheduleMap.isEmpty){
                   Console.println("nothing in scheduleMap")
