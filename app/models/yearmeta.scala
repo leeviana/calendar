@@ -16,7 +16,8 @@ import org.joda.time.Period
 case class YearMeta(
     month: Option[Int], // integer representation of month
     day: Option[Int], // integer representation of day
-    numberOfYears: Option[Int]) {
+    numberOfYears: Option[Int] // TODO: this is the only one necessary now
+    ) {
     var recurrenceType = RecurrenceType.Yearly
 }
 
@@ -28,20 +29,4 @@ object YearMeta {
             "month" -> optional(number),
             "day" -> optional(number),
             "numberOfYears" -> optional(number))(YearMeta.apply)(YearMeta.unapply))
-
-    def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
-        var current = start.plusYears(1)
-        var timestamps = ListBuffer[Long]()
-
-        while (current.compareTo(end) <= 0) {
-            timestamps += current.getMillis - start.getMillis
-            current = current.plusYears(1)
-        }
-
-        timestamps.toList
-    }
-    
-    def generateNext(start: DateTime, numberOfYears: Int = 1): DateTime = {
-        start.plusYears(numberOfYears)
-    }
 }

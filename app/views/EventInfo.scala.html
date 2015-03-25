@@ -50,8 +50,7 @@
 						</tr>
 					</thead>
 					<tbody>					
-						@for(slotList <- event.signUpSlots){
-							@for(slot <- slotList){														
+						@for(slot <- event.signUpSlots.get.sortBy ( slot => slot._id.stringify)){
 									<tr>	
 														
 									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>
@@ -72,7 +71,7 @@
 											} 
 										}
 									} else{
-										@if(slot.userID.get.toString == userID){
+										@if(slot.userID.get.stringify == userID){
 											<td>You are signed up!</td>
 										} else{
 											<td> Slot is taken </td>
@@ -80,9 +79,7 @@
 									}
 
 								</tr>
-								
-								
-							}		
+									
 						}
 					</tbody>
 				</table>

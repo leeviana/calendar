@@ -30,20 +30,4 @@ object WeekMeta {
         mapping(
             "dayNumber" -> optional(number),
             "numberOfWeeks" -> optional(number))(WeekMeta.apply)(WeekMeta.unapply))
-
-    def generateRecurrence(start: DateTime, end: DateTime): List[Long] = {
-        var current = start.plusWeeks(1)
-        var timestamps = ListBuffer[Long]()
-
-        while (current.compareTo(end) <= 0) {
-            timestamps += current.getMillis - start.getMillis
-            current = current.plusWeeks(1)
-        }
-
-        timestamps.toList
-    }
-    
-    def generateNext(start: DateTime, numberOfWeeks: Int = 1): DateTime = {
-        start.plusWeeks(numberOfWeeks)
-    }
 }
