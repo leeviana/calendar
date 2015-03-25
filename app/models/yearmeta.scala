@@ -16,7 +16,7 @@ import org.joda.time.Period
 case class YearMeta(
     month: Option[Int], // integer representation of month
     day: Option[Int], // integer representation of day
-    numberOfYears: Option[Int] // TODO: this is the only one necessary now
+    numberOfYears: Option[Int] = Some(1) // TODO: this is the only one necessary now
     ) {
     var recurrenceType = RecurrenceType.Yearly
 }

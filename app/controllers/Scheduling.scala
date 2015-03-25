@@ -46,8 +46,7 @@ object Scheduling extends Controller with MongoController {
             "name" -> nonEmptyText,
             "description" -> optional(nonEmptyText),
             "duration" -> number,
-            "entitiesCount" -> number,
-            "timeRangesCount" -> number))
+            "entitiesCount" -> optional(number)))
             
 
     /**
@@ -79,19 +78,24 @@ object Scheduling extends Controller with MongoController {
                 val recurrenceMeta = scheduleFormVals._2
                 val entities = scheduleFormVals._3.getOrElse(List.empty)
                 val duration = new Period(0, scheduleFormVals._6, 0, 0).toStandardDuration()
-
-                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]()
+                val entitiesCount = scheduleFormVals._7.getOrElse(0)
+                
+                var scheduleMap = Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])])]()
                         
                 // get applicable user's calendars
                 var calendars = ListBuffer[BSONObjectID]()
 
-                for (entity <- entities) {
+                for (entity <- entities.slice(0, entitiesCount)) {
                     val users = GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))
                     users.foreach { user =>
                         calendars.appendAll(user.subscriptions)
                     }
                 }
                 
+                var calQuery = Json.obj(
+                    "calendar" -> Json.obj(
+                        "$in" -> calendars.toList))
+                                    
                 val futureUser = UserDAO.findById(AuthStateDAO.getUserID()).map { user =>
 
                     for (timeRange <- timeRanges) {
@@ -105,33 +109,31 @@ object Scheduling extends Controller with MongoController {
 
                                 // returns conflicting events (that you have at least view access to)
                                 if (!recurrenceMeta.isDefined) {
-                                    println("calendars: " + calendars)
-                                    var calQuery = Json.obj(
-                                        "calendar" -> Json.obj(
-                                            "$in" -> calendars.toList))
                                     EventDAO.findAll($and(calQuery, "timeRange.start" $lte currentEnd, "timeRange.end" $gte currentStart, Events.getEventFilter(user.get))).map { events =>
 
                                         val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](new TimeRange(currentStart, currentEnd))))
-                                        scheduleMap += (new TimeRange(currentStart, currentEnd) -> (events, newForm))
+                                        scheduleMap += (new TimeRange(currentStart.minus(duration), currentStart) -> (events, newForm))
                                     }
 
                                 } else {
                                     // check sample in the same way as above
                                     var conflictEvents = new ListBuffer[Event]
-                                    var current = timeRange.copy(start = timeRange.start, end = timeRange.end, duration = timeRange.duration)
+                                    
+                                    var current = timeRange.copy(start = currentStart, end = Some(currentEnd), duration = duration)
                                     while (current.end.get.compareTo(recurrenceMeta.get.timeRange.end.get) <= 0) {
 
-                                        EventDAO.findAll($and("calendar" $in calendars, "timeRange.start" $lte current.end, "timeRange.end" $gte current.start, Events.getEventFilter(user.get))).map { events =>
+                                        val futureEvents = EventDAO.findAll($and(calQuery, "timeRange.start" $lte current.end.get, "timeRange.end" $gte current.start, Events.getEventFilter(user.get))).map { events =>
                                             conflictEvents.appendAll(events)
                                         }
 
-                                        current = timeRange.copy(start = timeRange.start.plus(recurrenceMeta.get.recurDuration), end = Some(timeRange.end.get.plus(recurrenceMeta.get.recurDuration)))
+                                        Await.ready(futureEvents, Duration(5000, MILLISECONDS))
+                                        current = timeRange.copy(start = current.start.plus(recurrenceMeta.get.recurDuration), end = Some(current.end.get.plus(recurrenceMeta.get.recurDuration)))
                                     }
 
-                                    val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](timeRange)))
-                                    scheduleMap += (new TimeRange(currentStart, currentEnd) -> (conflictEvents.toList, newForm))
+                                    val newForm = schedulingForm.fill(scheduleFormVals.copy(_1 = List[TimeRange](new TimeRange(currentStart.minus(duration), currentStart))))
+                                    scheduleMap += (new TimeRange(currentStart.minus(duration), currentStart) -> (conflictEvents.toList, newForm))
                                 }
-
+                                
                                 currentStart = currentEnd
                                 currentEnd = currentEnd.plus(duration)
                             }
@@ -140,7 +142,7 @@ object Scheduling extends Controller with MongoController {
                     }
                 }
                 
-                Await.ready(futureUser, Duration(5000, MILLISECONDS))
+                Await.ready(futureUser, Duration(10000, MILLISECONDS))
 
                 Ok(views.html.scheduler(schedulingForm.fill(scheduleFormVals), Some(scheduleMap), users, userID))
             })

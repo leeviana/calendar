@@ -1,5 +1,5 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)], 
-	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]], 
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])], 
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])])]], 
 	userList: List[models.User], userID : String)
 	
 @import apputils.CreationRequestDAO
@@ -43,53 +43,73 @@
 			<!-- Users -->
 			<div id="User0">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[0]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
+					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+						@for(element <- groupList){
+							<option value='@element._id.stringify'>@element.name</option> }
+					}
 				</select>
 				}
 			</div>
 			
-		<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
+		<span class="glyphicon glyphicon-user" aria-hidden="true"></span><span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
 
 		<div id="User1">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[1]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
+					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+						@for(element <- groupList){
+							<option value='@element._id.stringify'>@element.name</option> }
+					}
 				</select>
 				}
 			</div>
 			
 		<div id="User2">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[2]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
+					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+						@for(element <- groupList){
+							<option value='@element._id.stringify'>@element.name</option> }
+					}					
 				</select>
 				}
 			</div>
 			
 		<div id="User3">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[3]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
+					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+						@for(element <- groupList){
+							<option value='@element._id.stringify'>@element.name</option> }
+					}					
 				</select>
 				}
 			</div>
 			
 		<div id="User4">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[4]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
+					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+						@for(element <- groupList){
+							<option value='@element._id.stringify'>@element.name</option> }
+					}
 				</select>
 				}
 			</div>
@@ -97,9 +117,11 @@
 
 			<input type="number" 
              	class="form-control" 
-             	name='@schedulingForm("timeRangeCount").name'
+
+             	name='@schedulingForm("entitiesCount").name'
              	id = 'counter'
-             	value='@schedulingForm("timeRangeCount").value.getOrElse("1")'/>
+             	value='@schedulingForm("entitiesCount").value.getOrElse("1")'/>
+
              	               		
         <script type="text/javascript">
         var x = 1;
@@ -126,96 +148,12 @@
         
        	});
         </script>
-        <br><br>
-        
-        <!-- Groups -->
-			<div id="Group0">
-			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
-				<label class="col-sm-2 control-label">Groups</label>
-				<select name="entities[5]" class="form-control" style="width: 250px">
-					@for(element <- groupList){
-					<option value='@element._id.stringify'>@element.name</option> }
-				</select>
-				}
-			</div>
 			
-			<span aria-hidden="true" id="gadd"> <span class="glyphicon glyphicon-plus"></span> </span>
-        	<span aria-hidden="true" id="gsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
-        
-        	<div id="Group1">
-			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
-				<label class="col-sm-2 control-label">Groups</label>
-				<select name="entities[6] class="form-control" style="width: 250px">
-					@for(element <- groupList){
-					<option value='@element._id.stringify'>@element.name</option> }
-				</select>
-				}
-			</div>
-			
-			<div id="Group2">
-			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
-				<label class="col-sm-2 control-label">Groups</label>
-				<select name="entities[7]" class="form-control" style="width: 250px">
-					@for(element <- groupList){
-					<option value='@element._id.stringify'>@element.name</option> }
-				</select>
-				}
-			</div>
-			
-			<div id="Group3">
-			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
-				<label class="col-sm-2 control-label">Groups</label>
-				<select name="entities[8]" class="form-control" style="width: 250px">
-					@for(element <- groupList){
-					<option value='@element._id.stringify'>@element.name</option> }
-				</select>
-				}
-			</div>
-			
-			<div id="Group4">
-			@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
-				<label class="col-sm-2 control-label">Groups</label>
-				<select name="entities[9]" class="form-control" style="width: 250px">
-					@for(element <- groupList){
-					<option value='@element._id.stringify'>@element.name</option> }
-				</select>
-				}
-			</div>
-			
-			<input type="number" 
-             	class="form-control" 
-             	name='@schedulingForm("groupCount").name'
-             	id = 'gcounter'
-             	value='@schedulingForm("groupCount").value.getOrElse("1")'/>
-             	               		
-        <script type="text/javascript">
-        var y = 1;
-        $(document).ready(function(){
-        	$("#gcounter").hide();
-			for (j = gcounter.value; j <= 5; j++){
-				$("#Group" + j).hide();
-			}
-        	
-   
-        	$("#gadd").click(function(e){        		
-        		$("#Group" + y).show();		
-        		++y;
-        		gcounter.value = y;
-        		console.log(y);
-        	});
-        	
-        	$("#gsubtract").click(function(e){
-        		$("#Group"+y).hide();
-        		--y;
-        		gcounter.value = y
-        	
-        	});
-        
-       	});
-        </script>
         <br><br>
         	
         	<!-- TimeRange -->
+        	<div id = Time0>
+        	<h4>Time Range 0</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[0].startDate"),
 			label = "Start Date")
 
@@ -227,6 +165,104 @@
 
 			@viewComponents.html.timepicker(schedulingForm("timeRanges[0].endTime"),
 			label = "End Time")
+
+			
+			<span class="glyphicon glyphicon-time" aria-hidden="true"></span><span aria-hidden="true" id="tadd"> <span class="glyphicon glyphicon-plus"></span> </span>
+        	<span aria-hidden="true" id="tsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+			
+			<div id = Time1>
+			<h4>Time Range 1</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[1].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[1].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[1].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[1].endTime"),
+			label = "End Time")
+			</div>
+			
+			<div id = Time2>
+			<h4>Time Range 2</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[2].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[2].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[2].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[2].endTime"),
+			label = "End Time")
+			</div>
+			
+			<div id = Time3>
+			<h4>Time Range 3</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[3].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[3].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[3].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[3].endTime"),
+			label = "End Time")
+			</div>
+			
+			<div id = Time4>
+			<h4>Time Range 4</h4>
+        	@viewComponents.html.datepicker(schedulingForm("timeRanges[4].startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[4].startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(schedulingForm("timeRanges[4].endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(schedulingForm("timeRanges[4].endTime"),
+			label = "End Time")
+			</div>
+			
+			<input type="number" 
+             	class="form-control" 
+             	name='@schedulingForm("timeRangeCount").name'
+             	id = 'tcounter'
+             	value='@schedulingForm("timeRangeCount").value.getOrElse("1")'/>
+             	               		
+        <script type="text/javascript">
+        var z = 1;
+        $(document).ready(function(){
+        	$("#tcounter").hide();
+			for (k = tcounter.value; k <= 5; k++){
+				$("#Time" + k).hide();
+			}
+        	
+   
+        	$("#tadd").click(function(e){        		
+        		$("#Time" + z).show();		
+        		++z;
+        		tcounter.value = z;
+        		console.log(z);
+        	});
+        	
+        	$("#tsubtract").click(function(e){
+        		$("#Time"+z).hide();
+        		--z;
+        		gcounter.value = z
+        	
+        	});
+        
+       	});
+        </script>
+        <br><br>
+
 			
 			<!--  Recurrence Details -->    	
         	@viewComponents.html.datepicker(schedulingForm("recurrenceMeta.timeRange.endDate"),
@@ -251,6 +287,7 @@
 						<th>Date</th>
 						<th>Time</th>
 						<th>Conflicts</th>
+						<th>Recurrence Type</th>
 						<th>Schedule</th>
 					</tr>
 				</thead>
@@ -268,44 +305,67 @@
 							<tr>
 								<td>@k.start.toString("MMM-dd-yyyy")</td>
 								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
-								<td>@v._1.length</td>
-								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
-									<!-- Time Range -->
-									@viewComponents.html.datepicker(v._2("timeRanges[0].startDate"),
-									label = "Start Date")
-						
-									@viewComponents.html.timepicker(v._2("timeRanges[0].startTime"),
-									label = "Start Time")
-						
-									@viewComponents.html.datepicker(v._2("timeRanges[0].endDate"),
-									label = "End Date")
-						
-									@viewComponents.html.timepicker(v._2("timeRanges[0].endTime"),
-									label = "End Time")		
+						<td>
+						<div class= @k.start.toString("hh:mm a")>
+								<p>
+									<button class="btn btn-primary" type="button"
+										data-toggle="collapse" data-target="#collapseExample"
+										aria-expanded="false" aria-controls="collapseExample">
+										@v._1.length event conflicts</button>
+								</p>
+								<!-- <div class="collapse" id="collapseExample"> -->
+									<div class="well">@for(event <- v._1){
+										<p>~~~</p>
+										<p>User: @UserDAO.getOwner(event._id).username</p>
+										<p>Event: <a href = "../events/info/@event._id.stringify">@event.name</a></p>
+										<p>Recurring: @event.recurrenceMeta.isDefined</p>
+									}<!--</div> -->
+								</div>
+							</div> </td>
+					    <td>@v._2("recurrenceMeta.recurrenceType").value </td>
+						<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+							<div hidden class="autoform">
+						            <!-- Time Range -->
+									@viewComponents.html.text(v._2("timeRanges[0].startDate"),
+										label = "Start Date")
+							
+									@viewComponents.html.text(v._2("timeRanges[0].startTime"),
+										label = "Start Time")
+							
+									@viewComponents.html.text(v._2("timeRanges[0].endDate"),
+										label = "End Date")
+							
+									@viewComponents.html.text(v._2("timeRanges[0].endTime"),
+										label = "End Time")		
+									
 									
 									<!-- Recurrence -->
-									@viewComponents.html.dropdown(v._2("recurrenceMeta.recurrenceType"),
+									@viewComponents.html.datepicker(v._2("recurrenceMeta.timeRange.endDate"),
+                                        label = "Recurrence End Date")
+            
+									
+									@viewComponents.html.text(v._2("recurrenceMeta.recurrenceType"),
 							    		label = "Recurrence Type",
-							        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
+							        	help = "") 
 							       
-							       	@viewComponents.html.number(v._2("recurrenceMeta.daily.numberOfDays"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.daily.numberOfDays"), 
 							       		label = "Days",
 							       		help = "How many days between each recurrence?")
 							       		
-							       	@viewComponents.html.number(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
 							       		label = "Weeks",
 							       		help = "How many weeks between each recurrence?")
 							       	
-							       	@viewComponents.html.number(v._2("recurrenceMeta.monthly.numberOfMonths"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.monthly.numberOfMonths"), 
 							       		label = "Months",
 							       		help = "How many months between each recurrence?")
 							       
-							       @viewComponents.html.number(v._2("recurrenceMeta.yearly.numberOfYears"), 
+							       @viewComponents.html.text(v._2("recurrenceMeta.yearly.numberOfYears"), 
 							       		label = "Years",
 							       		help = "How many years between each recurrence?")		
 							       		
 							       	<!-- Entities -->									
-									@for(i <- 0 to 1){
+									@for(i <- 0 to v._2("entitiesCount").value.get.toInt - 1 ){
 										@viewComponents.html.text(v._2("entities[" + i +"]"),
 											label = "",
 											placeholder ="")
@@ -325,7 +385,7 @@
 									@viewComponents.html.number(v._2("duration"),
 										label = "",
 										help = "")
-									
+									</div>
 									
 									<div class="form-actions">
 										<input class="btn btn-primary" type="submit"> 

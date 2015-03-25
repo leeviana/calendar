@@ -25,14 +25,14 @@ object Authentication extends Controller with MongoController {
 
     val collection = db[BSONCollection]("authstate")
 
-    /*
+    /**
      * Renders the sign up page to make a new account
      */
     def signUp() = Action { implicit request =>
         Redirect(routes.Application.signUp())
     }
 
-    /*
+    /**
      * Allows a user to sign in with the correct credentials
      */
     def signIn = Action { implicit request =>
@@ -67,6 +67,9 @@ object Authentication extends Controller with MongoController {
         }
     }
 
+    /**
+     * Signs a user out
+     */
     def signOut = Action { implicit request =>
         Ok(views.html.index()).withNewSession
     }
