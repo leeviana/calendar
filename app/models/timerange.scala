@@ -39,8 +39,10 @@ object TimeRange {
     implicit val TimeRangeFormat = Json.format[TimeRange]
 
     def validateTimes(allday: Boolean, start: DateTime, end: Option[DateTime], duration: Duration) = {
-        if (!(end.isEmpty)) (end.get.getMillis > start.getMillis);
-        (false);
+        end match {
+            case _ if !(end.isEmpty) => (end.get.getMillis >= start.getMillis)
+            case _ => true
+        }
     }
 
     // TODO: temp workaround for time zone
@@ -81,6 +83,6 @@ object TimeRange {
                         Some(timerange.duration.getStandardMinutes), // does this work?
                         Some(timerange.duration.getStandardHours),
                         Some(timerange.duration.getStandardDays)))
-            }//.verifying("Your start/end time/date combination doesn't make sense! (start must be before end, with positive duration)", f => validateTimes(f.allday, f.start, f.end, f.duration))
+            }.verifying("Your start/end time/date combination doesn't make sense! (start must be before end, with positive duration)", f => validateTimes(f.allday, f.start, f.end, f.duration))
             )
 }
