@@ -60,7 +60,7 @@
 									
 									@if(slot.userID.isEmpty){	
 										@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
-											@if(canSign == true){
+											@if(canSign){
 												@defining(event._id.stringify){ eventID =>
 													@defining(slot._id.stringify){ slotID =>
 														@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
@@ -68,7 +68,10 @@
 														}
 													}
 												}						
-											} 
+											} else{
+													<td> </td>
+												}
+
 										}
 									} else{
 										@if(slot.userID.get.stringify == userID){
@@ -171,7 +174,7 @@
     }
     <br>
 
-     @if(!event.viewType.isDefined){
+     @if(!event.viewType.isDefined || event.eventType.toString == models.enums.EventType.SignUp.toString){
    
     <legend>Invitations</legend>
 
@@ -228,7 +231,7 @@
 		}
 	}
 
-	</div>	 
+ 
 	<br>
 	<br>     			
     	

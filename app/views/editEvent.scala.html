@@ -7,6 +7,13 @@
     <legend>Add an event</legend>
 
 	@helper.form(action = (if(!id.isDefined) routes.Events.create else routes.Events.editEvent(id.get)), 'class -> "form-horizontal") {
+		@if(true) {
+	  		<ul>
+	  			@for(error <- form.errors) {
+	    			<li><span style="color: #a94442">@error.message</span></li>
+	  			}
+	  		</ul>
+		}
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
@@ -53,39 +60,6 @@
     	@viewComponents.html.checkbox(form("isPUDEvent"), label = "Use time for PUD Events")
         </div>
         
-		<script type="text/javascript">	
-	    $(document).ready(function(){
-		    $('#@(form("eventType").id+"s")').on('change', function() {
-		      if (this.value == "Fixed" || this.value == "SignUp"){
-		        $('#slot1').show();
-		        
-		        $('#@form("timeRange.durationMin").id').hide();
-		        $('#@form("PUDPriority").id').hide();
-		        
-		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
-		        $('#maxSlots').show();
-		        $('#forPUD').hide();
-		      }
-		      
-		      if (this.value == "Fixed"){
-		       	$('#maxSlots').hide();
-		      	$('#forPUD').show();
-		      }
-		      if (this.value == "PUD"){
-		        $('#slot1').hide();
-				$('#maxSlots').hide();
-		        
-		        $('#@form("timeRange.durationMin").id').show();
-		        $('#@form("PUDPriority").id').show();
-		        
-                $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
-		      }
-		      
-		      
-		    });
-		});
-		
-		</script>
 		<!--  PUD Fields -->
 		@viewComponents.html.number(form("timeRange.durationMin"),
 			label = "Time Allocated",
@@ -262,7 +236,7 @@
 			for (i = counter.value; i <= 10; i++){
 				$("#slot" + i).hide();
 			}
-        	
+
         	$("#add").click(function(e){
         		if (x < 10){
         			++x;
@@ -286,7 +260,35 @@
         			alert("Cannot have negative number of slots");
         		}
         	});
-        
+
+		    $('#@(form("eventType").id+"s")').on('change', function() {
+		      if (this.value == "Fixed" || this.value == "SignUp"){
+		        $('#slot1').show();
+		        
+		        $('#@form("timeRange.durationMin").id').hide();
+		        $('#@form("PUDPriority").id').hide();
+		        
+		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
+		        $('#maxSlots').show();
+		        $('#forPUD').hide();
+		      }
+		      
+		      if (this.value == "Fixed"){
+		       	$('#maxSlots').hide();
+		      	$('#forPUD').show();
+		      }
+		      if (this.value == "PUD"){
+		        $('#slot1').hide();
+				$('#maxSlots').hide();
+		        
+		        $('#@form("timeRange.durationMin").id').show();
+		        $('#@form("PUDPriority").id').show();
+		        
+                $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
+		      } 
+		    });
+		    
+        	$('#@(form("eventType").id+"s")').change();
        	});
         </script>
         	

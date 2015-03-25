@@ -1,5 +1,5 @@
-@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)], 
-	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int)])]], 
+@(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)], 
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Int, Int)])]], 
 	userList: List[models.User], userID : String)
 	
 @import apputils.CreationRequestDAO
@@ -362,7 +362,8 @@
 							<td>NA</td>
 						</tr>
 					}else{
-						@for((k, v) <- scheduleMap.get){
+
+						@for((k, v) <- scheduleMap.get.toList.sortBy ( time => time._1.start.getMillis)){
 							<tr>
 								<td>@k.start.toString("MMM-dd-yyyy")</td>
 								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
