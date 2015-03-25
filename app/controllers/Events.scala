@@ -466,12 +466,14 @@ object Events extends Controller with MongoController {
                     
                     // if masterEvent is SignUp event, clear slot
                     if(master.get.eventType == EventType.SignUp) {
-                        master.get.signUpSlots.get.map { signUpSlot => 
+                        val newSignUpSlots = master.get.signUpSlots.get.map { signUpSlot => 
                             if(signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
                                 signUpSlot.copy(userID = None)
                             } else {
                                 signUpSlot
-                            } }
+                            } 
+                        }
+                        EventDAO.save(master.get.copy(signUpSlots = Some(newSignUpSlots)))
                     }
                     else { // normal shared event
                         // if you are the owner of the master event also
