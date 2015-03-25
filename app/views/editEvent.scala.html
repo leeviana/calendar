@@ -258,7 +258,7 @@
 		      if (this.value == "Fixed" || this.value == "SignUp"){
 		        $('#slot1').show();
 		        
-		        $('#@form("timeRange.durationMin").id').hide();
+		        $('#@form("timeRangeList[0].durationMin").id').hide();
 		        $('#@form("PUDPriority").id').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
@@ -275,7 +275,7 @@
 				$('#maxSlots').hide();
 		        $('#forPUD').hide();
 		        
-		        $('#@form("timeRange.durationMin").id').show();
+		        $('#@form("timeRangeList[0].durationMin").id').show();
 		        $('#@form("PUDPriority").id').show();
 		        
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
