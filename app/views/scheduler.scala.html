@@ -146,39 +146,7 @@
         
        	});
         </script>
-        <br><br>
 			
-			<input type="number" 
-             	class="form-control" 
-             	name='@schedulingForm("groupCount").name'
-             	id = 'gcounter'
-             	value='@schedulingForm("groupCount").value.getOrElse("1")'/>
-             	               		
-        <script type="text/javascript">
-        var y = 1;
-        $(document).ready(function(){
-        	$("#gcounter").hide();
-			for (j = gcounter.value; j <= 5; j++){
-				$("#Group" + j).hide();
-			}
-        	
-   
-        	$("#gadd").click(function(e){        		
-        		$("#Group" + y).show();		
-        		++y;
-        		gcounter.value = y;
-        		console.log(y);
-        	});
-        	
-        	$("#gsubtract").click(function(e){
-        		$("#Group"+y).hide();
-        		--y;
-        		gcounter.value = y
-        	
-        	});
-        
-       	});
-        </script>
         <br><br>
         	
         	<!-- TimeRange -->
@@ -316,6 +284,7 @@
 						<th>Date</th>
 						<th>Time</th>
 						<th>Conflicts</th>
+						<th>Recurrence Type</th>
 						<th>Schedule</th>
 					</tr>
 				</thead>
@@ -334,26 +303,27 @@
 								<td>@k.start.toString("MMM-dd-yyyy")</td>
 								<td>@k.start.toString("hh:mm a") - @k.end.get.toString("hh:mm a")</td>
 								<td>@v._1.length</td>
+								<td>@v._2("recurrenceMeta.recurrenceType").value </td>
 								<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
-									<!-- Time Range -->
-									@for(i <- 0 to v._2("timeRangeCount").value.get.toInt - 1 ){									
-										@viewComponents.html.datepicker(v._2("timeRanges["+ i + "].startDate"),
+									<div hidden class="autoForm" >
+									<!-- Time Range -->														
+									@viewComponents.html.text(v._2("timeRanges[0].startDate"),
 										label = "Start Date")
 							
-										@viewComponents.html.timepicker(v._2("timeRanges["+ i + "].startTime"),
+									@viewComponents.html.text(v._2("timeRanges[0].startTime"),
 										label = "Start Time")
 							
-										@viewComponents.html.datepicker(v._2("timeRanges["+ i + "].endDate"),
+									@viewComponents.html.text(v._2("timeRanges[0].endDate"),
 										label = "End Date")
 							
-										@viewComponents.html.timepicker(v._2("timeRanges["+ i + "].endTime"),
+									@viewComponents.html.text(v._2("timeRanges[0].endTime"),
 										label = "End Time")		
-									}
+									
 									
 									<!-- Recurrence -->
-									@viewComponents.html.dropdown(v._2("recurrenceMeta.recurrenceType"),
+									@viewComponents.html.text(v._2("recurrenceMeta.recurrenceType"),
 							    		label = "Recurrence Type",
-							        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
+							        	help = "") 
 							       
 							       	@viewComponents.html.number(v._2("recurrenceMeta.daily.numberOfDays"), 
 							       		label = "Days",
@@ -393,7 +363,7 @@
 										label = "",
 										help = "")
 									
-									
+									</div>
 									<div class="form-actions">
 										<input class="btn btn-primary" type="submit"> 
 									</div>
