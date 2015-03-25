@@ -47,7 +47,7 @@ object Scheduling extends Controller with MongoController {
             "description" -> optional(nonEmptyText),
             "duration" -> number,
             "entitiesCount" -> optional(number),
-            "timeRangesCount" -> optional(number)))
+            "timeRangeCount" -> optional(number)))
             
 
     /**
