@@ -7,6 +7,13 @@
     <legend>Add an event</legend>
 
 	@helper.form(action = (if(!id.isDefined) routes.Events.create else routes.Events.editEvent(id.get)), 'class -> "form-horizontal") {
+		@if(true) {
+	  		<ul>
+	  			@for(error <- form.errors) {
+	    			<li><span style="color: #a94442">@error.message</span></li>
+	  			}
+	  		</ul>
+		}
         <!-- Calendar -->
         <label class="col-sm-2 control-label"> Calendar </label>
     		<div class="col-sm-10"> 
