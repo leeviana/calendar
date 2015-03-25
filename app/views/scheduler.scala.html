@@ -43,7 +43,7 @@
 			<!-- Users -->
 			<div id="User0">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[0]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
@@ -55,12 +55,12 @@
 				}
 			</div>
 			
-		<span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
+		<span class="glyphicon glyphicon-user" aria-hidden="true"></span><span aria-hidden="true" id="add"> <span class="glyphicon glyphicon-plus"></span> </span>
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
 
 		<div id="User1">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[1]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
@@ -74,7 +74,7 @@
 			
 		<div id="User2">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[2]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
@@ -88,7 +88,7 @@
 			
 		<div id="User3">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[3]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
@@ -102,7 +102,7 @@
 			
 		<div id="User4">
 			@defining(UserDAO.getAllUsers()) { userList =>
-				<label class="col-sm-2 control-label">Users</label>
+				<label class="col-sm-2 control-label">Share With</label>
 				<select name="entities[4]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
@@ -151,7 +151,7 @@
         	
         	<!-- TimeRange -->
         	<div id = Time0>
-        	<h4>TimeRange0</h4>
+        	<h4>Time Range 0</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[0].startDate"),
 			label = "Start Date")
 
@@ -165,11 +165,11 @@
 			label = "End Time")
 			</div>
 			
-			<span aria-hidden="true" id="tadd"> <span class="glyphicon glyphicon-plus"></span> </span>
+			<span class="glyphicon glyphicon-time" aria-hidden="true"></span><span aria-hidden="true" id="tadd"> <span class="glyphicon glyphicon-plus"></span> </span>
         	<span aria-hidden="true" id="tsubtract"> <span class="glyphicon glyphicon-minus"></span> </span>
 			
 			<div id = Time1>
-			<h4>TimeRange1</h4>
+			<h4>Time Range 1</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[1].startDate"),
 			label = "Start Date")
 
@@ -184,7 +184,7 @@
 			</div>
 			
 			<div id = Time2>
-			<h4>TimeRange2</h4>
+			<h4>Time Range 2</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[2].startDate"),
 			label = "Start Date")
 
@@ -199,7 +199,7 @@
 			</div>
 			
 			<div id = Time3>
-			<h4>TimeRange3</h4>
+			<h4>Time Range 3</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[3].startDate"),
 			label = "Start Date")
 
@@ -214,7 +214,7 @@
 			</div>
 			
 			<div id = Time4>
-			<h4>TimeRange4</h4>
+			<h4>Time Range 4</h4>
         	@viewComponents.html.datepicker(schedulingForm("timeRanges[4].startDate"),
 			label = "Start Date")
 
