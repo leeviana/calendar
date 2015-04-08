@@ -277,18 +277,8 @@ object Events extends Controller with MongoController {
                     var thisPointer = BSONObjectID.generate
                     var nextPointer = BSONObjectID.generate
                     
-                    /*if(timeRange.end.isDefined) {
-                        var currentEnd = timeRange.end.get.plus(recurrencePeriod)
-                    }
-                        */
                     while (currentStart.compareTo(end) <= 0) {
                         var newTimeRange = new TimeRange(currentStart, currentEnd)
-                        
-//                        if (timeRange.end.isDefined) {
-//                            newTimeRange = timeRange.copy(start = currentStart, end = Some(currentEnd))
-//                        } else {
-//                            newTimeRange = timeRange.copy(start = currentStart)
-//                        }
                         
                         val updatedEvent = event.copy(_id = thisPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
                         newEvents.append(updatedEvent)
@@ -302,8 +292,6 @@ object Events extends Controller with MongoController {
                     }
                 }
             } 
-        } else {
-            // for future expansion, infinite recurrence
         }
         newEvents.toList
     }
@@ -316,7 +304,7 @@ object Events extends Controller with MongoController {
         
         for(timeRange <- event.timeRange) {
             var currentStart = timeRange.start
-            val duration = new Period(0, event.minSignUpSlotDuration.get, 0, 0).toStandardDuration()
+            val duration = new Period(0, event.signUpMeta.get.minSignUpSlotDuration, 0, 0).toStandardDuration()
             
             var currentEnd = new DateTime(currentStart.getMillis + (duration.getMillis))
                
@@ -333,7 +321,8 @@ object Events extends Controller with MongoController {
             }
         }
         
-        val updatedEvent = event.copy(signUpSlots = Some(signUpSlots.toList))
+        val updatedSignUpMeta = event.signUpMeta.get.copy(signUpSlots = signUpSlots.toList)
+        val updatedEvent = event.copy(signUpMeta = Some(updatedSignUpMeta))
         updatedEvent
     }
     
@@ -473,14 +462,15 @@ object Events extends Controller with MongoController {
                     
                     // if masterEvent is SignUp event, clear slot
                     if(master.get.eventType == EventType.SignUp) {
-                        val newSignUpSlots = master.get.signUpSlots.get.map { signUpSlot => 
+                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot => 
                             if(signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
                                 signUpSlot.copy(userID = None)
                             } else {
                                 signUpSlot
                             } 
                         }
-                        EventDAO.save(master.get.copy(signUpSlots = Some(newSignUpSlots)))
+                        val newSignUpMeta = master.get.signUpMeta.get.copy(signUpSlots = newSignUpSlots)
+                        EventDAO.save(master.get.copy(signUpMeta = Some(newSignUpMeta)))
                     }
                     else { // normal shared event
                         // if you are the owner of the master event also
