@@ -35,9 +35,8 @@
         		placeholder = "Event Description") 
         		
         	<!-- Duration -->
-        	@viewComponents.html.text(schedulingForm("duration"),
-        		label = "Duration (minutes)",
-        		placeholder = "30")	
+			@viewComponents.html.number(schedulingForm("duration"),
+        		label = "Duration (minutes)")	
         	
 			
 			<!-- Users -->
@@ -324,6 +323,7 @@
 							</div> </td>
 					    <td>@v._2("recurrenceMeta.recurrenceType").value </td>
 						<td>@helper.form(routes.Scheduling.createEventAndRequests(), 'class -> "form-horizontal"){
+							<div hidden class="autoform">
 						            <!-- Time Range -->
 									@viewComponents.html.text(v._2("timeRanges[0].startDate"),
 										label = "Start Date")
@@ -347,19 +347,19 @@
 							    		label = "Recurrence Type",
 							        	help = "") 
 							       
-							       	@viewComponents.html.number(v._2("recurrenceMeta.daily.numberOfDays"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.daily.numberOfDays"), 
 							       		label = "Days",
 							       		help = "How many days between each recurrence?")
 							       		
-							       	@viewComponents.html.number(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.weekly.numberOfWeeks"), 
 							       		label = "Weeks",
 							       		help = "How many weeks between each recurrence?")
 							       	
-							       	@viewComponents.html.number(v._2("recurrenceMeta.monthly.numberOfMonths"), 
+							       	@viewComponents.html.text(v._2("recurrenceMeta.monthly.numberOfMonths"), 
 							       		label = "Months",
 							       		help = "How many months between each recurrence?")
 							       
-							       @viewComponents.html.number(v._2("recurrenceMeta.yearly.numberOfYears"), 
+							       @viewComponents.html.text(v._2("recurrenceMeta.yearly.numberOfYears"), 
 							       		label = "Years",
 							       		help = "How many years between each recurrence?")		
 							       		
@@ -384,6 +384,7 @@
 									@viewComponents.html.number(v._2("duration"),
 										label = "",
 										help = "")
+									</div>
 									
 									<div class="form-actions">
 										<input class="btn btn-primary" type="submit"> 

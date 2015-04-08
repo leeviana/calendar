@@ -54,7 +54,7 @@
         </div>
         
 		<!--  PUD Fields -->
-		@viewComponents.html.number(form("timeRange.durationMin"),
+		@viewComponents.html.number(form("timeRangeList[0].durationMin"),
 			label = "Time Allocated",
 			help = "minutes")
 		
@@ -258,7 +258,7 @@
 		      if (this.value == "Fixed" || this.value == "SignUp"){
 		        $('#slot1').show();
 		        
-		        $('#@form("timeRange.durationMin").id').hide();
+		        $('#@form("timeRangeList[0].durationMin").id').hide();
 		        $('#@form("PUDPriority").id').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
@@ -273,8 +273,9 @@
 		      if (this.value == "PUD"){
 		        $('#slot1').hide();
 				$('#maxSlots').hide();
+		        $('#forPUD').hide();
 		        
-		        $('#@form("timeRange.durationMin").id').show();
+		        $('#@form("timeRangeList[0].durationMin").id').show();
 		        $('#@form("PUDPriority").id').show();
 		        
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
