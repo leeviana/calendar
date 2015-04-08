@@ -50,7 +50,7 @@
 						</tr>
 					</thead>
 					<tbody>					
-						@for(slot <- event.signUpSlots.get.sortBy ( slot => slot._id.stringify)){
+						@for(slot <- event.signUpMeta.get.signUpSlots.sortBy ( slot => slot._id.stringify)){
 									<tr>	
 														
 									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>

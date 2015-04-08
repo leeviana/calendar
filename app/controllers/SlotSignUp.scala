@@ -35,14 +35,26 @@ object SlotSignUp extends Controller with MongoController {
         val slotObjectID = BSONObjectID(slotID)
         
         EventDAO.findById(objectID).map { event =>
-            val signUpSlot = event.get.signUpSlots.get.filter { slot => slot._id == slotObjectID}.head
+            val signUpSlot = event.get.signUpMeta.get.signUpSlots.filter { slot => slot._id == slotObjectID}.head
             val signedUpSlot = signUpSlot.copy(userID = Some(AuthStateDAO.getUserID()))
             
-            EventDAO.updateById(objectID, $pull("signUpSlots", Json.obj("_id" $eq slotObjectID)))
-            EventDAO.updateById(objectID, $push("signUpSlots", signedUpSlot)) 
+            EventDAO.updateById(objectID, $pull("signUpMeta.signUpSlots", Json.obj("_id" $eq slotObjectID)))
+            EventDAO.updateById(objectID, $push("signUpMeta.signUpSlots", signedUpSlot)) 
+            
+            // TODO: To update while retaining order, use following tactic
+         /* val newSignUpSlots = master.get.signUpSlots.get.map { signUpSlot => 
+                if(signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
+                    signUpSlot.copy(userID = None)
+                } else {
+                    signUpSlot
+                } 
+            }
+            EventDAO.save(master.get.copy(signUpSlots = Some(newSignUpSlots))) */
+
+            
             val calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
             
-            val newEvent = event.get.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](signUpSlot.timeRange), master = Some(event.get._id), eventType = EventType.Fixed, signUpSlots = None)
+            val newEvent = event.get.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](signUpSlot.timeRange), master = Some(event.get._id), eventType = EventType.Fixed)
             EventDAO.insert(newEvent)
             
             Redirect(routes.Events.index(EventType.Fixed.toString()))  
@@ -54,13 +66,13 @@ object SlotSignUp extends Controller with MongoController {
      */
     def canSignUp(eventID: BSONObjectID, userID: BSONObjectID): Boolean = {
         val future = EventDAO.findById(eventID).map { event =>
-            val signUpSlots = event.get.signUpSlots.get
+            val signUpSlots = event.get.signUpMeta.get.signUpSlots
 
             val signedUp = signUpSlots.count { signUpSlot =>
                 signUpSlot.userID.getOrElse(-1) == userID
             }
 
-            signedUp < event.get.maxSlots.get
+            signedUp < event.get.signUpMeta.get.maxSlots
         }
 
         Await.result(future, Duration(5000, MILLISECONDS))
