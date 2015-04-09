@@ -1,7 +1,7 @@
 package controllers
 
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.{Map => MapBuffer}
+import scala.collection.mutable.{ Map => MapBuffer }
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
@@ -9,10 +9,7 @@ import scala.concurrent.duration.MILLISECONDS
 import org.joda.time.DateTime
 import apputils._
 import models._
-import models.enums.RecurrenceType
-import models.enums.AccessType
-import models.enums.EntityType
-import models.enums.ViewType
+import models.enums._
 import play.api.data.Form
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
@@ -30,7 +27,7 @@ import models.enums.EventType
 import models.enums.CreationRequestStatus
 import org.joda.time.Period
 import org.joda.time.DateTime
-import org.joda.time.{Duration => JodaDuration}
+import org.joda.time.{ Duration => JodaDuration }
 
 /**
  * The controllers encapsulate the Rest endpoints and the interaction with the MongoDB, via ReactiveMongo
@@ -45,19 +42,20 @@ object Events extends Controller with MongoController {
      */
     def getEventFilter(user: User): JsObject = {
         val userGroupIDs = GroupDAO.getUsersGroups(user._id)
-        
-        val myEventsQuery = Json.obj("$or" -> Json.arr(
-                            Json.obj(
-                                "calendar" -> Json.obj(
-                                    "$in" -> user.subscriptions)),
-                            Json.obj(
-                                "rules.entityID" -> user._id),
-                            Json.obj(
-                                "rules.entityID" -> Json.obj(
-                                    "$in" -> userGroupIDs))))
-        myEventsQuery      
+
+        val myEventsQuery =
+            Json.obj("$or" -> Json.arr(
+                Json.obj(
+                    "calendar" -> Json.obj(
+                        "$in" -> user.subscriptions)),
+                Json.obj(
+                    "rules.entityID" -> user._id),
+                Json.obj(
+                    "rules.entityID" -> Json.obj(
+                        "$in" -> userGroupIDs))))
+        myEventsQuery
     }
-    
+
     /**
      * Shows the user's events of type "eventType" and events shared with the user via rules
      */
@@ -66,7 +64,7 @@ object Events extends Controller with MongoController {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
                 // filter based on start time
                 var timeQuery = Json.obj("timeRange.start" $gte DateTime.now())
-                if(eventType == EventType.PUD.toString())
+                if (eventType == EventType.PUD.toString())
                     timeQuery = Json.obj("timeRange.start" $lte DateTime.now())
 
                 val jsonquery = Json.obj(
@@ -76,8 +74,8 @@ object Events extends Controller with MongoController {
                         getEventFilter(user.get)))
 
                 if (eventType == EventType.PUD) {
-                    val sort = Json.obj("PUDPriority" -> 1)
-                    
+                    val sort = Json.obj("pudMeta.priority" -> 1)
+
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get)
                         Ok(views.html.events(accessEvents, eventType))
@@ -102,31 +100,28 @@ object Events extends Controller with MongoController {
      */
     def applyAccesses(events: List[Event], user: User): List[Event] = {
         events.map { event =>
-            
+
             val groupIDs = GroupDAO.getUsersGroups(user._id)
             var newEvent = new Event()
 
             // user owns the event
-            if (user.subscriptions.contains(event.calendar)){
+            if (user.subscriptions.contains(event.calendar)) {
                 newEvent = event.copy(accessType = Some(AccessType.Modify))
-            }
-            //pudEvents should not by modifiable if you don't own it
-            else if(event.viewType.getOrElse(None) == models.enums.ViewType.PUDEvent){
-                newEvent = event.copy(accessType = Some(AccessType.BusyOnly))  
-            }
-            else {
-                if(event.viewType.getOrElse(None) == ViewType.PUDEvent){
+            } //pudEvents should not by modifiable if you don't own it
+            else if (event.viewType.getOrElse(None) == models.enums.ViewType.PUDEvent) {
+                newEvent = event.copy(accessType = Some(AccessType.BusyOnly))
+            } else {
+                if (event.viewType.getOrElse(None) == ViewType.PUDEvent) {
                     newEvent = event.copy(accessType = Some(AccessType.SeePUD))
-                }
-                else {
+                } else {
                     val ruleIterator = event.rules.sortBy(rule => rule.orderNum).iterator
-    
+
                     var found = false
-    
+
                     while (!found) {
                         if (ruleIterator.hasNext) {
                             var rule = ruleIterator.next()
-    
+
                             if (rule.entityID == user._id | groupIDs.contains(rule.entityID)) {
                                 newEvent = event.copy(accessType = Some(rule.accessType))
                                 found = true
@@ -146,46 +141,46 @@ object Events extends Controller with MongoController {
     /**
      * Updates PUDEvents with PUD information
      */
-  def updatePUD(events: List[Event], user: User): List[Event] =  {
-    events.map { event =>
-        var newEvent = event
-      if (!event.viewType.isEmpty) {
-        if (event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString) {
-          val dur = event.getFirstTimeRange().duration.getMillis
-          val query = Json.obj(
-            "$and" -> Json.arr(
-              Json.obj("eventType" -> "PUD"),
-              Json.obj("timeRange.duration" -> Json.obj(
-                "$lte" -> dur)),
-              getEventFilter(user)))
-              
-          val sort = Json.obj("PUDPriority" -> 1)
-          var temp: List[models.Event] = List()
+    def updatePUD(events: List[Event], user: User): List[Event] = {
+        events.map { event =>
+            var newEvent = event
+            if (!event.viewType.isEmpty) {
+                if (event.viewType.get.toString == models.enums.ViewType.PUDEvent.toString) {
+                    val dur = event.getFirstTimeRange().duration.getMillis
+                    val query = Json.obj(
+                        "$and" -> Json.arr(
+                            Json.obj("eventType" -> "PUD"),
+                            Json.obj("timeRange.duration" -> Json.obj(
+                                "$lte" -> dur)),
+                            getEventFilter(user)))
 
-          val future = EventDAO.findAll(query, sort).map { PUDlist =>
-            temp = PUDlist;
-          }
+                    val sort = Json.obj("pudMeta.priority" -> 1)
+                    var temp: List[models.Event] = List()
 
-          Await.ready(future, Duration(5000, MILLISECONDS))
-            
-            if (!temp.isEmpty) {
-              val PUD = temp.head
-              val newName = "PUD: " + PUD.name
-              newEvent = event.copy(name = newName, description = PUD.description)
-              val future = EventDAO.save(newEvent)
-              Await.ready(future, Duration(100000, MILLISECONDS))
-          
-            } else {
-              newEvent = event.copy(name = "No PUD is available")
-              val future = EventDAO.save(newEvent)
-              Await.ready(future, Duration(5000, MILLISECONDS))
+                    val future = EventDAO.findAll(query, sort).map { PUDlist =>
+                        temp = PUDlist;
+                    }
 
+                    Await.ready(future, Duration(5000, MILLISECONDS))
+
+                    if (!temp.isEmpty) {
+                        val PUD = temp.head
+                        val newName = "PUD: " + PUD.name
+                        newEvent = event.copy(name = newName, description = PUD.description)
+                        val future = EventDAO.save(newEvent)
+                        Await.ready(future, Duration(100000, MILLISECONDS))
+
+                    } else {
+                        newEvent = event.copy(name = "No PUD is available")
+                        val future = EventDAO.save(newEvent)
+                        Await.ready(future, Duration(5000, MILLISECONDS))
+
+                    }
+                }
             }
-        }
-      }
-      newEvent
-    }.toList
-  }
+            newEvent
+        }.toList
+    }
 
     /**
      * Shows reminders that the user has set
@@ -217,7 +212,7 @@ object Events extends Controller with MongoController {
             Ok(views.html.editEvent(None, Event.form, iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
         }
     }
-    
+
     /**
      * Creates an event on a calendar
      */
@@ -227,13 +222,12 @@ object Events extends Controller with MongoController {
             errors => Ok(views.html.editEvent(None, errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value)))),
 
             event => {
-                
+
                 var myEvent = new Event
-                
-                if((event.eventType == EventType.SignUp)) {
-                    myEvent = createSignUpSlots(event)    
-                }
-                else {
+
+                if ((event.eventType == EventType.SignUp)) {
+                    myEvent = createSignUpSlots(event)
+                } else {
                     myEvent = event
                 }
 
@@ -241,8 +235,7 @@ object Events extends Controller with MongoController {
                     val newTimeRange = event.recurrenceMeta.get.timeRange.copy(start = event.getFirstTimeRange().start)
                     val newRecurrenceMeta = event.recurrenceMeta.get.copy(timeRange = newTimeRange)
                     EventDAO.insert(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
-                }
-                else {
+                } else {
                     EventDAO.insert(myEvent)
                 }
 
@@ -253,8 +246,7 @@ object Events extends Controller with MongoController {
                 }
 
                 Redirect(routes.Events.index(event.eventType.toString()))
-            }
-        )
+            })
     }
 
     /**
@@ -262,70 +254,70 @@ object Events extends Controller with MongoController {
      */
     def createRecurrences(event: Event): List[Event] = {
         val newEvents = ListBuffer[Event]()
-        
-        val calendar = event.calendar 
+
+        val calendar = event.calendar
         val recType = event.recurrenceMeta.get.recurrenceType
-                
+
         if (event.recurrenceMeta.get.timeRange.end.isDefined) {
             val end = event.recurrenceMeta.get.timeRange.end.get
-                
-            for(timeRange <- event.timeRange){
+
+            for (timeRange <- event.timeRange) {
                 val recurrencePeriod = event.recurrenceMeta.get.recurDuration
                 if (recurrencePeriod.toStandardDuration().getMillis > 0 & timeRange.end.isDefined) {
                     var currentStart = timeRange.start.plus(recurrencePeriod)
                     var currentEnd = timeRange.end.get.plus(recurrencePeriod)
                     var thisPointer = BSONObjectID.generate
                     var nextPointer = BSONObjectID.generate
-                    
+
                     while (currentStart.compareTo(end) <= 0) {
                         var newTimeRange = new TimeRange(currentStart, currentEnd)
-                        
+
                         val updatedEvent = event.copy(_id = thisPointer, calendar = calendar, timeRange = List[TimeRange](newTimeRange), nextRecurrence = Some(nextPointer))
                         newEvents.append(updatedEvent)
                         EventDAO.insert(updatedEvent)
-                    
+
                         currentStart = currentEnd.plus(recurrencePeriod)
                         currentEnd = currentEnd.plus(recurrencePeriod)
                         thisPointer = nextPointer
                         nextPointer = BSONObjectID.generate
-                        
+
                     }
                 }
-            } 
+            }
         }
         newEvents.toList
     }
-    
+
     /**
      * Creates sign up slots for a new event.
      */
     def createSignUpSlots(event: Event): Event = {
         var signUpSlots = ListBuffer[SignUpSlot]()
-        
-        for(timeRange <- event.timeRange) {
+
+        for (timeRange <- event.timeRange) {
             var currentStart = timeRange.start
             val duration = new Period(0, event.signUpMeta.get.minSignUpSlotDuration, 0, 0).toStandardDuration()
-            
+
             var currentEnd = new DateTime(currentStart.getMillis + (duration.getMillis))
-               
+
             if (duration.getMillis != 0) {
-                while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0){
-                    
+                while (currentEnd.compareTo(timeRange.end.getOrElse(DateTime.now())) <= 0) {
+
                     val newSlot = SignUpSlot(timeRange = new TimeRange(start = currentStart, end = Some(currentEnd), duration = duration))
-                    
+
                     signUpSlots.append(newSlot)
-                    
+
                     currentStart = currentEnd
                     currentEnd = currentEnd.plus(duration)
                 }
             }
         }
-        
+
         val updatedSignUpMeta = event.signUpMeta.get.copy(signUpSlots = signUpSlots.toList)
         val updatedEvent = event.copy(signUpMeta = Some(updatedSignUpMeta))
         updatedEvent
     }
-    
+
     /**
      * Shows the form for editing an event
      */
@@ -346,7 +338,7 @@ object Events extends Controller with MongoController {
         }
     }
 
-    def jsonToMap(json : JsValue) : MapBuffer[String, String] = {
+    def jsonToMap(json: JsValue): MapBuffer[String, String] = {
         var output = MapBuffer[String, String]()
         val test = json match {
             case o: JsObject => {
@@ -360,10 +352,10 @@ object Events extends Controller with MongoController {
         return output
     }
 
-    def mapToJson(map : MapBuffer[String, String]) : JsValue = {
+    def mapToJson(map: MapBuffer[String, String]): JsValue = {
         var output = new JsObject(Seq[(String, JsValue)]());
         map.foreach {
-            case (k,v) => {
+            case (k, v) => {
                 output = output + (k -> Json.toJson(v));
             }
         }
@@ -415,6 +407,17 @@ object Events extends Controller with MongoController {
             if (event.isDefined) {
                 if (event.get.recurrenceMeta.isDefined) {
                     val lastStart = event.get.getFirstTimeRange().start
+                    
+                    // TODO: make sure this works
+                    if(event.get.pudMeta.get.escalationInfo.isDefined) {
+                        val lastEscalationStart = event.get.pudMeta.get.escalationInfo.get.timeRange.start
+                        val newEscalationInfo = event.get.pudMeta.get.escalationInfo.get.copy(new TimeRange(start = lastEscalationStart.plus(event.get.recurrenceMeta.get.recurDuration)))
+                        val newPUDMeta = event.get.pudMeta.get.copy(escalationInfo = Some(newEscalationInfo))
+                        val newEvent = event.get.copy(pudMeta = Some(newPUDMeta), _id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = lastStart.plus(event.get.recurrenceMeta.get.recurDuration), duration = event.get.getFirstTimeRange().duration)))
+                        regenerateReminders(newEvent)
+                        EventDAO.insert(newEvent)
+                    }
+                    
                     val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = lastStart.plus(event.get.recurrenceMeta.get.recurDuration), duration = event.get.getFirstTimeRange().duration)))
                     regenerateReminders(newEvent)
                     EventDAO.insert(newEvent)
@@ -429,16 +432,16 @@ object Events extends Controller with MongoController {
      * Regenerates first reminder of recurring reminders
      */
     def regenerateReminders(event: Event) {
-        if(event.reminders.isDefined) {
-            event.reminders.get.map { reminder => 
-                if(reminder.recurrenceMeta.isDefined) {
+        if (event.reminders.isDefined) {
+            event.reminders.get.map { reminder =>
+                if (reminder.recurrenceMeta.isDefined) {
                     val newReminder = reminder.copy(timestamp = new TimeRange(start = event.getFirstTimeRange().start.plus(reminder.timestamp.duration)))
                     ReminderDAO.insert(newReminder)
                 }
             }
         }
     }
-    
+
     /**
      * Deletes an event. Redirects to fixed view
      */
@@ -452,27 +455,26 @@ object Events extends Controller with MongoController {
         ReminderDAO.remove("eventID" $eq objectID)
 
         // TODO: use recurrencepointer to delete events afterwards... make new deleteAll method for it?
-        
+
         EventDAO.findAndRemove("_id" $eq objectID).map { oldEvent =>
             // Check for any associated creation request and update those
             if (oldEvent.get.master.isDefined) {
                 val query = $and("master" $eq oldEvent.get.master.get, "eventID" $eq oldEvent.get._id)
 
                 EventDAO.findById(oldEvent.get.master.get).map { master =>
-                    
+
                     // if masterEvent is SignUp event, clear slot
-                    if(master.get.eventType == EventType.SignUp) {
-                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot => 
-                            if(signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
+                    if (master.get.eventType == EventType.SignUp) {
+                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot =>
+                            if (signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
                                 signUpSlot.copy(userID = None)
                             } else {
                                 signUpSlot
-                            } 
+                            }
                         }
                         val newSignUpMeta = master.get.signUpMeta.get.copy(signUpSlots = newSignUpSlots)
                         EventDAO.save(master.get.copy(signUpMeta = Some(newSignUpMeta)))
-                    }
-                    else { // normal shared event
+                    } else { // normal shared event
                         // if you are the owner of the master event also
                         if (master.get.calendar == oldEvent.get.calendar)
                             CreationRequestDAO.remove(query)
@@ -534,15 +536,14 @@ object Events extends Controller with MongoController {
 
                 reminder => {
                     var newReminder = reminder
-                    if(event.get.eventType == EventType.PUD) {
+                    if (event.get.eventType == EventType.PUD) {
                         newReminder = reminder.copy(timestamp = reminder.timestamp.copy(start = event.get.getFirstTimeRange().start.plus(reminder.timestamp.duration)))
-                    }
-                    else if(event.get.eventType == EventType.Fixed) {
+                    } else if (event.get.eventType == EventType.Fixed) {
                         newReminder = reminder.copy(timestamp = reminder.timestamp.copy(duration = new JodaDuration(event.get.getFirstTimeRange().start, reminder.timestamp.start)))
                     }
                     ReminderDAO.insert(newReminder)
                     EventDAO.updateById(objectID, $push("reminders", newReminder))
-                        
+
                     Redirect(routes.Events.showEvent(eventID)).flashing("test" -> reminder.toString())
                 })
         }
@@ -654,7 +655,7 @@ object Events extends Controller with MongoController {
             Redirect(routes.Events.showEvent(eventID.stringify))
         }
     }
-    
+
     /**
      * Creates a creation request for an event with user friendly parameters for an entire group
      */
@@ -666,7 +667,7 @@ object Events extends Controller with MongoController {
         GroupDAO.findById(groupID).map { group =>
             if (group.isDefined) {
                 group.get.userIDs.foreach { userID =>
-                    UserDAO.findById(userID).map { user => 
+                    UserDAO.findById(userID).map { user =>
                         createCreationRequest(eventID, user.get.subscriptions.head)
                     }
                 }
@@ -680,14 +681,14 @@ object Events extends Controller with MongoController {
      */
     def createCreationRequest(eventID: BSONObjectID, calendar: BSONObjectID) = {
         EventDAO.findById(eventID).map { event =>
-            
+
             // else you're the master, don't do anything
-            if(event.get.calendar != calendar) {    
+            if (event.get.calendar != calendar) {
                 // remove old events and creation requests
-                EventDAO.findAndRemove(($and("master" $eq Some(eventID), "calendar" $eq calendar))).map { event => 
+                EventDAO.findAndRemove(($and("master" $eq Some(eventID), "calendar" $eq calendar))).map { event =>
                     CreationRequestDAO.remove("eventID" $eq event.get._id)
                 }
-                
+
                 val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
                 val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
                 EventDAO.insert(newEvent)

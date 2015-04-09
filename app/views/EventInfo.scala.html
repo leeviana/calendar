@@ -33,7 +33,7 @@
 		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
 			<h2>PUD Information: @event.name</h2>
 			<p> Duration: @event.getFirstTimeRange().duration.getStandardMinutes minutes</p>
-			<p> Priority: @event.PUDPriority</p>
+			<p> Priority: @event.pudMeta.get.priority</p>
 			} 
 		 
 		@if(event.eventType.toString == models.enums.EventType.SignUp.toString){

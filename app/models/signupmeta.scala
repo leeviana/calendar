@@ -1,16 +1,10 @@
 package models
 
-import models.enums.RecurrenceType
-import models.enums.ReminderType
+import org.joda.time.DateTime
+
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
-import org.joda.time.Duration
-import models.JsonDuration.DurationFormat
-import models.JsonPeriod.PeriodFormat
-import org.joda.time.DateTimeConstants
-import org.joda.time.Period
-import org.joda.time.DateTime
 
 /**
  * Metadata for Sign Up Events

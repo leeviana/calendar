@@ -26,7 +26,7 @@ case class Event(
     accessType: Option[AccessType.AccessType] = None,
     eventType: EventType.EventType = EventType.Fixed,
     viewType: Option[ViewType.ViewType] = None,
-    PUDPriority: Option[Int] = None,
+    pudMeta: Option[PUDMeta] = None,
     signUpMeta: Option[SignUpMeta] = None){
     
     def getFirstTimeRange(): TimeRange = {
@@ -48,10 +48,10 @@ object Event {
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
             "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
             "eventType" -> nonEmptyText,
-            "PUDPriority" -> optional(number),
+            "pudMeta" -> optional(PUDMeta.form.mapping),
             "isPUDEvent" -> boolean,
             "signUpMeta" -> optional(SignUpMeta.form.mapping)
-            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, signUpMeta) =>
+            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, pudMeta, isPUDEvent, signUpMeta) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
@@ -66,7 +66,7 @@ object Event {
                     Some(AccessType.Private),
                     EventType.withName(eventType),
                     if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
-                    PUDPriority,
+                    pudMeta,
                     signUpMeta)
             } { event =>
                 Some((
@@ -80,7 +80,7 @@ object Event {
                     event.recurrenceMeta,
                     event.nextRecurrence.map(id => id.stringify),
                     event.eventType.toString(),
-                    event.PUDPriority,
+                    event.pudMeta,
                     if(event.viewType.isDefined) {event.viewType.get.toString() == ViewType.PUDEvent} else {false},
                     event.signUpMeta))
             })
