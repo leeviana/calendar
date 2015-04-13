@@ -1,19 +1,10 @@
+@import reactivemongo.bson.BSONObjectID
+
 @(schedulingForm: Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])], 
-	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])])]], 
-	userList: List[models.User], userID : String)
+	scheduleMap: Option[scala.collection.mutable.Map[TimeRange, (List[Event], Form[(List[TimeRange], Option[RecurrenceMeta], Option[List[String]], String, Option[String], Int, Option[Int])])]], userID : BSONObjectID)
 	
-@import apputils.CreationRequestDAO
 @import apputils.UserDAO
-@import apputils.CalendarDAO
 @import apputils.GroupDAO
-@import apputils.AuthStateDAO
-@import org.joda.time.Duration
-
-
-@import reactivemongo.api.collections.default.BSONCollection
-@import reactivemongo.bson._
-@import reactivemongo.extensions.json.dsl.JsonDsl._
-@import play.modules.reactivemongo.json.BSONFormats.BSONObjectIDFormat
 
 @main("Scheduler") {
 
@@ -46,7 +37,7 @@
 				<select name="entities[0]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
-					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+					@defining(GroupDAO.getUsersGroups(userID)){ groupList =>
 						@for(element <- groupList){
 							<option value='@element._id.stringify'>@element.name</option> }
 					}
@@ -63,7 +54,7 @@
 				<select name="entities[1]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
-					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+					@defining(GroupDAO.getUsersGroups(userID)){ groupList =>
 						@for(element <- groupList){
 							<option value='@element._id.stringify'>@element.name</option> }
 					}
@@ -77,7 +68,7 @@
 				<select name="entities[2]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
-					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+					@defining(GroupDAO.getUsersGroups(userID)){ groupList =>
 						@for(element <- groupList){
 							<option value='@element._id.stringify'>@element.name</option> }
 					}					
@@ -91,7 +82,7 @@
 				<select name="entities[3]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
-					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+					@defining(GroupDAO.getUsersGroups(userID)){ groupList =>
 						@for(element <- groupList){
 							<option value='@element._id.stringify'>@element.name</option> }
 					}					
@@ -105,7 +96,7 @@
 				<select name="entities[4]" class="form-control" style="width: 250px">
 					@for(element <- userList){
 					<option value='@element._id.stringify'>@element.username</option> }
-					@defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
+					@defining(GroupDAO.getUsersGroups(userID)){ groupList =>
 						@for(element <- groupList){
 							<option value='@element._id.stringify'>@element.name</option> }
 					}

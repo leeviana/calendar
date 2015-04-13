@@ -4,6 +4,7 @@
 @import apputils.CalendarDAO
 @import apputils.GroupDAO
 @import apputils.AuthStateDAO
+@import apputils.EventDAO
 @import org.joda.time.Duration
 
 
@@ -59,7 +60,7 @@
 									<td> @slot.timeRange.end.get.toString("hh:mm a") </td>
 									
 									@if(slot.userID.isEmpty){	
-										@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+										@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
 											@if(canSign){
 												@defining(event._id.stringify){ eventID =>
 													@defining(slot._id.stringify){ slotID =>

@@ -48,7 +48,7 @@ object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") 
         val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
         
         val slots = event.get.signUpMeta.get.signUpSlots
-        val count = slots.count { slot => slot.userID == userID }
+        val count = slots.count { slot => slot.userID.getOrElse(-1) == userID }
 
         count < event.get.signUpMeta.get.maxSlots     
     }
