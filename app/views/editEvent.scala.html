@@ -74,22 +74,26 @@
 		@viewComponents.html.recurrenceHelper(form("pudMeta.escalationInfo"),
 			label = "Escalation Frequency")
 		</div>	
+		
+		@viewComponents.html.checkbox(form("PUDend"), label = "PUD Ends")
+		
 		</div>
 	
         <!--  Time Range -->      
-        <div id ="slot1">
+        <div id ="slot1s">
 			@viewComponents.html.datepicker(form("timeRangeList[0].startDate"),
 			label = "Start Date")
 
 			@viewComponents.html.timepicker(form("timeRangeList[0].startTime"),
 			label = "Start Time")
-
+		</div>
+		<div id ="slot1e">
 			@viewComponents.html.datepicker(form("timeRangeList[0].endDate"),
 			label = "End Date")
 
 			@viewComponents.html.timepicker(form("timeRangeList[0].endTime"),
-			label = "End Time")</div>
-		
+			label = "End Time")
+		</div>
 
 		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
@@ -271,27 +275,30 @@
 
 		    $('#@(form("eventType").id+"s")').on('change', function() {
 		      if (this.value == "Fixed" || this.value == "SignUp"){
-		        $('#slot1').show();
-		        
+		        $('#slot1s').show();
+		        $('#slot1e').show();
 		       	$('#PUDFields').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
 		        $('#maxSlots').show();
 		        $('#forPUD').hide();
+		        $('#recur').hide();
 		      }
 		      
 		      if (this.value == "Fixed"){
 		       	$('#maxSlots').hide();
 		      	$('#forPUD').show();
+		      	$('#recur').show();
 		      }
 		      
 		      if (this.value == "PUD"){
-		        $('#slot1').hide();
+		        $('#slot1s').hide();
+		        $('#slot1e').hide();
 				$('#maxSlots').hide();
 		        $('#forPUD').hide();
 		        
 		        $('#PUDFields').show();
-		        
+		        $('#recur').show();
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
 		      } 
 		    });
@@ -307,6 +314,16 @@
        			$('#esc').hide();
        		}
        	});
+       	
+       	$('#@(form("PUDend").id+"s")').on('change', function() {
+       		if (this.value == "true"){
+       			$('#slot1e').show();
+       		}
+       		else {
+       			$('#slot1e').hide();
+       		}
+       	});
+       	
         </script>
         	
       	<!--  All day -->  
@@ -326,11 +343,13 @@
                 style="visibility: hidden" />
        	
        	<!--  Recurrence Details -->    	
-       			
+       	<div id= "recur">	
         @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
        		 
 		@viewComponents.html.recurrenceHelper(form("recurrenceMeta"))
+		</div>
+		
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">
