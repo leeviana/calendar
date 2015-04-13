@@ -81,7 +81,7 @@
 				    		}
 				    	} 
 						<td><a href="/events/@e._id.stringify/delete" class="btn btn-danger" role="button">Delete</a></td>
-						<td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>				    	
+						@if(eventType == "Fixed") { <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td> }				    	
 				</tr>
 				}
 			}
@@ -103,9 +103,9 @@
 		</thead>
 		@if(!events.isEmpty){
 		
-			@for(e <- events.sortBy (event => event.PUDPriority)){
+			@for(e <- events.sortBy (event => event.pudMeta.get.priority)){
 				<tr>
-				 	<td>@e.PUDPriority</td>
+				 	<td>@e.pudMeta.get.priority</td>
 					<td>@e.getFirstTimeRange.duration.getStandardMinutes minutes</td>
 					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.description</td>

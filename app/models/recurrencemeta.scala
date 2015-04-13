@@ -15,14 +15,12 @@ import org.joda.time.DateTimeConstants
 import org.joda.time.Period
 
 /**
- * Metadata for event recurrence information
+ * Metadata for recurrence information
  *
  * @author Leevi
  */
 case class RecurrenceMeta(
     timeRange: TimeRange, // range of time recurrence occurs for
-    reminderTime: Option[Long], // how many milliseconds before event to create reminder. TODO: this is a duration. is this used?
-    reminderType: Option[ReminderType.ReminderType], // TODO: remove
     recurrenceType: RecurrenceType.RecurrenceType,
     recurDuration: Period)
 
@@ -33,18 +31,14 @@ object RecurrenceMeta {
 
         mapping(
             "timeRange" -> TimeRange.form.mapping,
-            "reminderTime" -> optional(longNumber),
-            "reminderType" -> optional(nonEmptyText),
             "recurrenceType" -> nonEmptyText,
             "daily" -> optional(DayMeta.form.mapping),
             "weekly" -> optional(WeekMeta.form.mapping),
             "monthly" -> optional(MonthMeta.form.mapping),
-            "yearly" -> optional(YearMeta.form.mapping)) { (timeRange, reminderTime, reminderType, recurrenceType, daily, weekly, monthly, yearly) =>
+            "yearly" -> optional(YearMeta.form.mapping)) { (timeRange, recurrenceType, daily, weekly, monthly, yearly) =>
                 val recType = RecurrenceType.withName(recurrenceType)
                 RecurrenceMeta(
                     timeRange,
-                    reminderTime,
-                    reminderType.map(rt => ReminderType.withName(rt)),
                     recType,
                     if (recType.compare(RecurrenceType.Daily) == 0) {
                         new Period(0, 0, 0, daily.get.numberOfDays, 0, 0, 0, 0)
@@ -58,8 +52,6 @@ object RecurrenceMeta {
             } { recurrencemeta =>
                 Some(
                     (recurrencemeta.timeRange,
-                        recurrencemeta.reminderTime,
-                        recurrencemeta.reminderType.map(rt => rt.toString()),
                         recurrencemeta.recurrenceType.toString(),
                         Some(new DayMeta(recurrencemeta.recurDuration.getDays)),
                         Some(new WeekMeta(None, Some(recurrencemeta.recurDuration.getWeeks))),

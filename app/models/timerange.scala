@@ -53,7 +53,7 @@ object TimeRange {
             "startTime" -> optional(jodaDate("h:mm a")),
             "endDate" -> optional(jodaDate),
             "endTime" -> optional(jodaDate("h:mm a")),
-            "durationMin" -> optional(longNumber),
+            "durationMin" -> optional(longNumber), // replace with reccurenceMeta.duration
             "durationHour" -> optional(longNumber),
             "durationDay" -> optional(longNumber)) { (allday, startDate, startTime, endDate, endTime, durationMin, durationHour, durationDay) =>
                 val start = if (startDate.isDefined) {new DateTime(startDate.get.getMillis+startTime.getOrElse(new DateTime(0)).getMillis).minusHours(5)} else {DateTime.now()}

@@ -46,10 +46,10 @@ object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") 
         val futureEvent = this.findById(eventID)
         val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
         
-        val slots = event.get.signUpSlots.get
+        val slots = event.get.signUpMeta.get.signUpSlots
         val count = slots.count { slot => slot.userID == userID }
 
-        count < event.get.maxSlots.get       
+        count < event.get.signUpMeta.get.maxSlots     
     }
 }
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") {

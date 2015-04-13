@@ -33,7 +33,7 @@
 		@if(event.eventType.toString == models.enums.EventType.PUD.toString){
 			<h2>PUD Information: @event.name</h2>
 			<p> Duration: @event.getFirstTimeRange().duration.getStandardMinutes minutes</p>
-			<p> Priority: @event.PUDPriority</p>
+			<p> Priority: @event.pudMeta.get.priority</p>
 			} 
 		 
 		@if(event.eventType.toString == models.enums.EventType.SignUp.toString){
@@ -50,7 +50,7 @@
 						</tr>
 					</thead>
 					<tbody>					
-						@for(slot <- event.signUpSlots.get.sortBy ( slot => slot._id.stringify)){
+						@for(slot <- event.signUpMeta.get.signUpSlots.sortBy ( slot => slot._id.stringify)){
 									<tr>	
 														
 									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>

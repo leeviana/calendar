@@ -58,7 +58,7 @@
 			label = "Time Allocated",
 			help = "minutes")
 		
-		@viewComponents.html.number(form("PUDPriority"),
+		@viewComponents.html.number(form("pudMeta.priority"),
 			label = "Priority")
 		
 	
@@ -81,11 +81,11 @@
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
          
         <div id = "maxSlots">
-        	@viewComponents.html.number(form("maxSlots"),
+        	@viewComponents.html.number(form("signUpMeta.maxSlots"),
 			label = "Max Slots",
 			help = "Maximum number of slots a user can sign up for")
 			
-			@viewComponents.html.number(form("minSignUpSlotDuration"),
+			@viewComponents.html.number(form("signUpMeta.minSignUpSlotDuration"),
 			label = "Minimum SignUp Slot Duration",
 			help = "Minutes")
 

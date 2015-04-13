@@ -2,13 +2,7 @@ package models
 
 import models.enums.AccessType
 import play.api.data.Form
-import play.api.data.Forms.list
-import play.api.data.Forms.mapping
-import play.api.data.Forms.nonEmptyText
-import play.api.data.Forms.optional
-import play.api.data.Forms.number
-import play.api.data.Forms.longNumber
-import play.api.data.Forms.boolean
+import play.api.data.Forms._
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
 import play.modules.reactivemongo.json.BSONFormats._
@@ -32,10 +26,8 @@ case class Event(
     accessType: Option[AccessType.AccessType] = None,
     eventType: EventType.EventType = EventType.Fixed,
     viewType: Option[ViewType.ViewType] = None,
-    PUDPriority: Option[Int] = None,
-    signUpSlots: Option[List[SignUpSlot]] = None,
-    minSignUpSlotDuration: Option[Int] = None, // minutes
-    maxSlots: Option[Int] = None ){
+    pudMeta: Option[PUDMeta] = None,
+    signUpMeta: Option[SignUpMeta] = None){
     
     def getFirstTimeRange(): TimeRange = {
         return this.timeRange.headOption.getOrElse(new TimeRange())
@@ -56,11 +48,10 @@ object Event {
             "recurrenceMeta" -> optional(RecurrenceMeta.form.mapping),
             "nextRecurrence" -> optional(nonEmptyText), // BSONObjectID
             "eventType" -> nonEmptyText,
-            "PUDPriority" -> optional(number),
+            "pudMeta" -> optional(PUDMeta.form.mapping),
             "isPUDEvent" -> boolean,
-            "minSignUpSlotDuration" -> optional(number), // in minutes
-            "maxSlots" -> optional(number)
-            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, PUDPriority, isPUDEvent, minSignUpSlotDuration, maxSlots) =>
+            "signUpMeta" -> optional(SignUpMeta.form.mapping)
+            ) { (calendar, timeRangeList, timeRange, timeRangeCount, name, description, rules, recurrenceMeta, nextRecurrence, eventType, pudMeta, isPUDEvent, signUpMeta) =>
                 Event(
                     BSONObjectID.generate,
                     BSONObjectID.apply(calendar),
@@ -75,10 +66,8 @@ object Event {
                     Some(AccessType.Private),
                     EventType.withName(eventType),
                     if(isPUDEvent) {Some(ViewType.PUDEvent)} else {None},
-                    PUDPriority,
-                    None,
-                    minSignUpSlotDuration,
-                    maxSlots)
+                    pudMeta,
+                    signUpMeta)
             } { event =>
                 Some((
                     event.calendar.stringify,
@@ -91,9 +80,8 @@ object Event {
                     event.recurrenceMeta,
                     event.nextRecurrence.map(id => id.stringify),
                     event.eventType.toString(),
-                    event.PUDPriority,
+                    event.pudMeta,
                     if(event.viewType.isDefined) {event.viewType.get.toString() == ViewType.PUDEvent} else {false},
-                    event.minSignUpSlotDuration,
-                    event.maxSlots))
+                    event.signUpMeta))
             })
 }
