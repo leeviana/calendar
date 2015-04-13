@@ -1,7 +1,7 @@
-@(field: Field)		
+@(field: Field, label: String ="Recurrence Type")		
 			
 			@viewComponents.html.dropdown(field("recurrenceType"),
-	    		label = "Recurrence Type",
+	    		label = label,
 	        	List("", "Daily", "Weekly", "Monthly", "Yearly")) 
 	       
 	       	@viewComponents.html.number(field("daily.numberOfDays"), 

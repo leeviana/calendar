@@ -54,28 +54,46 @@
         </div>
         
 		<!--  PUD Fields -->
+		<div id = "PUDFields">
 		@viewComponents.html.number(form("timeRangeList[0].durationMin"),
 			label = "Time Allocated",
 			help = "minutes")
 		
 		@viewComponents.html.number(form("pudMeta.priority"),
 			label = "Priority")
+			
+		@viewComponents.html.checkbox(form("escalate"), label = "Escalation")
 		
+		<div id = "esc">
+		@viewComponents.html.datepicker(form("pudMeta.escalationInfo.timeRange.startDate"),
+			label = "Escalation Start") 
+		
+		@viewComponents.html.number(form("pudMeta.escalationAmount"),
+			label = "Escalation Amount")
+			
+		@viewComponents.html.recurrenceHelper(form("pudMeta.escalationInfo"),
+			label = "Escalation Frequency")
+		</div>	
+		
+		@viewComponents.html.checkbox(form("PUDend"), label = "PUD Ends")
+		
+		</div>
 	
         <!--  Time Range -->      
-        <div id ="slot1">
+        <div id ="slot1s">
 			@viewComponents.html.datepicker(form("timeRangeList[0].startDate"),
 			label = "Start Date")
 
 			@viewComponents.html.timepicker(form("timeRangeList[0].startTime"),
 			label = "Start Time")
-
+		</div>
+		<div id ="slot1e">
 			@viewComponents.html.datepicker(form("timeRangeList[0].endDate"),
 			label = "End Date")
 
 			@viewComponents.html.timepicker(form("timeRangeList[0].endTime"),
-			label = "End Time")</div>
-		
+			label = "End Time")
+		</div>
 
 		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
         <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
@@ -225,6 +243,7 @@
         <script type="text/javascript">
         var x = 1;
         $(document).ready(function(){
+        	$('#esc').hide();
         	$("#counter").hide();
 			for (i = counter.value; i <= 10; i++){
 				$("#slot" + i).hide();
@@ -256,34 +275,55 @@
 
 		    $('#@(form("eventType").id+"s")').on('change', function() {
 		      if (this.value == "Fixed" || this.value == "SignUp"){
-		        $('#slot1').show();
-		        
-		        $('#@form("timeRangeList[0].durationMin").id').hide();
-		        $('#@form("PUDPriority").id').hide();
+		        $('#slot1s').show();
+		        $('#slot1e').show();
+		       	$('#PUDFields').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
 		        $('#maxSlots').show();
 		        $('#forPUD').hide();
+		        $('#recur').hide();
 		      }
 		      
 		      if (this.value == "Fixed"){
 		       	$('#maxSlots').hide();
 		      	$('#forPUD').show();
+		      	$('#recur').show();
 		      }
+		      
 		      if (this.value == "PUD"){
-		        $('#slot1').hide();
+		        $('#slot1s').hide();
+		        $('#slot1e').hide();
 				$('#maxSlots').hide();
 		        $('#forPUD').hide();
 		        
-		        $('#@form("timeRangeList[0].durationMin").id').show();
-		        $('#@form("PUDPriority").id').show();
-		        
+		        $('#PUDFields').show();
+		        $('#recur').show();
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
 		      } 
 		    });
 		    
         	$('#@(form("eventType").id+"s")').change();
        	});
+       	
+       	$('#@(form("escalate").id+"s")').on('change', function() {
+       		if (this.value == "true"){
+       			$('#esc').show();
+       		}
+       		else {
+       			$('#esc').hide();
+       		}
+       	});
+       	
+       	$('#@(form("PUDend").id+"s")').on('change', function() {
+       		if (this.value == "true"){
+       			$('#slot1e').show();
+       		}
+       		else {
+       			$('#slot1e').hide();
+       		}
+       	});
+       	
         </script>
         	
       	<!--  All day -->  
@@ -303,11 +343,13 @@
                 style="visibility: hidden" />
        	
        	<!--  Recurrence Details -->    	
-       			
+       	<div id= "recur">	
         @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
         	label = "Recurrence End Date")
        		 
 		@viewComponents.html.recurrenceHelper(form("recurrenceMeta"))
+		</div>
+		
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">
