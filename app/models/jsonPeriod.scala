@@ -16,6 +16,6 @@ import org.joda.time.Period
 object JsonPeriod {
     implicit val PeriodFormat = new Format[Period] {
         def reads(json: JsValue) = JsSuccess(new Period((json).as[Long]))
-        def writes(period: Period) = JsNumber(period.getMillis)
+        def writes(period: Period) = JsNumber(period.toStandardDuration().getMillis)
     }
 }
