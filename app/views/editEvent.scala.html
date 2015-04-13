@@ -64,20 +64,44 @@
 			
 		@viewComponents.html.checkbox(form("escalate"), label = "Escalation")
 		
-		<div id = "esc">
-		@viewComponents.html.datepicker(form("pudMeta.escalationInfo.timeRange.startDate"),
-			label = "Escalation Start") 
-		
-		@viewComponents.html.number(form("pudMeta.escalationAmount"),
-			label = "Escalation Amount")
+			<div id = "esc">
+			@viewComponents.html.datepicker(form("pudMeta.escalationInfo.timeRange.startDate"),
+				label = "Escalation Start") 
 			
-		@viewComponents.html.recurrenceHelper(form("pudMeta.escalationInfo"),
-			label = "Escalation Frequency")
-		</div>	
+			@viewComponents.html.number(form("pudMeta.escalationAmount"),
+				label = "Escalation Amount")
+				
+			@viewComponents.html.recurrenceHelper(form("pudMeta.escalationInfo"),
+				label = "Escalation Frequency")
+			</div>	
 		
-		@viewComponents.html.checkbox(form("PUDend"), label = "PUD Ends")
+		@viewComponents.html.checkbox(form("PUDend"), label = "PUD Expires")
 		
 		</div>
+		
+		<div id = "signUpFields">
+		@viewComponents.html.checkbox(form("prefSignUp"), label = "Preference Based SignUp")
+			<div id = "pref">
+			@viewComponents.html.checkbox(form("signUpMeta.createPUD"), label = "Create PUD")
+			
+			@viewComponents.html.number(form("signUpMeta.signUpPUDPriority"), label = "PUD Priority")
+			
+			@viewComponents.html.datepicker(form("signUpMeta.prefDeterminationTime"), label = "Determination Date")
+			</div>
+
+        	@viewComponents.html.number(form("signUpMeta.maxSlots"),
+			label = "Max Slots",
+			help = "Maximum number of slots a user can sign up for")
+			
+			@viewComponents.html.number(form("signUpMeta.minSignUpSlotDuration"),
+			label = "Minimum SignUp Slot Duration",
+			help = "Minutes")
+
+			<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
+        	<span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
+        	
+        	<legend>SignUp Block 1</legend>
+        </div>
 	
         <!--  Time Range -->      
         <div id ="slot1s">
@@ -94,20 +118,7 @@
 			@viewComponents.html.timepicker(form("timeRangeList[0].endTime"),
 			label = "End Time")
 		</div>
-
-		<span class="glyphicon glyphicon-time" aria-hidden="true" id="add"> + </span>
-        <span aria-hidden="true" id="subtract"> <span class="glyphicon glyphicon-minus"></span> </span>
-         
-        <div id = "maxSlots">
-        	@viewComponents.html.number(form("signUpMeta.maxSlots"),
-			label = "Max Slots",
-			help = "Maximum number of slots a user can sign up for")
-			
-			@viewComponents.html.number(form("signUpMeta.minSignUpSlotDuration"),
-			label = "Minimum SignUp Slot Duration",
-			help = "Minutes")
-
-        </div>
+       
 		<div id="slot2">			
 			<legend>SignUp Block 2</legend>
 			@viewComponents.html.datepicker(form("timeRangeList[1].startDate"),
@@ -245,6 +256,7 @@
         $(document).ready(function(){
         	$('#esc').hide();
         	$("#counter").hide();
+        	$('#pref').hide();
 			for (i = counter.value; i <= 10; i++){
 				$("#slot" + i).hide();
 			}
@@ -280,26 +292,29 @@
 		       	$('#PUDFields').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
-		        $('#maxSlots').show();
 		        $('#forPUD').hide();
 		        $('#recur').hide();
+		        
+		        $('#signUpFields').show();
 		      }
 		      
 		      if (this.value == "Fixed"){
-		       	$('#maxSlots').hide();
 		      	$('#forPUD').show();
 		      	$('#recur').show();
+		      	
+		      	$('#signUpFields').hide();
 		      }
 		      
 		      if (this.value == "PUD"){
 		        $('#slot1s').hide();
 		        $('#slot1e').hide();
-				$('#maxSlots').hide();
 		        $('#forPUD').hide();
 		        
 		        $('#PUDFields').show();
 		        $('#recur').show();
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
+                
+                $('#signUpFields').hide();
 		      } 
 		    });
 		    
@@ -323,6 +338,17 @@
        			$('#slot1e').hide();
        		}
        	});
+       	
+		$('#@(form("prefSignUp").id+"s")').on('change', function() {
+       		if (this.value == "true"){
+       			$('#pref').show();
+       		}
+       		else {
+       			$('#pref').hide();
+       		}
+       	});       	
+       	
+       	
        	
         </script>
         	
