@@ -177,7 +177,7 @@ object Scheduling extends Controller with MongoController {
                 for (event <- newEvents.toList) {
                     for (entity <- scheduleFormVals._3.getOrElse(List.empty)) {
                         for (user <- GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))) {
-                            Events.createCreationRequest(event._id, user.firstCalendar)
+                            CreationRequests.createCreationRequest(event._id, user.firstCalendar)
                         }
                     }
                 }

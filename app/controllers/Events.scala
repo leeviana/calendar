@@ -182,10 +182,10 @@ object Events extends Controller with MongoController {
         }.toList
     }
 
-    /**
+/*    *//**
      * Shows reminders that the user has set
      * TODO: Just show these on the event info page instead
-     */
+     *//*
     def showReminders = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             ReminderDAO.findAll("user" $eq AuthStateDAO.getUserID()).map { reminders =>
@@ -194,7 +194,7 @@ object Events extends Controller with MongoController {
         } else {
             Future.successful(Redirect(routes.Application.index))
         }
-    }
+    }*/
 
     /**
      * Shows the event creation form
@@ -391,7 +391,7 @@ object Events extends Controller with MongoController {
                         Redirect(routes.Events.index(newEvent.eventType.toString()))
                     } else {
                         // if event master is not the master
-                        createMasterRequest(event, oldEvent.get.master.get)
+                        CreationRequests.createMasterRequest(event, oldEvent.get.master.get)
                         Redirect(routes.Events.index(event.eventType.toString()))
                     }
                 })
@@ -546,214 +546,6 @@ object Events extends Controller with MongoController {
 
                     Redirect(routes.Events.showEvent(eventID)).flashing("test" -> reminder.toString())
                 })
-        }
-    }
-
-    /**
-     * Adds a new rule to an Event
-     * TODO: May want to do this for a calendar too in the future
-     * @param ID of the event that rule is to be added to
-     */
-    def addRule(eventID: String) = Action.async { implicit request =>
-        val objectID = BSONObjectID.apply(eventID)
-
-        EventDAO.findById(objectID).map { event =>
-            Rule.form.bindFromRequest.fold(
-                errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, Json.parse(request.cookies.get("userList").get.value).as[List[models.User]])),
-
-                rule => {
-                    EventDAO.updateById(objectID, $push("rules", rule))
-                    EventDAO.updateById(objectID, $set("accessType" -> AccessType.Private.toString()))
-                    Redirect(routes.Events.showEvent(eventID))
-                })
-        }
-    }
-
-    /**
-     * Deletes a rule
-     */
-    def deleteRule(eventID: String, ruleID: String) = Action { implicit request =>
-        val objectID = BSONObjectID.apply(eventID)
-
-        EventDAO.updateById(objectID, $pull("rules", Json.obj("orderNum" $eq ruleID.toInt)))
-        EventDAO.findById(objectID).map { event =>
-            var rules = event.get.rules.toBuffer
-            for (x <- rules.length - 1 to 0 by -1) {
-                if (x >= ruleID.toInt) {
-                    val newRule1 = new Rule(rules(x).orderNum - 1, rules(x).entityType, rules(x).entityID, rules(x).accessType)
-
-                    EventDAO.updateById(objectID, $pull("rules", rules(x)))
-                    EventDAO.updateById(objectID, $push("rules", newRule1))
-                    EventDAO.updateById(objectID, $set("accessType" -> AccessType.Private.toString()))
-                }
-            }
-        }
-
-        Redirect(routes.Events.showEvent(eventID))
-    }
-
-    /**
-     * Confirmation page before actually deleting a rule
-     */
-    def confirmDeleteRule(eventID: String, ruleID: String) = Action {
-        Ok(viewComponents.html.confirmDeleteRule(eventID, Event.form, ruleID))
-    }
-
-    /**
-     * Moves around rules, depending on the rule and the direction of movement
-     */
-    def moveRule(eventID: String, ruleID: String, dir: String) = Action.async { implicit request =>
-        val objectID = BSONObjectID.apply(eventID)
-
-        EventDAO.findById(objectID).map { event =>
-            var adjustment = 0
-            if (dir.equals("up"))
-                adjustment = 1
-            else if (dir.equals("down"))
-                adjustment = -1
-
-            var rules = event.get.rules.toBuffer
-
-            if (ruleID.toInt <= 0 && dir.equals("up") | ruleID.toInt >= rules.length - 1 && dir.equals("down")) {
-                Redirect(routes.Events.showEvent(eventID))
-            } else {
-                var one = 0;
-                var two = 0;
-                for (x <- 0 to rules.length - 1) {
-                    if (rules(x).orderNum == ruleID.toInt) {
-                        one = x;
-                    } else if (rules(x).orderNum == ruleID.toInt - adjustment) {
-                        two = x;
-                    }
-                }
-
-                val newRule1 = new Rule(rules(one).orderNum - adjustment, rules(one).entityType, rules(one).entityID, rules(one).accessType)
-                val newRule2 = new Rule(rules(two).orderNum + adjustment, rules(two).entityType, rules(two).entityID, rules(two).accessType)
-
-                EventDAO.updateById(objectID, $pull("rules", rules(one)))
-                EventDAO.updateById(objectID, $pull("rules", rules(two)))
-                EventDAO.updateById(objectID, $push("rules", newRule1))
-                EventDAO.updateById(objectID, $push("rules", newRule2))
-                EventDAO.updateById(objectID, $set("accessType" -> AccessType.Private.toString()))
-            }
-            Redirect(routes.Events.showEvent(eventID))
-        }
-    }
-
-    /**
-     * Creates a creation request for an event with user friendly parameters
-     */
-    def createUserCreationRequest = Action.async { implicit request =>
-        val requestMap = (request.body.asFormUrlEncoded)
-        val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
-        val userEmail = requestMap.get.get("userEmail").get.head
-
-        UserDAO.findOne("email" $eq userEmail).map { user =>
-            if (user.isDefined) {
-                createCreationRequest(eventID, user.get.subscriptions.head)
-            }
-            Redirect(routes.Events.showEvent(eventID.stringify))
-        }
-    }
-
-    /**
-     * Creates a creation request for an event with user friendly parameters for an entire group
-     */
-    def createGroupCreationRequest = Action.async { implicit request =>
-        val requestMap = (request.body.asFormUrlEncoded)
-        val eventID = BSONObjectID.apply(requestMap.get.get("eventID").get.head)
-        val groupID = BSONObjectID.apply(requestMap.get.get("groupID").get.head)
-
-        GroupDAO.findById(groupID).map { group =>
-            if (group.isDefined) {
-                group.get.userIDs.foreach { userID =>
-                    UserDAO.findById(userID).map { user =>
-                        createCreationRequest(eventID, user.get.subscriptions.head)
-                    }
-                }
-            }
-            Redirect(routes.Events.showEvent(eventID.stringify))
-        }
-    }
-
-    /**
-     * Creates a creation request for an event
-     */
-    def createCreationRequest(eventID: BSONObjectID, calendar: BSONObjectID) = {
-        EventDAO.findById(eventID).map { event =>
-
-            // else you're the master, don't do anything
-            if (event.get.calendar != calendar) {
-                // remove old events and creation requests
-                EventDAO.findAndRemove(($and("master" $eq Some(eventID), "calendar" $eq calendar))).map { event =>
-                    CreationRequestDAO.remove("eventID" $eq event.get._id)
-                }
-
-                val newEvent = event.get.copy(_id = BSONObjectID.generate, master = Some(eventID), calendar = calendar, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
-                val creationRequest = new CreationRequest(eventID = newEvent._id, master = eventID, requestStatus = CreationRequestStatus.Pending)
-                EventDAO.insert(newEvent)
-                CreationRequestDAO.insert(creationRequest)
-            }
-        }
-    }
-
-    /**
-     * Creates a creation request back to the master event
-     */
-    def createMasterRequest(newEvent: Event, masterID: BSONObjectID) {
-        EventDAO.findById(masterID).map { master =>
-            UserDAO.findOne("subscriptions" $all (master.get.calendar)).map { user =>
-                val newMasterEvent = newEvent.copy(_id = BSONObjectID.generate, master = Some(master.get._id), calendar = user.get.subscriptions.head, eventType = EventType.Fixed, viewType = Some(ViewType.Request))
-                val creationRequest = new CreationRequest(eventID = newEvent._id, master = master.get._id, requestStatus = CreationRequestStatus.Pending)
-                EventDAO.insert(newMasterEvent)
-                CreationRequestDAO.insert(creationRequest)
-            }
-        }
-    }
-
-    /**
-     * Updates the status of a creation request
-     */
-    def updateCreationStatus(eventID: String, newStatus: String) = Action.async { implicit request =>
-
-        EventDAO.findById(BSONObjectID.apply(eventID)).map { event =>
-
-            val query = $and("master" $eq event.get.master.get, "eventID" $eq event.get._id)
-
-            EventDAO.findById(event.get.master.get).map { master =>
-                // if you are the owner of the master event
-                if (master.get.calendar == event.get.calendar) {
-
-                    val future = CreationRequestDAO.remove("master" $eq event.get.master.get)
-                    Await.ready(future, Duration(5000, MILLISECONDS))
-
-                    if (newStatus == CreationRequestStatus.Confirmed.toString) {
-                        val newMaster = event.get.copy(_id = master.get._id, master = None, viewType = Some(ViewType.Confirmed))
-                        val future = EventDAO.save(newMaster)
-
-                        Await.ready(future, Duration(5000, MILLISECONDS))
-
-                        // createCreationRequests for all events with master as this event
-                        EventDAO.findAll($and("master" $eq master.get._id, "_id" $ne event.get._id)).map { eventList =>
-                            eventList.map { event =>
-                                createCreationRequest(master.get._id, event.calendar)
-                            }
-                        }
-
-                        // remove all old events
-                        EventDAO.remove("master" $eq master.get._id)
-                    } else if (newStatus == CreationRequestStatus.Declined.toString()) {
-                        EventDAO.removeById(event.get._id)
-                    }
-                } // if you are just a sharee
-                else {
-                    val update = $set("requestStatus" -> newStatus)
-                    CreationRequestDAO.update(query, update)
-                    EventDAO.updateById(event.get._id, $set("viewType" -> newStatus))
-                }
-            }
-
-            Redirect(routes.Events.index(EventType.Fixed.toString()))
         }
     }
 }
