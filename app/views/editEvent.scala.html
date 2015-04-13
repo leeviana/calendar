@@ -54,13 +54,27 @@
         </div>
         
 		<!--  PUD Fields -->
+		<div id = "PUDFields">
 		@viewComponents.html.number(form("timeRangeList[0].durationMin"),
 			label = "Time Allocated",
 			help = "minutes")
 		
 		@viewComponents.html.number(form("pudMeta.priority"),
 			label = "Priority")
+			
+		@viewComponents.html.checkbox(form("escalate"), label = "Escalation")
 		
+		<div id = "esc">
+		@viewComponents.html.datepicker(form("pudMeta.escalationInfo.timeRange.startDate"),
+			label = "Escalation Start") 
+		
+		@viewComponents.html.number(form("pudMeta.escalationAmount"),
+			label = "Escalation Amount")
+			
+		@viewComponents.html.recurrenceHelper(form("pudMeta.escalationInfo"),
+			label = "Escalation Frequency")
+		</div>	
+		</div>
 	
         <!--  Time Range -->      
         <div id ="slot1">
@@ -225,6 +239,7 @@
         <script type="text/javascript">
         var x = 1;
         $(document).ready(function(){
+        	$('#esc').hide();
         	$("#counter").hide();
 			for (i = counter.value; i <= 10; i++){
 				$("#slot" + i).hide();
@@ -258,8 +273,7 @@
 		      if (this.value == "Fixed" || this.value == "SignUp"){
 		        $('#slot1').show();
 		        
-		        $('#@form("timeRangeList[0].durationMin").id').hide();
-		        $('#@form("PUDPriority").id').hide();
+		       	$('#PUDFields').hide();
 		        
 		        $('#@form("recurrenceMeta.timeRange.endDate").id').show();
 		        $('#maxSlots').show();
@@ -270,19 +284,28 @@
 		       	$('#maxSlots').hide();
 		      	$('#forPUD').show();
 		      }
+		      
 		      if (this.value == "PUD"){
 		        $('#slot1').hide();
 				$('#maxSlots').hide();
 		        $('#forPUD').hide();
 		        
-		        $('#@form("timeRangeList[0].durationMin").id').show();
-		        $('#@form("PUDPriority").id').show();
+		        $('#PUDFields').show();
 		        
                 $('#@form("recurrenceMeta.timeRange.endDate").id').hide();
 		      } 
 		    });
 		    
         	$('#@(form("eventType").id+"s")').change();
+       	});
+       	
+       	$('#@(form("escalate").id+"s")').on('change', function() {
+       		if (this.value == "true"){
+       			$('#esc').show();
+       		}
+       		else {
+       			$('#esc').hide();
+       		}
        	});
         </script>
         	
