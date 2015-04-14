@@ -31,6 +31,7 @@ POST    /events/addreminder/:eventID    controllers.Events.addReminder(eventID)
 GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eventID)
 POST    /events/:eventID/edit           controllers.Events.editEvent(eventID)
 GET     /events/:eventType              controllers.Events.index(eventType)
+GET     /events/info/:eventID           controllers.SlotSignUp.indicatePreferences(eventID)
 
 # Deletion
 GET     /events/:eventID/delete         controllers.Events.confirmDelete(eventID)

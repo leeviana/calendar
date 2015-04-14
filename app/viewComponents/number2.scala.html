@@ -1,0 +1,9 @@
+@(field: Field, field2: Field)
+
+<input style = "width:60px" 
+	type="number" 
+	class="form-control" 
+	name="@field.name" 
+	value="@field2.value.getOrElse("")"
+	min="0" 
+	max="1440000"/>

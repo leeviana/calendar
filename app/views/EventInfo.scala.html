@@ -50,29 +50,27 @@
 							<th> Sign Up </th>
 						</tr>
 					</thead>
-					<tbody>					
-						@for(slot <- event.signUpMeta.get.signUpSlots.sortBy ( slot => slot._id.stringify)){
-									<tr>	
-														
+					<tbody>	
+					@defining(event._id.stringify){ eventID =>	
+					@helper.form(action = routes.SlotSignUp.indicatePreferences(eventID), 'class -> "form-horizontal"){
+					@defining(SlotSignUp.getPreferenceForm(event._id.stringify)){signUpList => 		
+
+						@for(i <- 0 to signUpList.get.numSlots - 1){
+						
+							@defining(event.signUpMeta.get.signUpSlots.apply(i)){slot =>
+									<tr>														
 									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>
 									<td> @slot.timeRange.start.toString("hh:mm a") </td>
 									<td> @slot.timeRange.end.get.toString("MMM-dd-yyyy") </td>
 									<td> @slot.timeRange.end.get.toString("hh:mm a") </td>
-									
-
 									
 									@if(slot.userID.isEmpty){	
 										@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
 											@if(canSign){
 												@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
 													<td> 
-													<input style = "width:60px" 
-													type="number" 
-							             			class="form-control" 
-							             			name="@reminderForm("temp").name" 
-							             			value="@reminderForm("temp").value.getOrElse("")"
-							             			min="1" 
-							             			max="1440000"/>
+													@viewComponents.html.number2(signUpList("preferences[" + i +"]"),
+														signUpList("preferences[" + i +"]"))
 							             			
 							             			<input type="hidden" name="wat" value='@userID'>
 													</td>
@@ -101,10 +99,31 @@
 									}
 
 								</tr>
-									
+								}
+
 						}
+					}
 					</tbody>
 				</table>
+					@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+						@if(canSign){
+							@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
+							<label class="col-sm-2"> </label>
+								<div class="col-sm-5">
+									<div class="form-actions">
+										<input class="btn btn-primary pull-right" type="submit"> 
+									</div>
+								</div>
+							}
+						}
+					}
+
+
+				}	
+			}
+					
+			
+
 			
 			}
 		
