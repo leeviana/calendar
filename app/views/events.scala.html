@@ -57,20 +57,20 @@
 					@if(e.getFirstTimeRange.end.isDefined){
 					   -@e.getFirstTimeRange.end.get.toString("hh:mm a")</td>
 					}
-					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
+					<td><a href="/events/info/@e._id.stringify">@e.name</a></td>
 					<td>@e.accessType</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
 				    	@if(!e.viewType.isEmpty){
 				    		@if(e.viewType.get.toString == models.enums.ViewType.Request.toString){
 					    		@defining(e._id.stringify){ eventID =>
 					    			@defining("Confirmed"){ status =>					    		
-							    		@helper.form(routes.Events.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
+							    		@helper.form(routes.CreationRequests.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
 							    		<input type="hidden" name="eventID" value='@e._id.stringify'>				    		
 							    		<td><button type="submit" class="btn btn-success">Confirm</button></td>				
 							    		}
 					    			}
 					    			@defining("Declined"){ status =>					    		
-							    		@helper.form(routes.Events.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
+							    		@helper.form(routes.CreationRequests.updateCreationStatus(eventID, status), 'class -> "form-horizontal"){
 							    		<input type="hidden" name="eventID" value='@e._id.stringify'>				    		
 							    		<td><button type="submit" class="btn btn-warning">Decline</button></td>				
 							    		}
@@ -107,11 +107,11 @@
 				<tr>
 				 	<td>@e.pudMeta.get.priority</td>
 					<td>@e.getFirstTimeRange.duration.getStandardMinutes minutes</td>
-					<td><a href="./events/info/@e._id.stringify">@e.name</a></td>
+					<td><a href="./info/@e._id.stringify">@e.name</a></td>
 					<td>@e.description</td>
 					<td>@CalendarDAO.getCalendarFromID(e.calendar).name</td>
-					<td><a href="/events/@e._id.stringify/completePUD" class="btn btn-danger" role="button">Complete</a></td>
-					<td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
+					<td><a href="./@e._id.stringify/completePUD" class="btn btn-danger" role="button">Complete</a></td>
+					<td><a href="./@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td>
 				</tr>
 			}
 		}

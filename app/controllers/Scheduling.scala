@@ -53,23 +53,19 @@ object Scheduling extends Controller with MongoController {
      * Render a page where the user can specify their "free time" query
      */
     def showForm = Action { implicit request =>
-        var entities = getEntities
-        var users = getUsers
-        val userID = AuthStateDAO.getUserID().stringify
-        Console.println("userID " + userID)
-        Ok(views.html.scheduler(schedulingForm, None, users, userID))
+        val userID = AuthStateDAO.getUserID()
+        
+        Ok(views.html.scheduler(schedulingForm, None, userID))
     }
 
     /**
      * Render a page with the returned data from the "free time" query
      */
     def schedulingOptions = Action(parse.multipartFormData) { implicit request =>
-        var entities = getEntities
-        var users = getUsers
-        val userID = AuthStateDAO.getUserID().stringify
+        val userID = AuthStateDAO.getUserID()
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, users, userID)),
+            errors => Ok(views.html.scheduler(errors, None, userID)),
 
             scheduleFormVals => {
 
@@ -144,7 +140,7 @@ object Scheduling extends Controller with MongoController {
                 
                 Await.ready(futureUser, Duration(10000, MILLISECONDS))
 
-                Ok(views.html.scheduler(schedulingForm.fill(scheduleFormVals), Some(scheduleMap), users, userID))
+                Ok(views.html.scheduler(schedulingForm.fill(scheduleFormVals), Some(scheduleMap), userID))
             })
     }
 
@@ -152,12 +148,10 @@ object Scheduling extends Controller with MongoController {
      * Create an event and send requests based on query forms
      */
     def createEventAndRequests() = Action { implicit request =>
-        var entities = getEntities
-        var users = getUsers
-        val userID = AuthStateDAO.getUserID().stringify
+        val userID = AuthStateDAO.getUserID()
         
         schedulingForm.bindFromRequest.fold(
-            errors => Ok(views.html.scheduler(errors, None, users, userID)),
+            errors => Ok(views.html.scheduler(errors, None, userID)),
 
             scheduleFormVals => {
                 var newEvents = ListBuffer[Event]()
@@ -177,7 +171,7 @@ object Scheduling extends Controller with MongoController {
                 for (event <- newEvents.toList) {
                     for (entity <- scheduleFormVals._3.getOrElse(List.empty)) {
                         for (user <- GroupDAO.getUsersOfEntity(BSONObjectID.apply(entity))) {
-                            Events.createCreationRequest(event._id, user.firstCalendar)
+                            CreationRequests.createCreationRequest(event._id, user.firstCalendar)
                         }
                     }
                 }
@@ -185,36 +179,4 @@ object Scheduling extends Controller with MongoController {
                 Redirect(routes.Events.showEvent(newEvent._id.stringify))
             })
     }
-    
-    def getEntities : List[String] = {
-        var temp:  List[models.User] = List()          
-        val future = UserDAO.findAll().map { users =>
-            temp = users;
-        }
-        Await.ready(future, Duration(5000, MILLISECONDS))
-        var temp2: List[models.Group] = List()
-        val future2 = GroupDAO.findAll().map { groups =>
-            temp2 = groups
-        }
-        Await.ready(future2, Duration(5000, MILLISECONDS))
-        var entities: List[String] = List()
-        for(t <- temp){
-          entities = entities :+ t.username
-        }
-        for(t <- temp2){
-          entities = entities :+ t.name
-        }
-        return entities
-      
-    }
-    
-    def getUsers : List[models.User] = {
-      var temp:  List[models.User] = List()          
-        val future = UserDAO.findAll().map { users =>
-            temp = users;
-        }
-        Await.ready(future, Duration(5000, MILLISECONDS))
-        return temp;
-    }
-    
 }

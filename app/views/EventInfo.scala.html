@@ -4,6 +4,7 @@
 @import apputils.CalendarDAO
 @import apputils.GroupDAO
 @import apputils.AuthStateDAO
+@import apputils.EventDAO
 @import org.joda.time.Duration
 
 
@@ -61,7 +62,7 @@
 
 									
 									@if(slot.userID.isEmpty){	
-										@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+										@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
 											@if(canSign){
 												@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
 													<td> 
@@ -197,7 +198,7 @@
     <legend>Invitations</legend>
 
     
-    @helper.form(action = routes.Events.createUserCreationRequest, 'class -> "form-horizontal"){
+    @helper.form(action = routes.CreationRequests.createUserCreationRequest, 'class -> "form-horizontal"){
     <input type="hidden" name="eventID" value='@event._id.stringify'>
     <div class="form-group">
 		<label class="col-sm-2 control-label">Invite a User</label>
@@ -223,7 +224,7 @@
 
     @defining(GroupDAO.getUsersGroups(BSONObjectID.apply(userID))){ groupList =>
     	@if(!groupList.isEmpty){
-			@helper.form(action = routes.Events.createGroupCreationRequest, 'class -> "form-horizontal"){
+			@helper.form(action = routes.CreationRequests.createGroupCreationRequest, 'class -> "form-horizontal"){
 			<input type="hidden" name="eventID" value='@event._id.stringify'>
 		    <div class="form-group">
 				<label class="col-sm-2 control-label">Invite a Group</label>
@@ -315,7 +316,7 @@
     	</table>
     </div>
     <br>
-        @helper.form(action = routes.Events.addRule(event._id.stringify), 'class -> "form-horizontal") {
+        @helper.form(action = routes.Rules.addRule(event._id.stringify), 'class -> "form-horizontal") {
         
         <input type="number" 
              id='@ruleForm("orderNum").id' 
@@ -350,13 +351,7 @@
 				</select>
 			</div>  
 		</div> 	
-		<!-- @if(event.eventType.toString == models.enums.EventType.PUD.toString){
-			@viewComponents.html.dropdown(ruleForm("accessType"),
-        	label = "Access Type",
-        	List("BusyOnly"))
-		} else{  -->    
-        
-        <!-- }  Doesn't matter. Also I think you were trying to restrict PUDEvents which is a ViewType, not PUDs -->
+		
         @viewComponents.html.dropdown(ruleForm("accessType"),
             label = "Access Type",
             List("BusyOnly", "SeeAll", "Modify"))

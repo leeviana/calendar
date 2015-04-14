@@ -41,17 +41,19 @@ object CreationRequestDAO extends JsonDao[CreationRequest, BSONObjectID](MongoCo
         Await.result(futureRequests, Duration(5000, MILLISECONDS))
     }
 }
+
 object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") {
     def canSignUp(eventID: BSONObjectID, userID: BSONObjectID): Boolean = {
         val futureEvent = this.findById(eventID)
         val event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
         
         val slots = event.get.signUpMeta.get.signUpSlots
-        val count = slots.count { slot => slot.userID == userID }
+        val count = slots.count { slot => slot.userID.getOrElse(-1) == userID }
 
         count < event.get.signUpMeta.get.maxSlots     
     }
 }
+
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") {
     def getUsersGroups(userID: BSONObjectID): List[Group] = {
         val futureUser = UserDAO.findById(userID)
