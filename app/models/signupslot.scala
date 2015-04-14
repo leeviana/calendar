@@ -17,4 +17,25 @@ case class SignUpSlot(
     
 object SignUpSlot {
     implicit val SignUpSlotFormat = Json.format[SignUpSlot]
+    
+    val form = Form(
+        mapping(
+            "userID" -> optional(nonEmptyText),
+            "timeRange" -> TimeRange.form.mapping) { (userID, timeRange) =>
+                if(userID.isDefined) { 
+                    SignUpSlot(userID = Some(BSONObjectID.apply(userID.get)), timeRange = timeRange) 
+                }
+                else {            
+                    SignUpSlot(timeRange = timeRange)   
+                }
+            } { signUpSlot =>
+                Some(
+                    (
+                    if(signUpSlot.userID.isDefined) {
+                        Some(signUpSlot.userID.get.stringify)
+                    }
+                    else {
+                        None
+                    }, signUpSlot.timeRange))
+            })
 }

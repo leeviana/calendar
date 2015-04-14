@@ -1,14 +1,14 @@
 package controllers
 
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.{Map => MapBuffer}
+import scala.collection.mutable.{ Map => MapBuffer }
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 
 import org.joda.time.DateTime
-import org.joda.time.{Duration => JodaDuration}
+import org.joda.time.{ Duration => JodaDuration }
 import org.joda.time.Period
 
 import apputils._
@@ -64,7 +64,16 @@ object Events extends Controller with MongoController {
                 // filter based on start time
                 var timeQuery = Json.obj("timeRange.start" $gte DateTime.now())
                 if (eventType == EventType.PUD.toString())
-                    timeQuery = Json.obj("timeRange.start" $lte DateTime.now())
+                    timeQuery = 
+                        Json.obj("$and" -> Json.arr(
+                            Json.obj(
+                                "timeRange.start" $lte DateTime.now()), 
+                            Json.obj(
+                                "$or" -> Json.arr(
+                                Json.obj(
+                                    "timeRange.end" $gte DateTime.now()),
+                                Json.obj(
+                                    "timeRange.end" $exists false)))))
 
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
@@ -265,7 +274,6 @@ object Events extends Controller with MongoController {
                         currentEnd = currentEnd.plus(recurrencePeriod)
                         thisPointer = nextPointer
                         nextPointer = BSONObjectID.generate
-
                     }
                 }
             }
@@ -392,9 +400,9 @@ object Events extends Controller with MongoController {
             if (event.isDefined) {
                 if (event.get.recurrenceMeta.isDefined) {
                     val lastStart = event.get.getFirstTimeRange().start
-                    
+
                     // TODO: make sure this works
-                    if(event.get.pudMeta.get.escalationInfo.isDefined) {
+                    if (event.get.pudMeta.get.escalationInfo.isDefined) {
                         val lastEscalationStart = event.get.pudMeta.get.escalationInfo.get.timeRange.start
                         val newEscalationInfo = event.get.pudMeta.get.escalationInfo.get.copy(new TimeRange(start = lastEscalationStart.plus(event.get.recurrenceMeta.get.recurDuration)))
                         val newPUDMeta = event.get.pudMeta.get.copy(escalationInfo = Some(newEscalationInfo))
@@ -402,7 +410,7 @@ object Events extends Controller with MongoController {
                         regenerateReminders(newEvent)
                         EventDAO.insert(newEvent)
                     }
-                    
+
                     val newEvent = event.get.copy(_id = BSONObjectID.generate, timeRange = List[TimeRange](new TimeRange(start = lastStart.plus(event.get.recurrenceMeta.get.recurDuration), duration = event.get.getFirstTimeRange().duration)))
                     regenerateReminders(newEvent)
                     EventDAO.insert(newEvent)

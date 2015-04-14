@@ -24,13 +24,14 @@ object SignUpMeta {
 
     val form = Form(
         mapping(
+            "signUpSlots" -> optional(list(SignUpSlot.form.mapping)),
             "minSignUpSlotDuration" -> number,
             "maxSlots" -> number,
             "prefDeterminationTime" -> optional(jodaDate),
             "createPUD" -> optional(boolean),
-            "signUpPUDPriority" -> optional(number)) { (minSignUpSlotDuration, maxSlots, prefDeterminationTime, createPUD, signUpPUDPriority) =>
+            "signUpPUDPriority" -> optional(number)) { (signUpSlots, minSignUpSlotDuration, maxSlots, prefDeterminationTime, createPUD, signUpPUDPriority) =>
                 SignUpMeta(
-                    List[SignUpSlot](),
+                    signUpSlots.getOrElse(List[SignUpSlot]()),
                     minSignUpSlotDuration,
                     maxSlots,
                     prefDeterminationTime,
@@ -38,7 +39,9 @@ object SignUpMeta {
                     signUpPUDPriority)
             } { signUpMeta =>
                 Some(
-                    (signUpMeta.minSignUpSlotDuration,
+                    (
+                        Some(signUpMeta.signUpSlots),
+                        signUpMeta.minSignUpSlotDuration,
                         signUpMeta.maxSlots,
                         signUpMeta.prefDeterminationTime,
                         signUpMeta.createPUD,

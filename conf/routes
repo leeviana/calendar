@@ -21,6 +21,9 @@ POST    /groups/addUsertoGroup          controllers.Groups.addUsertoGroup
 
 # SlotSignUp
 POST    /events/:eventID/slotSignUp/:slotID     controllers.SlotSignUp.signUpForSlot(eventID, slotID)
+GET     /events/:eventID/resolve        controllers.SlotSignUp.signUpDetermination(eventID)
+POST    /events/:eventID/resolve        controllers.SlotSignUp.resolveSlots(eventID)
+POST    /events/:eventID/slotPrefs      controllers.SlotSignUp.indicatePreferences(eventID)
 
 # Events
 GET     /events                         controllers.Events.index(eventType = "Fixed")
