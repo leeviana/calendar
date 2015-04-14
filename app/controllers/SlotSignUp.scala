@@ -32,6 +32,7 @@ import models.UserSignUpOption
 import scala.collection.mutable.ListBuffer
 import models.Event
 import models.enums.ViewType
+import models.SignUpMeta
 
 /**
  * @author Leevi
@@ -115,6 +116,18 @@ object SlotSignUp extends Controller with MongoController {
         val size = event.get.signUpMeta.get.signUpSlots.length
         
         SignUpPreferences.form.fill(new SignUpPreferences(size, List.fill(size)(0)))
+    }
+    
+    def signUpDetermination(eventID: String) = Action { implicit request =>
+        
+        
+        Ok(views.html.signUpResolution(SignUpMeta.form, eventID))
+    }
+    
+    def resolveSlots(eventID: String) = Action { implicit request =>
+        
+        
+        Redirect(routes.Events.showEvent(eventID))
     }
     
     // Delete slot is handled in DeleteEvent
