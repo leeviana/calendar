@@ -58,13 +58,31 @@
 									<td> @slot.timeRange.end.get.toString("MMM-dd-yyyy") </td>
 									<td> @slot.timeRange.end.get.toString("hh:mm a") </td>
 									
+
+									
 									@if(slot.userID.isEmpty){	
 										@defining(SlotSignUp.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
 											@if(canSign){
-												@defining(event._id.stringify){ eventID =>
-													@defining(slot._id.stringify){ slotID =>
-														@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
-										    				<td><button type="submit" class="btn btn-success">SignUp</button></td>		
+												@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
+													<td> 
+													<input style = "width:60px" 
+													type="number" 
+							             			class="form-control" 
+							             			name="@reminderForm("temp").name" 
+							             			value="@reminderForm("temp").value.getOrElse("")"
+							             			min="1" 
+							             			max="1440000"/>
+							             			
+							             			<input type="hidden" name="wat" value='@userID'>
+													</td>
+										
+													
+												} else{
+													@defining(event._id.stringify){ eventID =>
+														@defining(slot._id.stringify){ slotID =>
+															@helper.form(action = routes.SlotSignUp.signUpForSlot(eventID, slotID), 'class -> "form-horizontal"){    		
+											    				<td><button type="submit" class="btn btn-success">SignUp</button></td>		
+															}
 														}
 													}
 												}						
