@@ -72,8 +72,9 @@ object SlotSignUp extends Controller with MongoController {
     /**
      * Indicate your sign up slot preferences
      */
-    def indicatePreferences(eventID: String) = Action.async(parse.multipartFormData) { implicit request =>
-        val objectID = BSONObjectID(eventID)
+    def indicatePreferences(eventID: String) = Action.async { implicit request =>
+        print("THINGS" + "\n")
+        val objectID = BSONObjectID.apply(eventID)
         EventDAO.findById(objectID).map { event =>
             SignUpPreferences.form.bindFromRequest.fold(
                 errors => Ok(views.html.EventInfo(event.get, Reminder.form, Rule.form, AuthStateDAO.getUserID().stringify, Json.parse(request.cookies.get("userList").get.value).as[List[models.User]])),
@@ -82,6 +83,7 @@ object SlotSignUp extends Controller with MongoController {
                         // TODO: edit this so that if old entries are in the table, they are removed and the corresponding events are deleted
                         val calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
                         val preferences = signUpPreferences.preferences
+                        print("BLAH" + preferences + "\n")
                         var tentativeEvents = ListBuffer[Event]()
                         
                         val newSignUpSlots = event.get.signUpMeta.get.signUpSlots.zipWithIndex.map { case (slot, index) => 
