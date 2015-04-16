@@ -121,9 +121,11 @@ object SlotSignUp extends Controller with MongoController {
     }
     
     def signUpDetermination(eventID: String) = Action { implicit request =>
+        val future = EventDAO.findById(BSONObjectID.apply(eventID))
+        val event = Await.result(future, Duration(5000, MILLISECONDS))
+        val slotList = event.get.signUpMeta.get.signUpSlots
         
-        
-        Ok(views.html.signUpResolution(SignUpMeta.form, eventID))
+        Ok(views.html.signUpResolution(SignUpMeta.form, eventID, slotList))
     }
     
     def resolveSlots(eventID: String) = Action { implicit request =>
