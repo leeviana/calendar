@@ -1,0 +1,18 @@
+@(field: Field, label: String = "", optionList: List[models.UserSignUpOption])
+
+@import apputils.UserDAO
+
+<div class="form-group @if(field.hasErrors) {has-error}" id="@field.id" >
+
+    	<div class="col-sm-5">
+    		<select name="@field.name" id='@(field.id + "s")' class="form-control" style="width:150px">
+    			<option value=""> </option>  	
+    				@for(element <- optionList){
+    					<option value='@element'> @UserDAO.getUserFromID(element.userID).email pref=@element.preference</option>
+    				}
+    		</select>
+    	</div>
+    	<script type="text/javascript">
+    		$('#@(field.id + "s")').val('@field.value.getOrElse("").toString()')	
+    	</script> 
+</div>
