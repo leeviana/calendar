@@ -45,11 +45,13 @@ object Rules extends Controller with MongoController {
                     if(event.get.eventType == EventType.SignUp) {
                         val signUpMeta = event.get.signUpMeta.get
                         if(signUpMeta.prefDeterminationTime.isDefined) {
-                            if(signUpMeta.createPUD.get) {
-                                val userIDs = GroupDAO.getUsersOfEntity(rule.entityID)
-                                
-                                for (user <- userIDs) {
-                                    createSignUpPUD(objectID, user.firstCalendar, signUpMeta.signUpPUDPriority.get)
+                            if(!signUpMeta.createPUD.isEmpty){
+                                if(signUpMeta.createPUD.get) {
+                                    val userIDs = GroupDAO.getUsersOfEntity(rule.entityID)
+                                    
+                                    for (user <- userIDs) {
+                                        createSignUpPUD(objectID, user.firstCalendar, signUpMeta.signUpPUDPriority.get)
+                                    }
                                 }
                             }
                         }
