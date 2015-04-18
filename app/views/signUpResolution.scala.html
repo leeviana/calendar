@@ -28,7 +28,8 @@
 					<td> @slotList(s).timeRange.start.toString("hh:mm a") </td>
 					<td> @slotList(s).timeRange.end.get.toString("MMM-dd-yyyy") </td>
 					<td> @slotList(s).timeRange.end.get.toString("hh:mm a") </td>
-					<td> Suggested </td>
+					@if(slotList(s).userID.isDefined){<td> @slotList(s).userID.get.stringify </td>}
+					else{<td>No Suggestion</td>}
 					<td> @viewComponents.html.signUpDropdown(signUpMetaForm("slotList(s)"),
 						label = "",
 						slotList(s).userOptions.get)</td>
