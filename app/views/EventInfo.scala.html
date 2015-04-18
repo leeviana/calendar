@@ -103,14 +103,24 @@
 						}
 						</tbody>
 						</table>
-						@viewComponents.html.number(signUpList("numSlots"))
+							<input type="number" 
+							style="visibility: hidden"
+			             	class="form-control" 
+			             	name='@signUpList("numSlots").name'
+			             	value='@signUpList("numSlots").value.getOrElse("")'/>
+			             	
 					}
 					
 									
-				
-									<div class="form-actions">
-										<button class="btn btn-success pull-right" type="submit"> Submit </button>
-									</div>
+				@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+					@if(canSign){
+						@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
+							<div class="form-actions">
+								<button class="btn btn-success pull-right" type="submit"> Submit </button>
+							</div>
+						}
+					}
+				}
 								
 
 
