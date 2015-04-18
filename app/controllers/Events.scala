@@ -239,7 +239,7 @@ object Events extends Controller with MongoController {
                 calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
             }
 
-            Ok(views.html.editEvent(None, Event.form, iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
+            Ok(views.html.editEvent(None, Event.form, iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(JsonConverter.mapToJson(calMap))));
         }
     }
 
@@ -249,7 +249,7 @@ object Events extends Controller with MongoController {
     def create = Action { implicit request =>
         val iterator = RecurrenceType.values.iterator
         Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.editEvent(None, errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value)))),
+            errors => Ok(views.html.editEvent(None, errors, iterator, JsonConverter.jsonToMap(Json.parse(request.cookies.get("calMap").get.value)))),
 
             event => {
 
@@ -362,33 +362,9 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
                 }
 
-                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
+                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(JsonConverter.mapToJson(calMap))));
             }
         }
-    }
-
-    def jsonToMap(json: JsValue): MapBuffer[String, String] = {
-        var output = MapBuffer[String, String]()
-        val test = json match {
-            case o: JsObject => {
-                val keys = o.keys;
-                for (k <- keys) {
-                    output += (k -> (o \ k).as[String]);
-                }
-            }
-            case _ => Set()
-        }
-        return output
-    }
-
-    def mapToJson(map: MapBuffer[String, String]): JsValue = {
-        var output = new JsObject(Seq[(String, JsValue)]());
-        map.foreach {
-            case (k, v) => {
-                output = output + (k -> Json.toJson(v));
-            }
-        }
-        return output;
     }
 
     /**
@@ -400,7 +376,7 @@ object Events extends Controller with MongoController {
         EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
             Event.form.bindFromRequest.fold(
                 errors => {
-                    Ok(views.html.editEvent(Some(oldEvent.get._id.stringify), errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value))));
+                    Ok(views.html.editEvent(Some(oldEvent.get._id.stringify), errors, iterator, JsonConverter.jsonToMap(Json.parse(request.cookies.get("calMap").get.value))));
                 },
 
                 event => {
