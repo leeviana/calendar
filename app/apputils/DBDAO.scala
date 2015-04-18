@@ -52,6 +52,15 @@ object EventDAO extends JsonDao[Event, BSONObjectID](MongoContext.db, "events") 
 
         count < event.get.signUpMeta.get.maxSlots     
     }
+    def getEventFromID(id: BSONObjectID): Event = {
+        val futureEvent = this.findById(id)
+
+        var event = Await.result(futureEvent, Duration(5000, MILLISECONDS))
+        if (event.isDefined)
+            event.get
+        else
+            throw new Exception("Database incongruity: Event ID not found")
+    }
 }
 
 object GroupDAO extends JsonDao[Group, BSONObjectID](MongoContext.db, "groups") {

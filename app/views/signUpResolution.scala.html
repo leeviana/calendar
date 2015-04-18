@@ -1,4 +1,6 @@
-@(signUpMetaForm: Form[SignUpMeta], eventID: String)
+@(signUpMetaForm: Form[SignUpMeta], eventID: String, slotList: List[SignUpSlot])
+
+@import apputils.UserDAO
 
 @main("Resolve Sign Up"){
 
@@ -6,7 +8,41 @@
     <div class="span8">
     <h2>Resolve Sign Up</h2>
 	    @helper.form(action = routes.SlotSignUp.resolveSlots(eventID), 'class -> "form-horizontal") {
-	  
+	    
+	    <input type="hidden" name="minSignUpSlotDuration" value='@signUpMetaForm("minSignUpSlotDuration").value'>
+	    <input type="hidden" name="maxSlots" value='@signUpMetaForm("maxSlots").value'>
+	    
+	    <table class="table">
+			<thead>
+				<tr>
+					<th> Start Date </th>
+					<th> Start Time </th>
+					<th> End Date </th>
+					<th> End Time </th>
+					<th> Suggested </th>
+					<th> Available </th>
+				</tr>
+			</thead>
+			<tbody>
+			@for(s <- 0 to slotList.length-1){
+				<tr>
+					<td> @slotList(s).timeRange.start.toString("MMM-dd-yyyy")	</td>
+					<td> @slotList(s).timeRange.start.toString("hh:mm a") </td>
+					<td> @slotList(s).timeRange.end.get.toString("MMM-dd-yyyy") </td>
+					<td> @slotList(s).timeRange.end.get.toString("hh:mm a") </td>
+					@if(slotList(s).userID.isDefined){
+						<td> @UserDAO.getUserFromID(slotList(s).userID.get).email </td>
+					}else{
+						<td>No Suggestion</td>
+					}
+					<td> @viewComponents.html.signUpDropdown(signUpMetaForm("slotList(s)"),
+						label = "",
+						slotList(s).userOptions.getOrElse(List[UserSignUpOption]()))</td>
+				</tr>
+	   		}
+			</tbody>
+		</table>
+	    
 	    <label class="col-sm-2"> </label>
 		<div class="col-sm-5">
 			<div class="form-actions">

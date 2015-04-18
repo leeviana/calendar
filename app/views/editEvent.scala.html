@@ -250,6 +250,15 @@
              	name='@form("timeRangeCount").name'
              	id = 'counter'
              	value='@form("timeRangeCount").value.getOrElse("1")'/>
+             	
+             	
+               	<!--  Recurrence Details -->    	
+       	<div id= "recur">	
+        @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
+        	label = "Recurrence End Date")
+       		 
+		@viewComponents.html.recurrenceHelper(form("recurrenceMeta"))
+		</div>
              	               		
         <script type="text/javascript">
         var x = 1;
@@ -333,9 +342,11 @@
        	$('#@(form("PUDend").id+"s")').on('change', function() {
        		if (this.value == "true"){
        			$('#slot1e').show();
+       			$('#recur').hide();
        		}
        		else {
        			$('#slot1e').hide();
+       			$('#recur').show();
        		}
        	});
        	
@@ -368,13 +379,6 @@
                 placeholder='@false'
                 style="visibility: hidden" />
        	
-       	<!--  Recurrence Details -->    	
-       	<div id= "recur">	
-        @viewComponents.html.datepicker(form("recurrenceMeta.timeRange.endDate"),
-        	label = "Recurrence End Date")
-       		 
-		@viewComponents.html.recurrenceHelper(form("recurrenceMeta"))
-		</div>
 		
 		<label class="col-sm-2"> </label>
 		<div class="col-sm-5">

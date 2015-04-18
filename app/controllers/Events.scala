@@ -61,19 +61,22 @@ object Events extends Controller with MongoController {
     def index(eventType: String = "Fixed") = Action.async { implicit request =>
         if (AuthStateDAO.isAuthenticated()) {
             UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
+                
+                // TODO: delete PUD events with timeRange.end $lte DateTime.now() and remove check from query
+                
                 // filter based on start time
                 var timeQuery = Json.obj("timeRange.start" $gte DateTime.now())
                 if (eventType == EventType.PUD.toString())
-                    timeQuery = 
+                    timeQuery =
                         Json.obj("$and" -> Json.arr(
                             Json.obj(
-                                "timeRange.start" $lte DateTime.now()), 
+                                "timeRange.start" $lte DateTime.now()),
                             Json.obj(
                                 "$or" -> Json.arr(
-                                Json.obj(
-                                    "timeRange.end" $gte DateTime.now()),
-                                Json.obj(
-                                    "timeRange.end" $exists false)))))
+                                    Json.obj(
+                                        "timeRange.end" $gte DateTime.now()),
+                                    Json.obj(
+                                        "timeRange.end" $exists false)))))
 
                 val jsonquery = Json.obj(
                     "$and" -> Json.arr(
@@ -86,7 +89,8 @@ object Events extends Controller with MongoController {
 
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get)
-                        Ok(views.html.events(accessEvents, eventType))
+                        val escalatedEvents = applyEscalations(events)
+                        Ok(views.html.events(escalatedEvents, eventType))
                     }
                 } else {
                     val sort = Json.obj("timeRange.start" -> 1, "timeRange.startTime" -> 1)
@@ -147,6 +151,38 @@ object Events extends Controller with MongoController {
     }
 
     /**
+     * Updates PUDs with escalation info
+     */
+    def applyEscalations(events: List[Event]): List[Event] = {
+        events.map { event =>
+
+            if(event.pudMeta.get.escalationInfo.isDefined) {
+                val escalationInfo = event.pudMeta.get.escalationInfo.get
+                val diff = (DateTime.now().getMillis - escalationInfo.timeRange.start.getMillis)
+                // if within the time period of escalation
+                if(diff > 0) {
+                    val escalationPeriods = diff/escalationInfo.recurDuration.toStandardDuration().getMillis
+                    val newPriority = event.pudMeta.get.priority - (escalationPeriods * event.pudMeta.get.escalationAmount.get)
+                    
+                    if(newPriority > 1) {
+                        val newpudMeta = event.pudMeta.get.copy(priority = newPriority.toInt)
+                        event.copy(pudMeta = Some(newpudMeta))
+                    }
+                    else {
+                        val newpudMeta = event.pudMeta.get.copy(priority = 1)    
+                        event.copy(pudMeta = Some(newpudMeta))
+                    }
+                }
+                else {
+                    event
+                }
+            } else {            
+                event    
+            }  
+        }
+    }
+    
+    /**
      * Updates PUDEvents with PUD information
      */
     def updatePUD(events: List[Event], user: User): List[Event] = {
@@ -203,7 +239,7 @@ object Events extends Controller with MongoController {
                 calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
             }
 
-            Ok(views.html.editEvent(None, Event.form, iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
+            Ok(views.html.editEvent(None, Event.form, iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(JsonConverter.mapToJson(calMap))));
         }
     }
 
@@ -213,7 +249,7 @@ object Events extends Controller with MongoController {
     def create = Action { implicit request =>
         val iterator = RecurrenceType.values.iterator
         Event.form.bindFromRequest.fold(
-            errors => Ok(views.html.editEvent(None, errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value)))),
+            errors => Ok(views.html.editEvent(None, errors, iterator, JsonConverter.jsonToMap(Json.parse(request.cookies.get("calMap").get.value)))),
 
             event => {
 
@@ -326,33 +362,9 @@ object Events extends Controller with MongoController {
                     calMap += (calID.stringify -> CalendarDAO.getCalendarFromID(calID).name)
                 }
 
-                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(mapToJson(calMap))));
+                Ok(views.html.editEvent(Some(eventID), Event.form.fill(event.get), iterator, calMap)).withCookies(Cookie("calMap", Json.stringify(JsonConverter.mapToJson(calMap))));
             }
         }
-    }
-
-    def jsonToMap(json: JsValue): MapBuffer[String, String] = {
-        var output = MapBuffer[String, String]()
-        val test = json match {
-            case o: JsObject => {
-                val keys = o.keys;
-                for (k <- keys) {
-                    output += (k -> (o \ k).as[String]);
-                }
-            }
-            case _ => Set()
-        }
-        return output
-    }
-
-    def mapToJson(map: MapBuffer[String, String]): JsValue = {
-        var output = new JsObject(Seq[(String, JsValue)]());
-        map.foreach {
-            case (k, v) => {
-                output = output + (k -> Json.toJson(v));
-            }
-        }
-        return output;
     }
 
     /**
@@ -364,7 +376,7 @@ object Events extends Controller with MongoController {
         EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
             Event.form.bindFromRequest.fold(
                 errors => {
-                    Ok(views.html.editEvent(Some(oldEvent.get._id.stringify), errors, iterator, jsonToMap(Json.parse(request.cookies.get("calMap").get.value))));
+                    Ok(views.html.editEvent(Some(oldEvent.get._id.stringify), errors, iterator, JsonConverter.jsonToMap(Json.parse(request.cookies.get("calMap").get.value))));
                 },
 
                 event => {
@@ -456,15 +468,26 @@ object Events extends Controller with MongoController {
 
                 EventDAO.findById(oldEvent.get.master.get).map { master =>
 
-                    // if masterEvent is SignUp event, clear slot
+                    // if master event is SignUp event, clear slot or remove sign up option
                     if (master.get.eventType == EventType.SignUp) {
-                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot =>
+                                    
+                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot =>        
                             if (signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
-                                signUpSlot.copy(userID = None)
+                                    
+                                if (oldEvent.get.viewType.get == ViewType.SignUpPossibility) {
+                                    // print(signUpSlot.userOptions.get + "\n")
+                                    val newOptions = signUpSlot.userOptions.get.filter { userOption =>
+                                        userOption.userID != AuthStateDAO.getUserID()
+                                    }
+                                    signUpSlot.copy(userOptions = Some(newOptions))
+                                } else {
+                                    signUpSlot.copy(userID = None)
+                                }
                             } else {
                                 signUpSlot
                             }
                         }
+
                         val newSignUpMeta = master.get.signUpMeta.get.copy(signUpSlots = newSignUpSlots)
                         EventDAO.save(master.get.copy(signUpMeta = Some(newSignUpMeta)))
                     } else { // normal shared event
@@ -481,7 +504,6 @@ object Events extends Controller with MongoController {
 
             Redirect(routes.Events.index(EventType.Fixed.toString()))
         }
-
     }
 
     /**
@@ -540,5 +562,13 @@ object Events extends Controller with MongoController {
                     Redirect(routes.Events.showEvent(eventID)).flashing("test" -> reminder.toString())
                 })
         }
+    }
+
+    def email = Action {
+        Ok(views.html.email())
+    }
+
+    def bulkAdd = Action {
+        Ok(views.html.bulkAdd())
     }
 }

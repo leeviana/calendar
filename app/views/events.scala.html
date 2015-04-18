@@ -24,6 +24,9 @@
 
 <div class="container">
 @if(eventType == "Fixed" || eventType == "SignUp"){
+	@if(eventType == "SignUp"){
+		<h3>Sign-up Events</h3>
+	}
 	<table class="table">
 		<thead>
 			<tr>
@@ -81,7 +84,8 @@
 				    		}
 				    	} 
 						<td><a href="/events/@e._id.stringify/delete" class="btn btn-danger" role="button">Delete</a></td>
-						@if(eventType == "Fixed") { <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td> }				    	
+						@if(eventType == "Fixed" && e.viewType.getOrElse("").toString != models.enums.ViewType.SignUpPossibility.toString){ <td><a href="/events/@e._id.stringify/edit" class="btn btn-info" role="button">Edit</a></td> }				    	
+						@if(eventType == "SignUp" && !e.signUpMeta.get.prefDeterminationTime.isEmpty && e.signUpMeta.get.prefDeterminationTime.get.isBeforeNow()){<td><a href="/events/@e._id.stringify/resolve" class="btn btn-info" role="button">Resolve</a></td>}
 				</tr>
 				}
 			}
@@ -91,6 +95,7 @@
 }
 
 @if(eventType == "PUD"){
+	<h3>PUD List</h3>
 	<table class="table">
 		<thead>
 			<tr>

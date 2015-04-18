@@ -21,6 +21,7 @@ import models.enums.EventType
 import models.TimeRange
 import models.PUDMeta
 import org.joda.time.DateTime
+import org.joda.time.Duration
 
 /**
  * @author Leevi
@@ -40,13 +41,13 @@ object Rules extends Controller with MongoController {
                 errors => Ok(views.html.EventInfo(event.get, Reminder.form, errors, AuthStateDAO.getUserID().stringify, Json.parse(request.cookies.get("userList").get.value).as[List[models.User]])),
 
                 rule => {
-                    
                     // if sharing a signupevent with determination time and PUD generation, create PUDs
                     if(event.get.eventType == EventType.SignUp) {
                         val signUpMeta = event.get.signUpMeta.get
                         if(signUpMeta.prefDeterminationTime.isDefined) {
                             if(signUpMeta.createPUD.get) {
                                 val userIDs = GroupDAO.getUsersOfEntity(rule.entityID)
+                                
                                 for (user <- userIDs) {
                                     createSignUpPUD(objectID, user.firstCalendar, signUpMeta.signUpPUDPriority.get)
                                 }
@@ -67,11 +68,13 @@ object Rules extends Controller with MongoController {
         EventDAO.findById(eventID).map { event =>
 
             // if there isn't already a related PUD, make one
-            EventDAO.findOne(($and("master" $eq Some(eventID), "calendar" $eq calendar))).map { event =>
-                if(!event.isDefined) {
+            EventDAO.findOne(($and("master" $eq Some(eventID), "calendar" $eq calendar, "eventType" $eq EventType.PUD))).map { pudevent =>
+                if(!pudevent.isDefined) {
+                    
                     val PUDMeta = new PUDMeta(priority = priority)
-                    val timeRange = new TimeRange(DateTime.now(), event.get.signUpMeta.get.prefDeterminationTime)
+                    val timeRange = new TimeRange(start = DateTime.now(), end = Some(event.get.signUpMeta.get.prefDeterminationTime.get), duration = Duration.standardMinutes(10))
                     val newEvent = new Event(_id = BSONObjectID.generate, name = "Sign up for " + event.get.name, master = Some(eventID), calendar = calendar, eventType = EventType.PUD, pudMeta = Some(PUDMeta), timeRange = List[TimeRange](timeRange))
+                    
                     EventDAO.insert(newEvent)
                 }
             }
