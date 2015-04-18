@@ -35,6 +35,12 @@
 			<h2>PUD Information: @event.name</h2>
 			<p> Duration: @event.getFirstTimeRange().duration.getStandardMinutes minutes</p>
 			<p> Priority: @event.pudMeta.get.priority</p>
+			@if(event.getFirstTimeRange.end.isDefined){ <p> Expiration Date: @event.getFirstTimeRange().end.get.toString("MMM-dd-yyyy") @event.getFirstTimeRange().end.get.toString("hh:mm a")</p> }
+			@if(event.pudMeta.get.escalationInfo.isDefined){ 
+				<p>Escalation Start: @event.pudMeta.get.escalationInfo.get.timeRange.start.toString("MMM-dd-yyyy")</p> 
+				<p>Escalation Frequency: @event.pudMeta.get.escalationInfo.get.recurrenceType (Every @event.pudMeta.get.escalationInfo.get.recurDuration)</p>
+				<p>Escalation Amount: @event.pudMeta.get.escalationAmount</p>
+			}
 			} 
 		 
 		@if(event.eventType.toString == models.enums.EventType.SignUp.toString){

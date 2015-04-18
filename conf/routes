@@ -35,6 +35,8 @@ GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eve
 POST    /events/:eventID/edit           controllers.Events.editEvent(eventID)
 GET     /events/:eventType              controllers.Events.index(eventType)
 GET     /events/info/:eventID           controllers.SlotSignUp.indicatePreferences(eventID)
+GET 	/email							controllers.Events.email
+GET 	/bulkAdd						controllers.Events.bulkAdd
 
 # Deletion
 GET     /events/:eventID/delete         controllers.Events.confirmDelete(eventID)
