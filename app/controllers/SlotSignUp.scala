@@ -134,6 +134,9 @@ object SlotSignUp extends Controller with MongoController {
         SignUpPreferences.form.fill(new SignUpPreferences(size, List.fill(size)(0)))
     }
 
+    /**
+     * Near maximum usage of slots, weighted towards earlier preferences
+     */
     def signUpDetermination(eventID: String) = Action.async { implicit request =>
         val objectID = BSONObjectID.apply(eventID)
 
@@ -143,11 +146,14 @@ object SlotSignUp extends Controller with MongoController {
 
             var hashSet = HashSet[BSONObjectID]() // list of users
             signUpInfo.signUpSlots.foreach { slot =>
-                slot.userOptions.get.foreach { userOption =>
-                    userOption.userID
+                if(slot.userOptions.isDefined) {
+                    slot.userOptions.get.foreach { userOption =>
+                        hashSet.add(userOption.userID)
+                    }
                 }
             }
 
+            
             // multiple entries for "max slots". is this logical?
             var userList = new ListBuffer[BSONObjectID]()
             for (i <- 1 to maxSlots) {
@@ -170,21 +176,26 @@ object SlotSignUp extends Controller with MongoController {
                     tempSignUpSlots = tempSignUpSlots.map { slot =>
 
                         // calculate valid userOptions using userList
-                        var userOptions = slot.userOptions.get.filter { option => userList.contains(option.userID) }
-
+                        var userOptions = slot.userOptions.getOrElse(List[UserSignUpOption]()).filter { option => userList.contains(option.userID) }
+                                
                         // if nobody is assigned to it and possible userOptions
                         if (slot.userID.isEmpty & userOptions.size > 0) {
                             validSlots = true
-
+                                
                             if (userOptions.size <= minNum) {
                                 // assign slot to person with minimum preference number
-                                val userOption = userOptions.minBy { _.preference }
-                                processing = true
-                                minNum = 1
-
-                                userList.remove(userList.indexOf(userOption.userID))
-
-                                slot.copy(userID = Some(userOption.userID))
+                                val userOption = userOptions.max(Ordering.by((option:UserSignUpOption) => option.preference))
+                                
+                                // if this is one of the user's top preferences
+                                if(userOption.preference <= minNum) {
+                                    processing = true
+                                    minNum = 1
+                                    userList.remove(userList.indexOf(userOption.userID))
+                                    slot.copy(userID = Some(userOption.userID))
+                                }
+                                else{
+                                    slot
+                                }
                             } else {
                                 slot
                             }
