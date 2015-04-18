@@ -1,4 +1,5 @@
 @(signUpMetaForm: Form[SignUpMeta], eventID: String, slotList: List[SignUpSlot])
+
 @import apputils.UserDAO
 
 @main("Resolve Sign Up"){
@@ -29,8 +30,11 @@
 					<td> @slotList(s).timeRange.start.toString("hh:mm a") </td>
 					<td> @slotList(s).timeRange.end.get.toString("MMM-dd-yyyy") </td>
 					<td> @slotList(s).timeRange.end.get.toString("hh:mm a") </td>
-					@if(slotList(s).userID.isDefined){<td> @slotList(s).userID.get.stringify </td>}
-					else{<td>No Suggestion</td>}
+					@if(slotList(s).userID.isDefined){
+						<td> @UserDAO.getUserFromID(slotList(s).userID.get).email </td>
+					}else{
+						<td>No Suggestion</td>
+					}
 					<td> @viewComponents.html.signUpDropdown(signUpMetaForm("slotList(s)"),
 						label = "",
 						slotList(s).userOptions.getOrElse(List[UserSignUpOption]()))</td>
