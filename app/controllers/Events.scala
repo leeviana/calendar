@@ -494,9 +494,12 @@ object Events extends Controller with MongoController {
 
                     // if master event is SignUp event, clear slot or remove sign up option
                     if (master.get.eventType == EventType.SignUp) {
-                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot =>
+                                    
+                        val newSignUpSlots = master.get.signUpMeta.get.signUpSlots.map { signUpSlot =>        
                             if (signUpSlot.timeRange.start == oldEvent.get.getFirstTimeRange().start) {
-                                if (oldEvent.get.viewType == ViewType.SignUpPossibility) {
+                                    
+                                if (oldEvent.get.viewType.get == ViewType.SignUpPossibility) {
+                                    // print(signUpSlot.userOptions.get + "\n")
                                     val newOptions = signUpSlot.userOptions.get.filter { userOption =>
                                         userOption.userID != AuthStateDAO.getUserID()
                                     }
