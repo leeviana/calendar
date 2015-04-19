@@ -105,7 +105,7 @@ object SlotSignUp extends Controller with MongoController {
                             if (preferences(index) > 0) {
                                 val newOptions = options.+:(new UserSignUpOption(AuthStateDAO.getUserID(), preferences(index)))
 
-                                val newEvent = event.get.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](slot.timeRange), master = Some(event.get._id), eventType = EventType.Fixed, viewType = Some(ViewType.SignUpPossibility))
+                                val newEvent = new Event(_id = BSONObjectID.generate, name = "Signed up for " + event.get.name, calendar = calendar, timeRange = List[TimeRange](slot.timeRange), master = Some(event.get._id), eventType = EventType.Fixed, viewType = Some(ViewType.SignUpPossibility))
                                 tentativeEvents.append(newEvent)
 
                                 slot.copy(userOptions = Some(newOptions))
@@ -115,10 +115,12 @@ object SlotSignUp extends Controller with MongoController {
                     }
 
                     val newSignUpMeta = event.get.signUpMeta.get.copy(signUpSlots = newSignUpSlots)
+                    // print(newSignUpMeta + "\n")
                     EventDAO.save(event.get.copy(signUpMeta = Some(newSignUpMeta)))
 
+                    //print(tentativeEvents + "\n")
                     // add new SignUpPossibilityEvents
-                    EventDAO.bulkInsert(tentativeEvents)
+                    EventDAO.bulkInsert(tentativeEvents.toList)
 
                     Redirect(routes.Events.index(EventType.SignUp.toString()))
                 })
@@ -128,7 +130,7 @@ object SlotSignUp extends Controller with MongoController {
     def getPreferenceForm(eventID: String): Form[SignUpPreferences] = {
         val future = EventDAO.findById(BSONObjectID.apply(eventID))
         val event = Await.result(future, Duration(5000, MILLISECONDS))
-
+       
         val size = event.get.signUpMeta.get.signUpSlots.length
 
         SignUpPreferences.form.fill(new SignUpPreferences(size, List.fill(size)(0)))
@@ -184,7 +186,7 @@ object SlotSignUp extends Controller with MongoController {
                                 
                             if (userOptions.size <= minNum) {
                                 // assign slot to person with minimum preference number
-                                val userOption = userOptions.max(Ordering.by((option:UserSignUpOption) => option.preference))
+                                val userOption = userOptions.min(Ordering.by((option:UserSignUpOption) => option.preference))
                                 
                                 // if this is one of the user's top preferences
                                 if(userOption.preference <= minNum) {
@@ -224,9 +226,14 @@ object SlotSignUp extends Controller with MongoController {
                 errors => Ok(views.html.signUpResolution(errors, eventID, event.get.signUpMeta.get.signUpSlots)),
 
                 signUpMeta => {
+                    print(signUpMeta + "\n")
                     val newEvent = event.get.copy(signUpMeta = Some(signUpMeta))
+                    
+                    print(event.get._id + " " + objectID + " " + newEvent._id + "\n")
                     EventDAO.save(newEvent)
 
+                    print(newEvent.signUpMeta.get + "\n")
+                    
                     // delete slave events
                     EventDAO.findAndRemove("master" $eq event.get._id)
 
@@ -237,7 +244,7 @@ object SlotSignUp extends Controller with MongoController {
                         }
                     }
 
-                    Redirect(routes.Events.showEvent(eventID))
+                    Redirect(routes.Events.showEvent(event.get._id.stringify))
                 })
         }
     }
