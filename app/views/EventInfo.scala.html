@@ -81,9 +81,12 @@
 													
 													@if(!slot.userOptions.isEmpty){
 														@defining(slot.userOptions.get){blah =>
-																
-															@viewComponents.html.number2(signUpList("preferences[" + i +"]"),
-																blah.filter(userOption => userOption.userID.stringify == userID).head.preference.toInt)
+															@if(!blah.filter(userOption => userOption.userID.stringify == userID).isEmpty){
+																@viewComponents.html.number2(signUpList("preferences[" + i +"]"),
+																	blah.filter(userOption => userOption.userID.stringify == userID).head.preference.toInt)				
+																} else{
+																	@viewComponents.html.number2(signUpList("preferences[" + i +"]"))
+															}
 																							
 														}
 													} else{
