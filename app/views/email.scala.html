@@ -1,3 +1,37 @@
+
+@(form: Form[models.Email])
+
 @main("Email"){
-	<h1>Email Calendar</h1>
+
+<div class="row">
+    <div class="span8">
+	<h3>Email Calendar</h3>
+
+	@helper.form(action = routes.Events.index(eventType = "Fixed"), 'class -> "form-horizontal"){
+		
+	<h4>Time Range</h4>
+			@viewComponents.html.datepicker(form("timeRange.startDate"),
+			label = "Start Date")
+
+			@viewComponents.html.timepicker(form("timeRange.startTime"),
+			label = "Start Time")
+
+			@viewComponents.html.datepicker(form("timeRange.endDate"),
+			label = "End Date")
+
+			@viewComponents.html.timepicker(form("timeRange.endTime"),
+			label = "End Time")</div>
+			
+	<h4>Format</h4>
+	@viewComponents.html.checkbox(form("graphical"), label = "Graphical")
+
+	<label class="col-sm-2"> </h4>
+		<div class="col-sm-5">
+			<div class="form-actions">
+				<input class="btn btn-primary" type="submit"> 
+			</div>
+		</div>
+	}
+	</div>
+</div>
 }
