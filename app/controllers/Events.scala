@@ -64,7 +64,7 @@ object Events extends Controller with MongoController {
                 
                 // TODO: delete PUD events with timeRange.end $lte DateTime.now() and remove check from query
                 
-                // filter based on start time
+                // filter based on end time
                 var timeQuery = Json.obj("timeRange.start" $gte DateTime.now())
                 if (eventType == EventType.PUD.toString())
                     timeQuery =
