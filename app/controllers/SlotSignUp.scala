@@ -72,7 +72,7 @@ object SlotSignUp extends Controller with MongoController {
     def createSlave(masterEvent: Event, signUpSlot: SignUpSlot, userID: BSONObjectID) {
         val calendar = UserDAO.getFirstCalendarFromUserID(userID)
 
-        val newEvent = masterEvent.copy(_id = BSONObjectID.generate, calendar = calendar, timeRange = List[TimeRange](signUpSlot.timeRange), master = Some(masterEvent._id), eventType = EventType.Fixed)
+        val newEvent = new Event(_id = BSONObjectID.generate, name = "Signed up for " + masterEvent.name, description = masterEvent.description, calendar = calendar, timeRange = List[TimeRange](signUpSlot.timeRange), master = Some(masterEvent._id), eventType = EventType.Fixed)
         EventDAO.insert(newEvent)
     }
 
@@ -89,7 +89,7 @@ object SlotSignUp extends Controller with MongoController {
                     val calendar = UserDAO.getFirstCalendarFromUserID(AuthStateDAO.getUserID())
 
                     // remove old events and PUD if it exists
-                    EventDAO.findAndRemove($and("master" $eq event.get._id, "calendar" $eq calendar))
+                    EventDAO.remove($and("master" $eq event.get._id, "calendar" $eq calendar))
 
                     val preferences = signUpPreferences.preferences
                     var tentativeEvents = ListBuffer[Event]()
@@ -231,7 +231,7 @@ object SlotSignUp extends Controller with MongoController {
                     EventDAO.save(newEvent)
 
                     // delete slave events
-                    EventDAO.findAndRemove("master" $eq event.get._id)
+                    EventDAO.remove("master" $eq event.get._id)
 
                     // make new slave events
                     for (signUpSlot <- signUpMeta.signUpSlots) {
