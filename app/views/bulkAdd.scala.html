@@ -1,3 +1,24 @@
-@main("Bulk Add"){
-	<h1>Bulk Add Events</h1>
+@(form: Form[models.BulkAddRequest])
+
+@main("Add Event Data"){
+
+<div class="row">
+    <div class="span8">
+	<legend>Add Event Data</legend>
+
+	@helper.form(action = routes.BulkAdd.addEvents, 'class -> "form-horizontal"){
+	
+	@viewComponents.html.textarea(form("data"),
+		label = "Event Data",
+    rows = "10")
+
+	<label class="col-sm-2"> </label>
+		<div class="col-sm-5">
+			<div class="form-actions">
+				<input class="btn btn-primary" type="submit"> 
+			</div>
+		</div>
+	}
+	</div>
+</div>
 }

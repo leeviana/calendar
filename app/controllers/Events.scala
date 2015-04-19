@@ -567,8 +567,4 @@ object Events extends Controller with MongoController {
     def email = Action {
         Ok(views.html.email())
     }
-
-    def bulkAdd = Action {
-        Ok(views.html.bulkAdd())
-    }
 }
