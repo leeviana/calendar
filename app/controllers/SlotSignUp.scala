@@ -226,14 +226,10 @@ object SlotSignUp extends Controller with MongoController {
                 errors => Ok(views.html.signUpResolution(errors, eventID, event.get.signUpMeta.get.signUpSlots)),
 
                 signUpMeta => {
-                    print(signUpMeta + "\n")
                     val newEvent = event.get.copy(signUpMeta = Some(signUpMeta))
                     
-                    print(event.get._id + " " + objectID + " " + newEvent._id + "\n")
                     EventDAO.save(newEvent)
 
-                    print(newEvent.signUpMeta.get + "\n")
-                    
                     // delete slave events
                     EventDAO.findAndRemove("master" $eq event.get._id)
 
