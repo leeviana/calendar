@@ -565,6 +565,6 @@ object Events extends Controller with MongoController {
     }
 
     def email = Action {
-        Ok(views.html.email())
+        Ok(views.html.email(Email.form))
     }
 }
