@@ -58,9 +58,15 @@ object Events extends Controller with MongoController {
     /**
      * Shows the user's events of type "eventType" and events shared with the user via rules
      */
-    def index(eventType: String = "Fixed") = Action.async { implicit request =>
-        if (AuthStateDAO.isAuthenticated()) {
-            UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
+    def index(eventType: String = "Fixed", userID: String = "") = Action.async { implicit request =>
+        if (AuthStateDAO.isAuthenticated() || userID != "") {
+            var tempID = BSONObjectID.generate;
+            if (userID == "") {
+                tempID = AuthStateDAO.getUserID();
+            } else {
+                tempID = BSONObjectID.apply(userID);
+            }
+            UserDAO.findById(tempID).flatMap { user =>
                 
                 // TODO: delete PUD events with timeRange.end $lte DateTime.now() and remove check from query
                 
@@ -275,7 +281,7 @@ object Events extends Controller with MongoController {
                     createRecurrences(myEvent.copy(recurrenceMeta = Some(newRecurrenceMeta)))
                 }
 
-                Redirect(routes.Events.index(event.eventType.toString()))
+                Redirect(routes.Events.index(event.eventType.toString(),userID=""))
             })
     }
 
@@ -393,11 +399,11 @@ object Events extends Controller with MongoController {
                                 EventDAO.save(updatedEvent)
                             }
                         }
-                        Redirect(routes.Events.index(newEvent.eventType.toString()))
+                        Redirect(routes.Events.index(newEvent.eventType.toString(),userID =""))
                     } else {
                         // if event master is not the master
                         CreationRequests.createMasterRequest(event, oldEvent.get.master.get)
-                        Redirect(routes.Events.index(event.eventType.toString()))
+                        Redirect(routes.Events.index(event.eventType.toString(), userID = ""))
                     }
                 })
         }
@@ -430,7 +436,7 @@ object Events extends Controller with MongoController {
             })
 
         EventDAO.removeById(objectID)
-        Redirect(routes.Events.index(EventType.PUD.toString()))
+        Redirect(routes.Events.index(EventType.PUD.toString(), userID=""))
     }
 
     /**
@@ -502,7 +508,7 @@ object Events extends Controller with MongoController {
                 }
             }
 
-            Redirect(routes.Events.index(EventType.Fixed.toString()))
+            Redirect(routes.Events.index(EventType.Fixed.toString(),userID=""))
         }
     }
 

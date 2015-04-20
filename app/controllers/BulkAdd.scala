@@ -31,18 +31,25 @@ import reactivemongo.extensions.json.dsl.JsonDsl._
 object BulkAdd extends Controller with MongoController {
 
     def bulkAdd = Action {
-        Ok(views.html.bulkAdd(BulkAddRequest.form))
+        Ok(views.html.bulkAdd(BulkAddRequest.form,""))
     }
 
 	def addEvents() = Action { implicit request =>
         BulkAddRequest.form.bindFromRequest.fold(
-            errors => Ok(views.html.bulkAdd(errors)),
+            errors => Ok(views.html.bulkAdd(errors, "")),
               
             formdata => {
-                val data = EventParser.parseText(formdata.data);
-                val completed = EventParser.validateDataset(data);
-
-                Redirect(routes.Events.index(EventType.Fixed.toString()))
+                val (data,err) = EventParser.parseText(formdata.data);
+                if (err != "") {
+                    Ok(views.html.bulkAdd(BulkAddRequest.form.fill(formdata), err))
+                } else {
+                    val error_state = EventParser.validateDataset(data);
+                    if (error_state != "") {
+                        Ok(views.html.bulkAdd(BulkAddRequest.form.fill(formdata), error_state))
+                    } else {
+                        Redirect(routes.Events.index(EventType.Fixed.toString(),userID=""))
+                    }
+                }
             }
         )
 	}

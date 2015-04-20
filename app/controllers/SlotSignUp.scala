@@ -62,7 +62,7 @@ object SlotSignUp extends Controller with MongoController {
 
             createSlave(event.get, signUpSlot, AuthStateDAO.getUserID())
 
-            Redirect(routes.Events.index(EventType.Fixed.toString()))
+            Redirect(routes.Events.index(EventType.Fixed.toString(), userID=""))
         }
     }
 
@@ -122,7 +122,7 @@ object SlotSignUp extends Controller with MongoController {
                     // add new SignUpPossibilityEvents
                     EventDAO.bulkInsert(tentativeEvents.toList)
 
-                    Redirect(routes.Events.index(EventType.SignUp.toString()))
+                    Redirect(routes.Events.index(EventType.SignUp.toString(), userID=""))
                 })
         }
     }

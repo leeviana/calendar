@@ -1,10 +1,11 @@
-@(form: Form[models.BulkAddRequest])
+@(form: Form[models.BulkAddRequest], message: String)
 
 @main("Add Event Data"){
 
 <div class="row">
     <div class="span8">
 	<legend>Add Event Data</legend>
+  @if(message != ""){<p>Error: @message</p>}
 
 	@helper.form(action = routes.BulkAdd.addEvents, 'class -> "form-horizontal"){
 	

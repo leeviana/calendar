@@ -13,7 +13,6 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.File
-import play.api.Play.current
 
 class SendEmailActor extends Actor {
 
@@ -28,8 +27,7 @@ class SendEmailActor extends Actor {
 		}
 		case username: String => {
 			val user = UserDAO.getUserFromUsername(username)(0);
-			// get all 3 pdf from username
-			// pull user from database
+			sendEmail(user.username + " <"+ user.email +">", "This is the copy of your schedule you requested.",user.username);
 
 		}
 		case z => {
@@ -44,9 +42,9 @@ class SendEmailActor extends Actor {
 	def sendEmail(destination: String, content: String, fileID: String) = {
 		var attachmentfiles: Seq[AttachmentFile] = Seq();
 		if (fileID.length > 0) {
-			attachmentfiles = Seq(AttachmentFile("Events.pdf", new File("./e-" + fileID + ".pdf")),
-				AttachmentFile("PUDs.pdf", new File("./p-" + fileID + ".pdf")),
-				AttachmentFile("SignUps.pdf", new File("./s-" + fileID + ".pdf")));
+			attachmentfiles = Seq(AttachmentFile("Events.pdf", new File("./Fixed-" + fileID + ".pdf")),
+				AttachmentFile("PUDs.pdf", new File("./PUD-" + fileID + ".pdf")),
+				AttachmentFile("SignUps.pdf", new File("./SignUp-" + fileID + ".pdf")));
 		}
 		
 		val email = Email(

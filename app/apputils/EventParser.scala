@@ -11,7 +11,7 @@ object EventParser {
     val tsRegex2 = "((^$)|(" + tsRegex +"))"
     val fieldRegexs = MapBuffer("type"->"(pud|fixed|signup)","name"->".+","description"->".*","start"->tsRegex2,"end"->tsRegex2,"recurrencerate"->"((^$)|daily|weekly|monthly|yearly)","recurrencecount"->"((^$)|\\d+)","endrecurring"->tsRegex2,"forpud"->"((^$)|true|false)","priority"->"((^$)|\\d+)","expiretime"->tsRegex2,"escalationstart"->tsRegex2,"escalationvalue"->"((^$)|\\d+)","escalationrate"->"((^$)|daily|weekly|monthly|yearly)","escalationcount"->"((^$)|\\d+)","maxslots"->"((^$)|\\d+)","minduration"->"((^$)|\\d+)","createsignuppud"->"((^$)|true|false)","reminder"->tsRegex2,"users"->".*","determination"->tsRegex2);
 
-    def parseText(text: String): List[MapBuffer[String,List[String]]] = {
+    def parseText(text: String): (List[MapBuffer[String,List[String]]], String) = {
     	var out: List[MapBuffer[String,List[String]]] = List();
         var lineNo = 0;
 
@@ -23,18 +23,17 @@ object EventParser {
     			var key = arr(0).trim.toLowerCase;
     			var values = Array[String]();
                 if (!(fieldNames.contains(key)) && !(key.matches(reminderRegex))) {
-                    println("invalid key: " + key);
+                    return (out, "Line:" + lineNo + " invalid key: " + key)
                 }
     			if (arr.length > 1) {
     				values = arr(1).trim.split('|');
     			} else {
     				values = Array("");
-                    println("invalid syntax (not a key=value pair)" + key);
+                    return (out,"Line:" + lineNo + " invalid syntax (not a key=value pair)" + key)
     			}
                 var simpleKey = key filterNot("0123456789" contains _)
                 if (!(values(0).toLowerCase.matches(fieldRegexs(simpleKey)))) {
-                    println("invalid data in key: " + key + ", " + values(0).toLowerCase);
-                    println(fieldRegexs(simpleKey))
+                    return (out, "Line:" + lineNo + " invalid data in key: " + key + ", " + values(0).toLowerCase)
                 }
                 if (values.length > 0) {
                     parsedLine += (key -> values.toList);
@@ -43,11 +42,12 @@ object EventParser {
     		out = out :+ parsedLine;
             lineNo = lineNo + 1;
     	}    	
-    	return out;
+    	return (out, "");
     }
 
-    def validateDataset(data: List[MapBuffer[String,List[String]]]): Boolean = {
-        println(data.length);
+    def validateDataset(data: List[MapBuffer[String,List[String]]]): String = {
+        var error = "";
+        var lineNo = 0;
         for (line <- data) {
             var isInvalid = (!line.keySet.contains("name"));
             isInvalid = isInvalid || (!line.keySet.contains("start"));
@@ -58,25 +58,29 @@ object EventParser {
             isInvalid = isInvalid || (line.keySet.contains("createsignuppud") && (!line.keySet.contains("priority")));
 
             if (isInvalid){
-                println("missing a required key=value pair");
+                error = "Line: " + lineNo + " missing a required key=value pair"
+                return error;
             }
             for (key <- line.keys) {
                 var count = "";
                 if (key.matches("start\\d")) {
                     count = key.takeRight(1);
                     if ((!line.keySet.contains("end"+count))) {
-                        println("unmatched start/end pair");
+                        error = "Line: " + lineNo + " unmatched start/end pair"
+                        return error;
                     }
                 }
 
                 if (key.matches("end\\d")) {
                     count = key.takeRight(1);
                     if ((!line.keySet.contains("start"+count))) {
-                        println("unmatched start/end pair");
+                        error = "Line: " + lineNo + " unmatched start/end pair"
+                        return error;
                     }
                 }
             }
+            lineNo = lineNo+1;
         }
-        return true;
+        return error;
     }
 }

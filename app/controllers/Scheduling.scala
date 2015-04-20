@@ -53,9 +53,13 @@ object Scheduling extends Controller with MongoController {
      * Render a page where the user can specify their "free time" query
      */
     def showForm = Action { implicit request =>
+        if (AuthStateDAO.isAuthenticated()) {
         val userID = AuthStateDAO.getUserID()
-        
         Ok(views.html.scheduler(schedulingForm, None, userID))
+        } else {
+            Redirect(routes.Application.index)
+        }
+
     }
 
     /**

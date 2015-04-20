@@ -26,16 +26,17 @@ POST    /events/:eventID/resolve        controllers.SlotSignUp.resolveSlots(even
 POST    /events/:eventID/slotPrefs      controllers.SlotSignUp.indicatePreferences(eventID)
 
 # Events
-GET     /events                         controllers.Events.index(eventType = "Fixed")
+GET     /events                         controllers.Events.index(eventType = "Fixed",userID="")
 GET     /events/new                     controllers.Events.showCreationForm
 POST    /events/new                     controllers.Events.create
 GET     /events/info/:eventID           controllers.Events.showEvent(eventID)
 POST    /events/addreminder/:eventID    controllers.Events.addReminder(eventID)
 GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eventID)
 POST    /events/:eventID/edit           controllers.Events.editEvent(eventID)
-GET     /events/:eventType              controllers.Events.index(eventType)
+GET     /events/:eventType              controllers.Events.index(eventType, userID="")
+GET     /events/:eventType/:userID              controllers.Events.index(eventType,userID)
 GET     /events/info/:eventID           controllers.SlotSignUp.indicatePreferences(eventID)
-GET 	/email							controllers.Events.email
+GET 	/email							controllers.Application.requestEmail
 GET 	/bulkAdd						controllers.BulkAdd.bulkAdd
 POST 	/bulkAdd						controllers.BulkAdd.addEvents
 

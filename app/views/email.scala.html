@@ -7,7 +7,7 @@
     <div class="span8">
 	<h3>Email Calendar</h3>
 
-	@helper.form(action = routes.Events.index(eventType = "Fixed"), 'class -> "form-horizontal"){
+	@helper.form(action = routes.Events.index(eventType = "Fixed", userID = ""), 'class -> "form-horizontal"){
 		
 	<h4>Time Range</h4>
 			@viewComponents.html.datepicker(form("timeRange.startDate"),

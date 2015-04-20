@@ -145,7 +145,7 @@ object CreationRequests extends Controller with MongoController {
                 }
             }
 
-            Redirect(routes.Events.index(EventType.Fixed.toString()))
+            Redirect(routes.Events.index(EventType.Fixed.toString(),userID=""))
         }
     }
 }
