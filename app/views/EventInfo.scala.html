@@ -63,6 +63,7 @@
 
 						@for(i <- 0 to signUpList.get.numSlots - 1){
 						
+						
 							@defining(event.signUpMeta.get.signUpSlots.apply(i)){slot =>
 									<tr>														
 									<td> @slot.timeRange.start.toString("MMM-dd-yyyy")	</td>
@@ -70,14 +71,27 @@
 									<td> @slot.timeRange.end.get.toString("MMM-dd-yyyy") </td>
 									<td> @slot.timeRange.end.get.toString("hh:mm a") </td>
 									
+									
+									
 									@if(slot.userID.isEmpty){	
 										@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
 											@if(canSign){
 												@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
 													<td> 
-													@viewComponents.html.number2(signUpList("preferences[" + i +"]"),
-														signUpList("preferences[" + i +"]"))
-							             			
+													
+													@if(!slot.userOptions.isEmpty){
+														@defining(slot.userOptions.get){blah =>
+															@if(!blah.filter(userOption => userOption.userID.stringify == userID).isEmpty){
+																@viewComponents.html.number2(signUpList("preferences[" + i +"]"),
+																	blah.filter(userOption => userOption.userID.stringify == userID).head.preference.toInt)				
+																} else{
+																	@viewComponents.html.number2(signUpList("preferences[" + i +"]"))
+															}
+																							
+														}
+													} else{
+														@viewComponents.html.number2(signUpList("preferences[" + i +"]"))
+							             			}
 													</td>
 										
 													
@@ -109,14 +123,24 @@
 						}
 						</tbody>
 						</table>
-						@viewComponents.html.number(signUpList("numSlots"))
+							<input type="number" 
+							
+			             	class="form-control" 
+			             	name='@signUpList("numSlots").name'
+			             	value='@signUpList("numSlots").value.getOrElse("")'/>
+			             	
 					}
 					
 									
-				
-									<div class="form-actions">
-										<button class="btn btn-success pull-right" type="submit"> Submit </button>
-									</div>
+				@defining(EventDAO.canSignUp(event._id, BSONObjectID.apply(userID))){canSign =>
+					@if(canSign){
+						@if(!event.signUpMeta.get.prefDeterminationTime.isEmpty){ 
+							<div class="form-actions">
+								<button class="btn btn-success pull-right" type="submit"> Submit </button>
+							</div>
+						}
+					}
+				}
 								
 
 

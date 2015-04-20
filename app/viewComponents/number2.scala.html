@@ -1,9 +1,9 @@
-@(field: Field, field2: Field)
+@(field: Field, x: Int = 0 )
 
 <input style = "width:60px" 
 	type="number" 
 	class="form-control" 
 	name="@field.name" 
-	value="@field2.value.getOrElse("")"
+	value= "@x"
 	min="0" 
 	max="1440000"/>

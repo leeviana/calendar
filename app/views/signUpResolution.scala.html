@@ -35,9 +35,23 @@
 					}else{
 						<td>No Suggestion</td>
 					}
-					<td> @viewComponents.html.signUpDropdown(signUpMetaForm("slotList(s)"),
+					<td> @viewComponents.html.signUpDropdown(signUpMetaForm("signUpSlots[" + s + "].userID"),
 						label = "",
 						slotList(s).userOptions.getOrElse(List[UserSignUpOption]()))</td>
+						<div hidden id = "temp">
+						@viewComponents.html.text(signUpMetaForm("signUpSlots[" + s + "].timeRange.startDate"),
+							label = "Start Date")
+							
+						@viewComponents.html.text(signUpMetaForm("signUpSlots[" + s + "].timeRange.startTime"),
+							label = "Start Time")
+							
+						@viewComponents.html.text(signUpMetaForm("signUpSlots[" + s + "].timeRange.endDate"),
+							label = "End Date")
+							
+						@viewComponents.html.text(signUpMetaForm("signUpSlots[" + s + "].timeRange.endTime"),
+							label = "End Time")		
+						</div>
+							
 				</tr>
 	   		}
 			</tbody>
