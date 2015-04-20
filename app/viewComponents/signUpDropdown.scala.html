@@ -8,7 +8,7 @@
     		<select name="@field.name" id='@(field.id + "s")' class="form-control" style="width:150px">
     			<option value=""> </option>  	
     				@for(element <- optionList){
-    					<option value='@element'> @UserDAO.getUserFromID(element.userID).email pref=@element.preference</option>
+    					<option value='@element.userID.stringify'> @UserDAO.getUserFromID(element.userID).email pref=@element.preference</option>
     				}
     		</select>
     	</div>

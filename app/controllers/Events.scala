@@ -90,12 +90,12 @@ object Events extends Controller with MongoController {
                         timeQuery,
                         getEventFilter(user.get)))
 
-                if (eventType == EventType.PUD) {
+                if (eventType == EventType.PUD.toString()) {
                     val sort = Json.obj("pudMeta.priority" -> 1)
 
                     EventDAO.findAll(jsonquery, sort).map { events =>
                         val accessEvents = applyAccesses(events, user.get)
-                        val escalatedEvents = applyEscalations(events)
+                        val escalatedEvents = applyEscalations(accessEvents)
                         Ok(views.html.events(escalatedEvents, eventType))
                     }
                 } else {
@@ -161,12 +161,12 @@ object Events extends Controller with MongoController {
      */
     def applyEscalations(events: List[Event]): List[Event] = {
         events.map { event =>
-
             if(event.pudMeta.get.escalationInfo.isDefined) {
                 val escalationInfo = event.pudMeta.get.escalationInfo.get
                 val diff = (DateTime.now().getMillis - escalationInfo.timeRange.start.getMillis)
                 // if within the time period of escalation
                 if(diff > 0) {
+           
                     val escalationPeriods = diff/escalationInfo.recurDuration.toStandardDuration().getMillis
                     val newPriority = event.pudMeta.get.priority - (escalationPeriods * event.pudMeta.get.escalationAmount.get)
                     

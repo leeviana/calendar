@@ -54,7 +54,13 @@
 				@if(!e.viewType.isEmpty){
 					@if(e.viewType.get.toString == models.enums.ViewType.Declined.toString){
 					<tr class="danger">}
-				} else { <tr> }
+				 
+					@if(e.viewType.get.toString == models.enums.ViewType.SignUpPossibility.toString){
+					<tr class="info">
+					} 
+				} else{			
+					<tr> }
+				
 					<td>@e.getFirstTimeRange.start.toString("MMM-dd-yyyy")</td>
 					<td>@e.getFirstTimeRange.start.toString("hh:mm a") 
 					@if(e.getFirstTimeRange.end.isDefined){

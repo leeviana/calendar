@@ -45,13 +45,12 @@ object Rules extends Controller with MongoController {
                     if(event.get.eventType == EventType.SignUp) {
                         val signUpMeta = event.get.signUpMeta.get
                         if(signUpMeta.prefDeterminationTime.isDefined) {
-                            if(signUpMeta.createPUD.get) {
-                                val userIDs = GroupDAO.getUsersOfEntity(rule.entityID)
-                                
-                                for (user <- userIDs) {
-                                    createSignUpPUD(objectID, user.firstCalendar, signUpMeta.signUpPUDPriority.get)
+                                if(signUpMeta.createPUD.getOrElse(false)) {
+                                    val userIDs = GroupDAO.getUsersOfEntity(rule.entityID)
+                                    for (user <- userIDs) {
+                                        createSignUpPUD(objectID, user.firstCalendar, signUpMeta.signUpPUDPriority.get)
+                                    }
                                 }
-                            }
                         }
                     }    
                     EventDAO.updateById(objectID, $push("rules", rule))
@@ -69,12 +68,11 @@ object Rules extends Controller with MongoController {
 
             // if there isn't already a related PUD, make one
             EventDAO.findOne(($and("master" $eq Some(eventID), "calendar" $eq calendar, "eventType" $eq EventType.PUD))).map { pudevent =>
-                if(!pudevent.isDefined) {
-                    
+              if(!pudevent.isDefined) {
                     val PUDMeta = new PUDMeta(priority = priority)
                     val timeRange = new TimeRange(start = DateTime.now(), end = Some(event.get.signUpMeta.get.prefDeterminationTime.get), duration = Duration.standardMinutes(10))
                     val newEvent = new Event(_id = BSONObjectID.generate, name = "Sign up for " + event.get.name, master = Some(eventID), calendar = calendar, eventType = EventType.PUD, pudMeta = Some(PUDMeta), timeRange = List[TimeRange](timeRange))
-                    
+              
                     EventDAO.insert(newEvent)
                 }
             }
