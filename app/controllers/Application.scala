@@ -18,7 +18,8 @@ import reactivemongo.bson.Producer.nameValue2Producer
 //import reactivemongo.extensions.dsl.BsonDsl._
 import reactivemongo.extensions.json.dsl.JsonDsl._
 import play.modules.reactivemongo.json.BSONFormats._
-
+import play.api.libs.ws._
+import play.api.Play.current
 
 object Application extends Controller with MongoController{
 
@@ -37,6 +38,14 @@ object Application extends Controller with MongoController{
 
     def newCalendarForm = Action{  implicit request =>
         Ok(views.html.createCalendar(Calendar.form, AuthStateDAO.getUserID().stringify))
+    }
+
+    def requestEmail = Action { implicit request =>
+        val requestForm = Map("url" -> Seq("http://nautical-dev.colab.duke.edu/"), "netid" -> Seq("nautical"));
+        val url = "http://devilprint.colab.duke.edu/pdf";
+        WS.url(url).post(requestForm);
+        println("send it!");
+        Ok(views.html.index());
     }
     
     def addCalendar = Action.async { implicit request =>

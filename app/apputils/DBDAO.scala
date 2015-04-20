@@ -107,6 +107,20 @@ object UserDAO extends JsonDao[User, BSONObjectID](MongoContext.db, "users") {
         else
             throw new Exception("Database incongruity: User ID not found")
     }
+
+    /**
+     * Blocking call for getting user object from ID for calls that don't care about performance and/or
+     * would have to immediately block on the call anyways
+     */
+    def getUserFromUsername(username: String): List[User] = {
+        val futureRequests = this.findAll("username" $eq username)
+
+        val user = Await.result(futureRequests, Duration(5000, MILLISECONDS))
+        if (user.length > 0)
+            user
+        else
+            throw new Exception("Database incongruity: Username not found")
+    }
     
     /**
      * Blocking call for getting list of all users

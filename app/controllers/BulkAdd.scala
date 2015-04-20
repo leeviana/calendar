@@ -39,42 +39,11 @@ object BulkAdd extends Controller with MongoController {
             errors => Ok(views.html.bulkAdd(errors)),
               
             formdata => {
-                val test = EventParser.parseText(formdata.data);
+                val data = EventParser.parseText(formdata.data);
+                val completed = EventParser.validateDataset(data);
+
                 Redirect(routes.Events.index(EventType.Fixed.toString()))
             }
         )
 	}
-
-    def editEvent(eventID: String) = Action.async { implicit request =>
-        val iterator = RecurrenceType.values.iterator
-
-        EventDAO.findById(BSONObjectID(eventID)).map { oldEvent =>
-            Event.form.bindFromRequest.fold(
-                errors => {
-                    Ok(views.html.editEvent(Some(oldEvent.get._id.stringify), errors, iterator, JsonConverter.jsonToMap(Json.parse(request.cookies.get("calMap").get.value))));
-                },
-
-                event => {
-                    if (!oldEvent.get.master.isDefined & oldEvent.get.master != oldEvent.get._id) {
-                        val newEvent = event.copy(_id = BSONObjectID(eventID))
-                        EventDAO.save(newEvent)
-
-                        CreationRequestDAO.update($and("master" $eq oldEvent.get._id, "requestStatus" $ne CreationRequestStatus.Removed.toString()), $set("requestStatus" -> CreationRequestStatus.Pending.toString()))
-
-                        // updates all slave events that are not on your own calendar (which are pending master requests)
-                        EventDAO.findAll($and("master" $eq oldEvent.get._id, "calendar" $ne oldEvent.get.calendar)).map { slaveEvents =>
-                            slaveEvents.map { slaveEvent =>
-                                val updatedEvent = event.copy(_id = slaveEvent._id, calendar = slaveEvent.calendar, master = slaveEvent.master, rules = slaveEvent.rules, viewType = Some(ViewType.Request))
-                                EventDAO.save(updatedEvent)
-                            }
-                        }
-                        Redirect(routes.Events.index(newEvent.eventType.toString()))
-                    } else {
-                        // if event master is not the master
-                        CreationRequests.createMasterRequest(event, oldEvent.get.master.get)
-                        Redirect(routes.Events.index(event.eventType.toString()))
-                    }
-                })
-        }
-    }
 }
