@@ -1,14 +1,24 @@
-@(form: Form[models.BulkAddRequest], message: String)
+@(form: Form[models.BulkAddRequest], message: String, calMap: scala.collection.mutable.Map[String, String])
 
 @main("Add Event Data"){
 
 <div class="row">
-    <div class="span8">
-	<legend>Add Event Data</legend>
+	
   @if(message != ""){<p>Error: @message</p>}
 
 	@helper.form(action = routes.BulkAdd.addEvents, 'class -> "form-horizontal"){
-	
+     <div class="span8">
+            <label class="col-sm-2 control-label"> Calendar </label>
+    		<div class="col-sm-10"> 
+        <select name='@form("calendar").name' id='@form("calendar").id' class="form-control" style="width:215px">
+        @for((eventID, eventName) <- calMap){
+        	<option value='@eventID'>@eventName </option>
+        }
+        </select>
+        <script type="text/javascript">
+    		$('#@form("calendar").id').val('@form("calendar").value.getOrElse("").toString()')	
+    	</script>
+	<legend>Add Event Data</legend>
 	@viewComponents.html.textarea(form("data"),
 		label = "Event Data",
     rows = "10")

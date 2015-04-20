@@ -12,37 +12,37 @@ object EventParser {
     val fieldRegexs = MapBuffer("type"->"(pud|fixed|signup)","name"->".+","description"->".*","start"->tsRegex2,"end"->tsRegex2,"recurrencerate"->"((^$)|daily|weekly|monthly|yearly)","recurrencecount"->"((^$)|\\d+)","endrecurring"->tsRegex2,"forpud"->"((^$)|true|false)","priority"->"((^$)|\\d+)","expiretime"->tsRegex2,"escalationstart"->tsRegex2,"escalationvalue"->"((^$)|\\d+)","escalationrate"->"((^$)|daily|weekly|monthly|yearly)","escalationcount"->"((^$)|\\d+)","maxslots"->"((^$)|\\d+)","minduration"->"((^$)|\\d+)","createsignuppud"->"((^$)|true|false)","reminder"->tsRegex2,"users"->".*","determination"->tsRegex2);
 
     def parseText(text: String): (List[MapBuffer[String,List[String]]], String) = {
-    	var out: List[MapBuffer[String,List[String]]] = List();
+        var out: List[MapBuffer[String,List[String]]] = List();
         var lineNo = 0;
 
-    	val lines = text.split('\n');
-    	for (line <- lines) {
-    		var parsedLine: MapBuffer[String,List[String]] = MapBuffer();
-    		for (property <- line.trim.split(',')) {
-    			var arr = property.trim.split('=');
-    			var key = arr(0).trim.toLowerCase;
-    			var values = Array[String]();
+        val lines = text.split('\n');
+        for (line <- lines) {
+            var parsedLine: MapBuffer[String,List[String]] = MapBuffer();
+            for (property <- line.trim.toLowerCase.split(',')) {
+                var arr = property.trim.split('=');
+                var key = arr(0).trim.toLowerCase;
+                var values = Array[String]();
                 if (!(fieldNames.contains(key)) && !(key.matches(reminderRegex))) {
                     return (out, "Line:" + lineNo + " invalid key: " + key)
                 }
-    			if (arr.length > 1) {
-    				values = arr(1).trim.split('|');
-    			} else {
-    				values = Array("");
+                if (arr.length > 1) {
+                    values = arr(1).trim.toLowerCase.split('|');
+                } else {
+                    values = Array("");
                     return (out,"Line:" + lineNo + " invalid syntax (not a key=value pair)" + key)
-    			}
+                }
                 var simpleKey = key filterNot("0123456789" contains _)
                 if (!(values(0).toLowerCase.matches(fieldRegexs(simpleKey)))) {
                     return (out, "Line:" + lineNo + " invalid data in key: " + key + ", " + values(0).toLowerCase)
                 }
                 if (values.length > 0) {
-                    parsedLine += (key -> values.toList);
+                    parsedLine += (key.toLowerCase -> values.toList);
                 }
-    		}
-    		out = out :+ parsedLine;
+            }
+            out = out :+ parsedLine;
             lineNo = lineNo + 1;
-    	}    	
-    	return (out, "");
+        }       
+        return (out, "");
     }
 
     def validateDataset(data: List[MapBuffer[String,List[String]]]): String = {
@@ -53,7 +53,7 @@ object EventParser {
             isInvalid = isInvalid || (!line.keySet.contains("start"));
             isInvalid = isInvalid || (line("type") == "fixed" && !line.keySet.contains("end"));
             isInvalid = isInvalid || (line("type") == "pud" && (!line.keySet.contains("end") || !line.keySet.contains("priority")));
-            isInvalid = isInvalid || (line("type") == "signup" && (!line.keySet.contains("end") || !line.keySet.contains("maxslots")));
+            isInvalid = isInvalid || (line("type") == "signup" && (!line.keySet.contains("end") || !line.keySet.contains("maxslots") || !line.keySet.contains("minduration")));
             isInvalid = isInvalid || (line.keySet.contains("recurrencerate") && (!line.keySet.contains("recurrencecount") || !line.keySet.contains("endrecurring")));
             isInvalid = isInvalid || (line.keySet.contains("createsignuppud") && (!line.keySet.contains("priority")));
 

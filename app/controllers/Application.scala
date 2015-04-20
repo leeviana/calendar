@@ -58,7 +58,7 @@ object Application extends Controller with MongoController{
         UserDAO.findById(AuthStateDAO.getUserID()).flatMap { user =>
             for (endpoint <- endpoints) {
                 val file = new File("./"+endpoint+"-"+user.get.username+".pdf")
-                val requestForm = Map("url" -> Seq("http://nautical-dev.colab.duke.edu/events/" + endpoint + "/" + AuthStateDAO.getUserID().stringify), "netid" -> Seq("nautical"));
+                val requestForm = Map("url" -> Seq("http://nautical-dev.colab.duke.edu/events/" + endpoint + "/user/" + AuthStateDAO.getUserID().stringify), "netid" -> Seq("nautical"));
                 val url = "http://devilprint.colab.duke.edu:8080/pdf";
                 //WS.url(url).post(requestForm);
 
@@ -92,7 +92,7 @@ object Application extends Controller with MongoController{
             }
             //Future.successful(Redirect(routes.Events.index("Fixed")));
             sendEmail(user.get.username + " <"+ user.get.email +">", "This is the copy of your schedule you requested.",user.get.username);
-            Future.successful(Ok(views.html.email(models.Email.form)));
+            Future.successful(Redirect(routes.Application.index));
         }
     } else {
         Future.successful(Redirect(routes.Application.index))

@@ -34,9 +34,10 @@ POST    /events/addreminder/:eventID    controllers.Events.addReminder(eventID)
 GET     /events/:eventID/edit           controllers.Events.showEventEditForm(eventID)
 POST    /events/:eventID/edit           controllers.Events.editEvent(eventID)
 GET     /events/:eventType              controllers.Events.index(eventType, userID="")
-GET     /events/:eventType/:userID              controllers.Events.index(eventType,userID)
+GET     /events/:eventType/user/:userID              controllers.Events.index(eventType,userID)
 GET     /events/info/:eventID           controllers.SlotSignUp.indicatePreferences(eventID)
-GET 	/email							controllers.Application.requestEmail
+GET 	/email							controllers.Events.email
+POST 	/email							controllers.Application.requestEmail
 GET 	/bulkAdd						controllers.BulkAdd.bulkAdd
 POST 	/bulkAdd						controllers.BulkAdd.addEvents
 
