@@ -104,10 +104,26 @@ object BulkAdd extends Controller with MongoController {
                                     var end = Some(DateTime.parse(line("end"+c)(0)));
                                     signupslots = signupslots :+ new SignUpSlot(timeRange=new TimeRange(start,end, new JodaDuration(end.get.getMillis - start.getMillis)));
                                 }
+                                var determination: Option[DateTime] = None;
+                                var createPUD: Option[Boolean] = None;
+                                var signUpPUDPriority: Option[Int] = None;
+                                if (line.keySet.contains("determination")) {
+                                    determination = Some(DateTime.parse(line("determination")(0)));
+                                }
+                                if (line.keySet.contains("createsignuppud")) {
+                                    createPUD = Some(line("createsignuppud")(0).matches("true"))
+                                }
+                                if (line.keySet.contains("priority")) {
+                                    signUpPUDPriority = Some(line("priority")(0).toInt)
+                                }
                                 signUpMeta = Some(new SignUpMeta(
                                     signupslots,
                                     line("minduration")(0).toInt,
-                                    line("maxslots")(0).toInt))
+                                    line("maxslots")(0).toInt,
+                                    determination,
+                                    createPUD,
+                                    signUpPUDPriority
+                                    ))
                             }
                             var description = Some("");
                             if (line.keySet contains "description") {
