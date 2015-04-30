@@ -114,16 +114,13 @@ Once again, Susan and I worked primarily on the front end.  We met a few times w
 
 
 \subsection{Robert}
-Experiment:
+During the course of this evolution, I focused on improving our form submission, validation and error workflow. For most forms, when a field error is detected (bad formatting, etc), the server sends the original form data back and includes errors showing which fields were flawed. For forms which have dynamically generated content (such as a list of calendars associated with the current user), this content must be re-queried from the database, and regenerated and formatted before responding to the request. I developed an alternative solution in which any of the data contained within the Form can be stored as a cookie by the client and then repopulated directly from the cookie-cache in the case of a failed form validation.
 
-Data Analysis: 
+First I experimented with full Form object to JSON conversion, but after spending a significant amount of time studying the complexity of Scala Play Form objects, I established that such an advanced conversion process would be infeasible. Instead I moved on to the concept of converting JSON to/from generalized model and mapping objects which can be operated upon in scala directly, only converting the simpler objects which directly needed to be maintained by the form. 
 
-Meeting Desired Needs: 
+I also began work on the concept for a CookieDAO (data access object) which, should further cookie-based interaction be required, will greatly simplify the process of reading and altering the content of the client-side stored data values. 
 
-Realistic Constraints:
-
-Contribution:
-
+The second major area I worked on was on the process of high level validation of submitted forms as a whole, rather than as a set of individual fields. Previously, forms fields were only able to be validated on an individual basis and, even then, only based on the formatting of the string they contained. I set up the code necessary to validate the forms as a whole (for example ensuring startDate < endDate, etc.), as well as factor out the code needed for validation into external methods where more extensive database-based validation can occur, checking for references to non-existent objects and other more complex validation steps.
 
 \subsection{Susan}
 For the multiple Slot sign up requirement, having the editEvent page dynamically create fields when clicking on a button was a bit tricky. To populate a field in a list in Scala, one can index into the field using square brackets. For example to populate the second timeRange’s startDate, the field corresponding field would be “timeRangeList[1].startDate”. This functionality was tested by hardcoding additional fields into the frontend, filling them, and checking that the values matched in the backend database.
